@@ -11,7 +11,13 @@
   --pink: #f45bb6;
   --orange: #ffb000;
   --shadow: 0 22px 60px rgba(60, 83, 143, 0.16);
-  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family:
+    Inter,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
 }
 
 * {
@@ -32,8 +38,16 @@ body {
   overflow: hidden;
   color: var(--text);
   background:
-    radial-gradient(circle at 16% 10%, rgba(37, 99, 235, 0.08), transparent 20%),
-    radial-gradient(circle at 84% 12%, rgba(124, 58, 237, 0.08), transparent 18%),
+    radial-gradient(
+      circle at 16% 10%,
+      rgba(37, 99, 235, 0.08),
+      transparent 20%
+    ),
+    radial-gradient(
+      circle at 84% 12%,
+      rgba(124, 58, 237, 0.08),
+      transparent 18%
+    ),
     linear-gradient(180deg, var(--bg-1) 0%, var(--bg-2) 100%);
 }
 
@@ -380,7 +394,11 @@ a {
 }
 
 .auth-cardPanel--register::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, rgba(37, 99, 235, 0.75), rgba(109, 61, 245, 0.82));
+  background: linear-gradient(
+    180deg,
+    rgba(37, 99, 235, 0.75),
+    rgba(109, 61, 245, 0.82)
+  );
   border-radius: 999px;
   border: 0;
 }
@@ -495,7 +513,10 @@ a {
   padding: 0 16px;
   color: #111827;
   outline: none;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
 }
 
 .auth-input--withIcon {
@@ -640,7 +661,10 @@ a {
   min-height: 58px;
   padding: 0 20px;
   font-weight: 700;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
 }
 
 .sa-button:hover:not(:disabled) {
@@ -761,8 +785,16 @@ a {
 .sa-app {
   min-height: 100vh;
   background:
-    radial-gradient(circle at 16% 10%, rgba(59, 130, 246, 0.08), transparent 18%),
-    radial-gradient(circle at 84% 12%, rgba(124, 58, 237, 0.08), transparent 18%),
+    radial-gradient(
+      circle at 16% 10%,
+      rgba(59, 130, 246, 0.08),
+      transparent 18%
+    ),
+    radial-gradient(
+      circle at 84% 12%,
+      rgba(124, 58, 237, 0.08),
+      transparent 18%
+    ),
     linear-gradient(135deg, #f8fbff 0%, #eef4ff 100%);
 }
 
@@ -818,7 +850,10 @@ a {
   place-items: center;
   background: transparent;
   color: #94a3b8;
-  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
 }
 
 .sa-sidebar__navItem:hover {
@@ -828,7 +863,11 @@ a {
 }
 
 .sa-sidebar__navItem.is-active {
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(99, 102, 241, 0.18));
+  background: linear-gradient(
+    135deg,
+    rgba(59, 130, 246, 0.18),
+    rgba(99, 102, 241, 0.18)
+  );
   color: #60a5fa;
 }
 
@@ -1755,7 +1794,9 @@ a {
   gap: 16px;
   padding: 16px 20px;
   border-bottom: 1px solid #e2e8f0;
-  transition: background 0.2s ease, transform 0.2s ease;
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
 }
 
 .sa-vault__fileRow:hover {
@@ -2476,7 +2517,3 @@ a {
     border-radius: 18px;
   }
 }
-
-
-
-
