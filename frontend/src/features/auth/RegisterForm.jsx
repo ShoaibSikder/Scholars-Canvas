@@ -18,7 +18,7 @@ const semesters = [
   "Graduate Student",
 ];
 
-export default function RegisterForm({ onSwitchToLogin }) {
+export default function RegisterForm({ onSwitchToLogin, onRegisterSuccess }) {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -52,7 +52,7 @@ export default function RegisterForm({ onSwitchToLogin }) {
       localStorage.removeItem("studentassistant_token");
       sessionStorage.removeItem("studentassistant_token");
       localStorage.setItem("studentassistant_token", response.token);
-      setStatus("Registration successful.");
+      onRegisterSuccess?.(response.user);
     } catch (error) {
       setStatus(error.message);
     } finally {

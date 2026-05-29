@@ -6,7 +6,7 @@ import Button from "../../components/common/Button";
 import Input from "../../components/common/Input";
 import { loginUser } from "./authService";
 
-export default function LoginForm({ onSwitchToRegister }) {
+export default function LoginForm({ onSwitchToRegister, onLoginSuccess }) {
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
@@ -36,7 +36,7 @@ export default function LoginForm({ onSwitchToRegister }) {
         sessionStorage.setItem("studentassistant_token", response.token);
       }
 
-      setStatus("Login successful.");
+      onLoginSuccess?.(response.user);
     } catch (error) {
       setStatus(error.message);
     } finally {
