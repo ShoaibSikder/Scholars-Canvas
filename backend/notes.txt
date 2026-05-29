@@ -1,0 +1,84 @@
+# 1. Create the backend folder
+mkdir backend
+cd backend
+
+# 2. Create a virtual environment to keep dependencies isolated
+python -m venv venv
+
+# 3. Activate the environment
+# For Windows:
+.\venv\Scripts\activate
+# For Mac/Linux:
+source venv/bin/activate
+
+pip install django djangorestframework django-cors-headers django-environ psycopg2-binary celery redis
+
+# 1. Start the project (we call the config folder 'core')
+django-admin startproject core .
+
+# 2. Create the apps directory and make it a Python package
+mkdir apps
+# Windows: type nul > apps\__init__.py | Mac/Linux: touch apps/__init__.py
+touch apps/__init__.py
+
+# 3. Create our specific feature apps inside the apps folder
+python manage.py startapp accounts apps/accounts
+python manage.py startapp courses apps/courses
+python manage.py startapp tasks apps/tasks
+python manage.py startapp resources apps/resources
+python manage.py startapp ai_lab apps/ai_lab
+
+
+
+student-assistant/
+├── backend/                # Django REST Framework Project
+├── frontend/               # React.js (Vite) Project
+├── docker-compose.yml      # (Optional) For orchestrating DB, Redis, and Web
+└── README.md
+
+backend/
+├── core/                   # Project settings & WSGI/ASGI
+│   ├── settings.py
+│   ├── urls.py             # Main API routing
+│   ├── celery.py           # Celery configuration for AI tasks
+│   └── wsgi.py
+├── apps/                   # Custom business logic apps
+│   ├── accounts/           # Custom User model, Auth, Profiles
+│   ├── courses/            # Course & Routine logic
+│   ├── tasks/              # Todo, Task management, Progress tracking
+│   ├── resources/          # File uploads, Sharing, URLs
+│   └── ai_engine/          # PDF parsing, LLM integration, Flashcard logic
+│       ├── tasks.py        # Asynchronous Celery tasks
+│       ├── services.py     # External API calls (OpenAI/Claude)
+│       └── utils.py        # PDF processing helpers
+├── media/                  # User-uploaded PDFs/Images (Local dev only)
+├── static/                 # Collected static files
+├── manage.py
+├── requirements.txt
+└── .env                    # Secrets: DB_URL, API_KEYS, SECRET_KEY
+
+frontend/
+├── public/                 # Static assets like icons/favicon
+├── src/
+│   ├── assets/             # Images, Global CSS
+│   ├── components/         # Reusable UI components (Buttons, Inputs, Modals)
+│   │   ├── common/
+│   │   └── layout/         # Navbar, Sidebar, Footer
+│   ├── features/           # Feature-specific components & logic
+│   │   ├── auth/
+│   │   ├── dashboard/
+│   │   ├── routine/
+│   │   ├── tasks/
+│   │   └── ai-tools/       # PDF Viewer, Chat, Flashcard decks
+│   ├── hooks/              # Custom React hooks (useAuth, useFetch)
+│   ├── services/           # API call logic (Axios instances)
+│   │   ├── api.js
+│   │   └── endpoints.js
+│   ├── store/              # State management (Zustand or Redux)
+│   ├── pages/              # Main route components
+│   ├── App.jsx
+│   └── main.jsx
+├── tailwind.config.js
+├── vite.config.js
+├── package.json
+└── .env                    # API_BASE_URL
