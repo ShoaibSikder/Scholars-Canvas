@@ -55,6 +55,7 @@ const notificationSeed = [
 ];
 
 const TOKEN_KEYS = ["studentassistant_token"];
+const ACTIVE_PAGE_KEY = "studentassistant_active_page";
 
 const defaultProfile = {
   id: null,
@@ -83,10 +84,15 @@ function clearStoredToken() {
   });
 }
 
+function getStoredActivePage() {
+  const storedPage = localStorage.getItem(ACTIVE_PAGE_KEY);
+  return searchCatalog.some((item) => item.page === storedPage) ? storedPage : "dashboard";
+}
+
 export default function App() {
   const [isLogin, setIsLogin] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(() => Boolean(getStoredToken()));
-  const [activePage, setActivePage] = useState("dashboard");
+  const [activePage, setActivePage] = useState(getStoredActivePage);
   const [authNotice, setAuthNotice] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [searchFocusRequest, setSearchFocusRequest] = useState(0);
@@ -150,6 +156,16 @@ export default function App() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", Boolean(preferences.dark_mode));
+  }, [preferences.dark_mode]);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      localStorage.setItem(ACTIVE_PAGE_KEY, activePage);
+    }
+  }, [activePage, isAuthenticated]);
+
   const handleAuthSuccess = (user) => {
     if (user) {
       setProfile((current) => ({
@@ -159,7 +175,7 @@ export default function App() {
     }
     setAuthNotice("");
     setIsAuthenticated(true);
-    setActivePage("dashboard");
+    setActivePage(getStoredActivePage());
   };
 
   const handleRegisterSuccess = (user) => {
@@ -181,6 +197,7 @@ export default function App() {
     setIsAuthenticated(false);
     setIsLogin(true);
     setActivePage("dashboard");
+    localStorage.removeItem(ACTIVE_PAGE_KEY);
     setNotificationsOpen(false);
     setSearchQuery("");
   };
@@ -254,7 +271,7 @@ export default function App() {
   const page = useMemo(() => {
     switch (activePage) {
       case "dashboard":
-        return <DashboardPage user={profile} />;
+        return <DashboardPage user={profile} onNavigate={handleNavigate} />;
       case "routine":
         return <RoutinePage user={profile} />;
       case "tasks":
@@ -268,7 +285,7 @@ export default function App() {
       case "settings":
         return <SettingsPage user={profile} preferences={preferences} onSave={handlePreferencesSave} />;
       default:
-        return <DashboardPage user={profile} />;
+        return <DashboardPage user={profile} onNavigate={handleNavigate} />;
     }
   }, [activePage, handlePreferencesSave, handleProfileSave, preferences, profile]);
 
