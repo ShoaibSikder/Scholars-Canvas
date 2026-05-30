@@ -12,14 +12,14 @@ export default function FloatingActionButton() {
   const [isExpanded, setIsExpanded] = useState(false);
 
   return (
-    <div className="sa-fab">
+    <div className="fixed bottom-6 right-6 z-40 grid justify-items-end gap-3">
       <AnimatePresence>
         {isExpanded ? (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
-            className="sa-fab__menu"
+            className="grid gap-3"
           >
             {actions.map((action, index) => {
               const Icon = action.icon;
@@ -31,12 +31,12 @@ export default function FloatingActionButton() {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: 50 }}
                   transition={{ delay: index * 0.05 }}
-                  className="sa-fab__action"
+                  className="flex items-center gap-3"
                   type="button"
                 >
-                  <span className="sa-fab__actionLabel">{action.label}</span>
-                  <span className={`sa-fab__actionIconWrap ${action.color}`}>
-                    <Icon className="sa-fab__actionIcon" />
+                  <span className="rounded-xl bg-white px-3 py-2 text-sm font-bold text-slate-700 shadow-lg dark:bg-slate-900 dark:text-slate-200">{action.label}</span>
+                  <span className={`grid size-12 place-items-center rounded-2xl bg-gradient-to-br text-white shadow-lg ${action.color}`}>
+                    <Icon className="size-5" />
                   </span>
                 </motion.button>
               );
@@ -49,11 +49,12 @@ export default function FloatingActionButton() {
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         onClick={() => setIsExpanded((current) => !current)}
-        className="sa-fab__button"
+        className="grid size-14 place-items-center rounded-2xl bg-gradient-to-br from-blue-600 to-violet-600 text-white shadow-xl shadow-blue-500/30"
         type="button"
+        aria-label="Quick actions"
       >
         <motion.span animate={{ rotate: isExpanded ? 45 : 0 }} transition={{ duration: 0.2 }}>
-          {isExpanded ? <X className="sa-fab__buttonIcon" /> : <Plus className="sa-fab__buttonIcon" />}
+          {isExpanded ? <X className="size-6" /> : <Plus className="size-6" />}
         </motion.span>
       </motion.button>
     </div>
