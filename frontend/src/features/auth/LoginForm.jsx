@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { Mail, Lock, Eye, EyeOff, LogIn } from "lucide-react";
 
@@ -49,17 +49,17 @@ export default function LoginForm({ onSwitchToRegister, onLoginSuccess, authNoti
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="auth-cardPanel auth-cardPanel--login"
+      className="w-full max-w-xl rounded-[2rem] border border-white/80 bg-white/90 p-7 shadow-2xl shadow-blue-500/10 backdrop-blur dark:border-slate-700 dark:bg-slate-900/90"
     >
-      <div className="auth-cardPanel__head">
-        <h2>Welcome Back!</h2>
-        <p>Sign in to access your academic dashboard</p>
+      <div className="text-center">
+        <h2 className="text-3xl font-black text-slate-950 dark:text-white">Welcome Back!</h2>
+        <p className="mt-2 text-sm font-semibold text-slate-500 dark:text-slate-400">Sign in to access your academic dashboard</p>
       </div>
 
-      {authNotice ? <div className="auth-message">{authNotice}</div> : null}
-      {status ? <div className="auth-message">{status}</div> : null}
+      {authNotice ? <div className="mt-5 rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm font-bold text-blue-700 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300">{authNotice}</div> : null}
+      {status ? <div className="mt-5 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-bold text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-300">{status}</div> : null}
 
-      <form onSubmit={handleSubmit} className="auth-formStack">
+      <form onSubmit={handleSubmit} className="mt-6 grid gap-4">
         <Input
           id="email"
           type="email"
@@ -71,10 +71,10 @@ export default function LoginForm({ onSwitchToRegister, onLoginSuccess, authNoti
           required
         />
 
-        <label className="auth-field">
-          <span className="auth-field__label">Password</span>
-          <div className="auth-field__inputWrap">
-            <span className="auth-field__icon">
+        <label className="grid gap-2">
+          <span className="text-sm font-bold text-slate-700 dark:text-slate-200">Password</span>
+          <div className="relative">
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500">
               <Lock size={20} />
             </span>
             <input
@@ -83,30 +83,32 @@ export default function LoginForm({ onSwitchToRegister, onLoginSuccess, authNoti
               required
               value={formData.password}
               onChange={(event) => setFormData({ ...formData, password: event.target.value })}
-              className="auth-input auth-input--withIcon"
+              className="min-h-12 w-full rounded-2xl border border-slate-200 bg-white/90 px-12 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-400 focus:ring-4 focus:ring-blue-500/10 dark:border-slate-700 dark:bg-slate-950/70 dark:text-slate-100"
               placeholder="Enter your password"
             />
             <button
               type="button"
               onClick={() => setShowPassword((current) => !current)}
-              className="auth-field__toggle"
+              className="absolute right-3 top-1/2 grid size-8 -translate-y-1/2 place-items-center rounded-xl text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+              aria-label="Toggle password"
             >
               {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
             </button>
           </div>
         </label>
 
-        <div className="auth-row auth-row--spread">
-          <label className="auth-row__check">
+        <div className="flex items-center justify-between gap-4">
+          <label className="flex items-center gap-2 text-sm font-semibold text-slate-600 dark:text-slate-300">
             <input
               type="checkbox"
               checked={formData.rememberMe}
               onChange={(event) => setFormData({ ...formData, rememberMe: event.target.checked })}
+              className="size-4 accent-blue-600"
             />
             <span>Remember me</span>
           </label>
 
-          <button type="button" className="auth-linkButton">
+          <button type="button" className="text-sm font-bold text-blue-600 dark:text-blue-300">
             Forgot password?
           </button>
         </div>
@@ -115,7 +117,7 @@ export default function LoginForm({ onSwitchToRegister, onLoginSuccess, authNoti
           type="submit"
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
-          className="auth-primaryButton"
+          className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 px-5 font-black text-white shadow-lg shadow-blue-500/25"
           disabled={loading}
         >
           <LogIn size={20} />
@@ -123,17 +125,15 @@ export default function LoginForm({ onSwitchToRegister, onLoginSuccess, authNoti
         </motion.button>
       </form>
 
-      <div className="auth-divider">
-        <span />
-        <p>New to StudentAssistant?</p>
-        <span />
+      <div className="my-6 flex items-center gap-3">
+        <span className="h-px flex-1 bg-slate-200 dark:bg-slate-700" />
+        <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">New to StudentAssistant?</p>
+        <span className="h-px flex-1 bg-slate-200 dark:bg-slate-700" />
       </div>
 
-      <Button type="button" variant="ghost" className="auth-ghostButton" onClick={onSwitchToRegister}>
+      <Button type="button" variant="ghost" className="w-full" onClick={onSwitchToRegister}>
         Create an Account
       </Button>
     </motion.div>
   );
 }
-
-
