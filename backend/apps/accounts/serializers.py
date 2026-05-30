@@ -1,4 +1,5 @@
 from django.contrib.auth import authenticate
+from django.core.validators import MaxValueValidator, MinValueValidator
 from rest_framework import serializers
 from rest_framework.authtoken.models import Token
 
@@ -7,6 +8,9 @@ from .models import User, UserPreferences
 
 class RegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, min_length=8)
+    current_semester = serializers.IntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(12)]
+    )
 
     class Meta:
         model = User
@@ -54,6 +58,10 @@ class LoginSerializer(serializers.Serializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
+    current_semester = serializers.IntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(12)]
+    )
+
     class Meta:
         model = User
         fields = [

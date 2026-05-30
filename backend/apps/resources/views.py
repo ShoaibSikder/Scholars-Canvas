@@ -1,54 +1,100 @@
-from rest_framework.permissions import AllowAny
+from django.db.models import Count, Prefetch
+from django.shortcuts import get_object_or_404
+from django.utils import timezone
+from rest_framework import status
+from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from .models import VaultCourse, VaultResource
+from .serializers import VaultCourseSerializer, VaultResourceSerializer
+
+
+def courses_for_user(user):
+    return (
+        VaultCourse.objects.filter(user=user)
+        .annotate(resource_count=Count("resources"))
+        .prefetch_related(Prefetch("resources", queryset=VaultResource.objects.order_by("category", "-created_at")))
+        .order_by("-semester", "code")
+    )
+
 
 class ResourcesView(APIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        return Response(
-            {
-                "courses": [
-                    {
-                        "semester": 3,
-                        "courses": [
-                            {
-                                "id": 1,
-                                "name": "Data Structures & Algorithms",
-                                "code": "CS301",
-                                "files": [
-                                    {"id": 1, "name": "Binary_Trees.pdf", "type": "pdf", "size": "2.4 MB", "uploaded": "2 days ago"},
-                                    {"id": 2, "name": "Sorting_Algorithms.pdf", "type": "pdf", "size": "1.8 MB", "uploaded": "5 days ago"},
-                                    {"id": 3, "name": "Lecture_Notes.pptx", "type": "pptx", "size": "5.2 MB", "uploaded": "1 week ago"},
-                                ],
-                            },
-                            {
-                                "id": 2,
-                                "name": "Database Management Systems",
-                                "code": "CS302",
-                                "files": [
-                                    {"id": 4, "name": "SQL_Basics.pdf", "type": "pdf", "size": "3.1 MB", "uploaded": "3 days ago"},
-                                    {"id": 5, "name": "ER_Diagrams.pdf", "type": "pdf", "size": "1.5 MB", "uploaded": "1 week ago"},
-                                ],
-                            },
-                        ],
-                    },
-                    {
-                        "semester": 4,
-                        "courses": [
-                            {
-                                "id": 3,
-                                "name": "Machine Learning",
-                                "code": "CS401",
-                                "files": [
-                                    {"id": 6, "name": "Neural_Networks.pdf", "type": "pdf", "size": "4.7 MB", "uploaded": "1 day ago"},
-                                    {"id": 7, "name": "Regression_Analysis.pdf", "type": "pdf", "size": "2.2 MB", "uploaded": "4 days ago"},
-                                    {"id": 8, "name": "ML_Resources.link", "type": "link", "size": "-", "uploaded": "1 week ago"},
-                                ],
-                            }
-                        ],
-                    },
-                ]
-            }
-        )
+        courses = courses_for_user(request.user)
+        serializer = VaultCourseSerializer(courses, many=True, context={"request": request})
+        semesters = []
+
+        for course in serializer.data:
+            semester = course["semester"]
+            group = next((item for item in semesters if item["semester"] == semester), None)
+            if not group:
+                group = {"semester": semester, "courses": []}
+                semesters.append(group)
+            group["courses"].append(course)
+
+        return Response({"courses": semesters})
+
+    def post(self, request):
+        serializer = VaultCourseSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(user=request.user)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class ResourceCourseDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self, user, pk):
+        return get_object_or_404(VaultCourse, user=user, pk=pk)
+
+    def patch(self, request, pk):
+        course = self.get_object(request.user, pk)
+        serializer = VaultCourseSerializer(course, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+
+    def delete(self, request, pk):
+        course = self.get_object(request.user, pk)
+        course.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class CourseResourceView(APIView):
+    permission_classes = [IsAuthenticated]
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
+
+    def post(self, request, course_id):
+        course = get_object_or_404(VaultCourse, user=request.user, pk=course_id)
+        serializer = VaultResourceSerializer(data=request.data, context={"request": request})
+        serializer.is_valid(raise_exception=True)
+        is_done = serializer.validated_data.get("is_done", False)
+        serializer.save(course=course, completed_at=timezone.now() if is_done else None)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class CourseResourceDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
+
+    def get_object(self, user, course_id, pk):
+        return get_object_or_404(VaultResource, course__user=user, course_id=course_id, pk=pk)
+
+    def patch(self, request, course_id, pk):
+        resource = self.get_object(request.user, course_id, pk)
+        serializer = VaultResourceSerializer(resource, data=request.data, partial=True, context={"request": request})
+        serializer.is_valid(raise_exception=True)
+        if "is_done" in serializer.validated_data:
+            serializer.save(completed_at=timezone.now() if serializer.validated_data["is_done"] else None)
+        else:
+            serializer.save()
+        return Response(serializer.data)
+
+    def delete(self, request, course_id, pk):
+        resource = self.get_object(request.user, course_id, pk)
+        resource.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
