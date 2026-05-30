@@ -6,7 +6,7 @@ import Button from "../../components/common/Button";
 import Input from "../../components/common/Input";
 import { loginUser } from "./authService";
 
-export default function LoginForm({ onSwitchToRegister, onLoginSuccess }) {
+export default function LoginForm({ onSwitchToRegister, onLoginSuccess, authNotice = "" }) {
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
@@ -56,6 +56,7 @@ export default function LoginForm({ onSwitchToRegister, onLoginSuccess }) {
         <p>Sign in to access your academic dashboard</p>
       </div>
 
+      {authNotice ? <div className="auth-message">{authNotice}</div> : null}
       {status ? <div className="auth-message">{status}</div> : null}
 
       <form onSubmit={handleSubmit} className="auth-formStack">

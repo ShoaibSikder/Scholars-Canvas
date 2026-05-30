@@ -44,3 +44,14 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.email
+
+
+class UserPreferences(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="preferences")
+    dark_mode = models.BooleanField(default=False)
+    email_notifications = models.BooleanField(default=True)
+    push_notifications = models.BooleanField(default=True)
+    study_reminders = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"{self.user.email} preferences"

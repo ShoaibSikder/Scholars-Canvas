@@ -4,6 +4,7 @@ export const API_BASE_URL = baseUrl;
 export const AUTH_ENDPOINTS = {
   register: `${baseUrl}/auth/register/`,
   login: `${baseUrl}/auth/login/`,
+  me: `${baseUrl}/auth/me/`,
 };
 
 export const APP_ENDPOINTS = {

@@ -2,7 +2,7 @@ from django.contrib.auth import authenticate
 from rest_framework import serializers
 from rest_framework.authtoken.models import Token
 
-from .models import User
+from .models import User, UserPreferences
 
 
 class RegistrationSerializer(serializers.ModelSerializer):
@@ -51,3 +51,27 @@ class LoginSerializer(serializers.Serializer):
 
         attrs["user"] = user
         return attrs
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = [
+            "id",
+            "full_name",
+            "email",
+            "university",
+            "major",
+            "current_semester",
+        ]
+
+
+class UserPreferencesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserPreferences
+        fields = [
+            "dark_mode",
+            "email_notifications",
+            "push_notifications",
+            "study_reminders",
+        ]

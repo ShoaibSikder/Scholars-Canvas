@@ -49,9 +49,6 @@ export default function RegisterForm({ onSwitchToLogin, onRegisterSuccess }) {
         password: formData.password,
       });
 
-      localStorage.removeItem("studentassistant_token");
-      sessionStorage.removeItem("studentassistant_token");
-      localStorage.setItem("studentassistant_token", response.token);
       onRegisterSuccess?.(response.user);
     } catch (error) {
       setStatus(error.message);
