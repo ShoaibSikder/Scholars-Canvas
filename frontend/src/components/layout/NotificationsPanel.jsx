@@ -1,4 +1,4 @@
-import { AnimatePresence, motion } from "framer-motion";
+﻿import { AnimatePresence, motion } from "framer-motion";
 import { Bell, CheckCircle2, FileText, MessageSquare, Sparkles } from "lucide-react";
 
 const iconMap = {
@@ -29,13 +29,13 @@ export default function NotificationsPanel({ open, items, onClose, onSelect }) {
           onClick={onClose}
         >
           <motion.div
-            className="absolute right-4 top-20 w-[min(380px,calc(100vw-32px))] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl shadow-slate-900/20 dark:border-slate-700 dark:bg-slate-900 lg:right-8"
+            className="absolute right-3 top-11 w-[min(360px,calc(100vw-24px))] overflow-hidden rounded-lg border border-slate-200 bg-white shadow-md shadow-slate-900/20 dark:border-slate-700 dark:bg-slate-900 lg:right-4"
             initial={{ opacity: 0, y: -4, scale: 0.98 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -4, scale: 0.98 }}
             onClick={(event) => event.stopPropagation()}
           >
-            <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3 dark:border-slate-800">
+            <div className="flex items-center justify-between border-b border-slate-100 px-3 py-1.5 dark:border-slate-800">
               <strong className="text-slate-950 dark:text-white">Notifications</strong>
               <button type="button" className="text-sm font-bold text-blue-600 dark:text-blue-300" onClick={onClose}>
                 Close
@@ -43,11 +43,13 @@ export default function NotificationsPanel({ open, items, onClose, onSelect }) {
             </div>
 
             <div className="grid max-h-[min(24rem,calc(100vh-9rem))] gap-1 overflow-y-auto overflow-x-hidden p-2">
-              {items.map((item) => {
+              {items.length === 0 ? (
+                <div className="px-4 py-8 text-center text-sm font-bold text-slate-500 dark:text-slate-400">No notifications right now.</div>
+              ) : items.map((item) => {
                 const Icon = iconMap[item.type] ?? Bell;
                 return (
-                  <button key={item.id} type="button" className="flex gap-3 rounded-2xl p-3 text-left transition hover:bg-slate-50 dark:hover:bg-slate-800" onClick={() => onSelect(item)}>
-                    <div className={`grid size-9 shrink-0 place-items-center rounded-xl ${iconStyles[item.type] ?? iconStyles.message}`}>
+                  <button key={item.id} type="button" className="flex gap-3 rounded-lg p-3 text-left transition hover:bg-slate-50 dark:hover:bg-slate-800" onClick={() => onSelect(item)}>
+                    <div className={`grid size-8 shrink-0 place-items-center rounded-lg ${iconStyles[item.type] ?? iconStyles.message}`}>
                       <Icon size={14} />
                     </div>
                     <div>
