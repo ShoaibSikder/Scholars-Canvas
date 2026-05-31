@@ -1,4 +1,4 @@
-from django.shortcuts import get_object_or_404
+﻿from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
@@ -10,6 +10,16 @@ from apps.tasks.models import Task
 
 from .models import RoutineSlot
 from .serializers import RoutineSlotSerializer
+
+
+def format_time(value):
+    return timezone.datetime.combine(timezone.datetime.today(), value).strftime("%I:%M %p").lstrip("0")
+
+
+def resource_target(request, resource):
+    if resource.file:
+        return request.build_absolute_uri(resource.file.url)
+    return resource.url or ""
 
 
 class DashboardView(APIView):
@@ -31,9 +41,6 @@ class DashboardView(APIView):
             (slot for slot in today_slots if slot.start_time > current_time),
             None,
         )
-
-        def format_time(value):
-            return timezone.datetime.combine(timezone.datetime.today(), value).strftime("%I:%M %p").lstrip("0")
 
         study_data = []
         for index, label in enumerate(["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]):
@@ -83,7 +90,7 @@ class DashboardView(APIView):
                     "name": resource.title,
                     "course": resource.course.code,
                     "accessed": timezone.localtime(resource.updated_at).strftime("%b %d"),
-                    "url": request.build_absolute_uri(resource.file.url) if resource.file else resource.url,
+                    "url": resource_target(request, resource),
                     "type": resource.resource_type,
                 }
             )
