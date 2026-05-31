@@ -1,4 +1,4 @@
-import { AlertCircle, Calendar, CheckCircle2, CheckSquare, Edit3, LayoutGrid, List, Plus, Trash2, X } from "lucide-react";
+﻿import { AlertCircle, Calendar, CheckCircle2, CheckSquare, Edit3, LayoutGrid, List, Plus, Trash2, X } from "lucide-react";
 import { motion } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
 
@@ -17,10 +17,10 @@ const priorityPill = {
   low: "bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300",
 };
 const statusLabels = { todo: "To Do", in_progress: "In Progress", done: "Done" };
-const card = "rounded-3xl border border-slate-200 bg-white/95 shadow-xl shadow-slate-900/5 dark:border-slate-800 dark:bg-slate-900/90";
-const primaryBtn = "inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 px-5 font-bold text-white shadow-lg shadow-blue-500/25";
+const card = "rounded-lg border border-slate-200 bg-white/95 shadow-md shadow-slate-900/5 dark:border-slate-800 dark:bg-slate-900/90";
+const primaryBtn = "inline-flex min-h-8 items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 px-3 font-bold text-white shadow-md shadow-blue-500/25";
 const field = "grid gap-2";
-const input = "min-h-12 rounded-2xl border border-slate-200 bg-slate-50 px-4 text-slate-900 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-500/10 dark:border-slate-700 dark:bg-slate-950/60 dark:text-white";
+const input = "min-h-8 rounded-lg border border-slate-200 bg-slate-50 px-3 text-slate-900 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-500/10 dark:border-slate-700 dark:bg-slate-950/60 dark:text-white";
 
 function normalizeTasks(payload) {
   return { todo: payload?.todo ?? [], inProgress: payload?.inProgress ?? [], done: payload?.done ?? [] };
@@ -141,20 +141,20 @@ export default function TasksPage() {
   };
 
   return (
-    <div className="grid gap-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
+    <div className="grid gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-black tracking-tight text-slate-950 dark:text-white">Tasks</h1>
+          <h1 className="text-base font-black tracking-tight text-slate-950 dark:text-white">Tasks</h1>
           <p className="mt-1 text-sm font-semibold text-slate-500 dark:text-slate-400">Manage your assignments and workload</p>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          <div className="flex rounded-2xl bg-slate-200 p-1 dark:bg-slate-800">
+          <div className="flex rounded-lg bg-slate-200 p-1 dark:bg-slate-800">
             {[
               ["kanban", LayoutGrid, "Kanban"],
               ["list", List, "List"],
             ].map(([id, Icon, label]) => (
-              <button key={id} type="button" onClick={() => setView(id)} className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-black transition ${view === id ? "bg-white text-slate-950 shadow-sm dark:bg-slate-950 dark:text-white" : "text-slate-500 dark:text-slate-400"}`}>
+              <button key={id} type="button" onClick={() => setView(id)} className={`inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-black transition ${view === id ? "bg-white text-slate-950 shadow-sm dark:bg-slate-950 dark:text-white" : "text-slate-500 dark:text-slate-400"}`}>
                 <Icon size={16} />
                 <span>{label}</span>
               </button>
@@ -164,21 +164,21 @@ export default function TasksPage() {
         </div>
       </div>
 
-      {error ? <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-bold text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-300">{error}</div> : null}
-      {loading ? <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 font-bold text-slate-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300">Loading tasks...</div> : null}
+      {error ? <div className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-1.5 text-sm font-bold text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-300">{error}</div> : null}
+      {loading ? <div className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 font-bold text-slate-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300">Loading tasks...</div> : null}
 
       {!loading && view === "kanban" ? (
-        <div className="grid gap-6 xl:grid-cols-3">
+        <div className="grid gap-3 xl:grid-cols-3">
           {columns.map((column) => (
-            <motion.section key={column.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className={`overflow-hidden ${card}`}>
-              <div className={`flex items-center justify-between bg-gradient-to-r ${column.head} px-5 py-4 text-white`}>
+            <motion.section key={column.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className={`flex max-h-[calc(100vh-14rem)] min-h-0 flex-col overflow-hidden ${card}`}>
+              <div className={`flex items-center justify-between bg-gradient-to-r ${column.head} px-3 py-2.5 text-white`}>
                 <h2 className="font-black">{column.title}</h2>
                 <span className="rounded-full bg-white/20 px-3 py-1 text-sm font-black">{column.tasks.length}</span>
               </div>
 
-              <div className="grid min-h-96 gap-3 p-4">
+              <div className="grid min-h-0 flex-1 content-start gap-3 overflow-y-auto p-3 pr-2 [scrollbar-width:thin] [scrollbar-color:rgba(37,99,235,0.35)_transparent]">
                 {column.tasks.map((task, index) => (
-                  <motion.article key={task.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.05 }} className={`rounded-2xl border-l-4 p-4 ${priorityCard[task.priority] ?? priorityCard.medium}`}>
+                  <motion.article key={task.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.05 }} className={`rounded-lg border-l-4 p-3 ${priorityCard[task.priority] ?? priorityCard.medium}`}>
                     <div className="flex items-start justify-between gap-3">
                       <h3 className="font-black text-slate-950 dark:text-white">{task.title}</h3>
                       {column.id === "done" ? <CheckCircle2 size={18} className="text-emerald-600" /> : null}
@@ -188,16 +188,16 @@ export default function TasksPage() {
                       {task.course ? <span className="rounded-full bg-slate-200 px-3 py-1 text-xs font-black text-slate-600 dark:bg-slate-800 dark:text-slate-300">{task.course}</span> : null}
                     </div>
                     <div className="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-slate-500 dark:text-slate-400"><Calendar size={12} /><span>{task.due}</span></div>
-                    {task.notes ? <p className="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">{task.notes}</p> : null}
+                    {task.notes ? <p className="mt-3 text-sm leading-5 text-slate-600 dark:text-slate-300">{task.notes}</p> : null}
                     <div className="mt-3 flex flex-wrap items-center gap-2">
-                      {column.id === "todo" ? <button type="button" className="rounded-xl bg-blue-100 px-3 py-2 text-sm font-black text-blue-700 dark:bg-blue-500/15 dark:text-blue-300" disabled={saving} onClick={() => handleStatusChange(task, "in_progress")}>Start</button> : null}
-                      {column.id !== "done" ? <button type="button" className="flex-1 rounded-xl bg-slate-200 px-3 py-2 text-sm font-black text-slate-700 dark:bg-slate-800 dark:text-slate-200" disabled={saving} onClick={() => handleStatusChange(task, "done")}>Mark as Done</button> : <button type="button" className="rounded-xl bg-blue-100 px-3 py-2 text-sm font-black text-blue-700 dark:bg-blue-500/15 dark:text-blue-300" disabled={saving} onClick={() => handleStatusChange(task, "todo")}>Reopen</button>}
-                      <button type="button" className="grid size-9 place-items-center rounded-xl border border-slate-200 bg-white text-slate-500 dark:border-slate-700 dark:bg-slate-900" aria-label={`Edit ${task.title}`} onClick={() => openEdit(task)}><Edit3 size={16} /></button>
-                      <button type="button" className="grid size-9 place-items-center rounded-xl border border-slate-200 bg-white text-rose-600 dark:border-slate-700 dark:bg-slate-900" aria-label={`Delete ${task.title}`} disabled={saving} onClick={() => handleDelete(task)}><Trash2 size={16} /></button>
+                      {column.id === "todo" ? <button type="button" className="rounded-lg bg-blue-100 px-3 py-1.5 text-sm font-black text-blue-700 dark:bg-blue-500/15 dark:text-blue-300" disabled={saving} onClick={() => handleStatusChange(task, "in_progress")}>Start</button> : null}
+                      {column.id !== "done" ? <button type="button" className="flex-1 rounded-lg bg-slate-200 px-3 py-1.5 text-sm font-black text-slate-700 dark:bg-slate-800 dark:text-slate-200" disabled={saving} onClick={() => handleStatusChange(task, "done")}>Mark as Done</button> : <button type="button" className="rounded-lg bg-blue-100 px-3 py-1.5 text-sm font-black text-blue-700 dark:bg-blue-500/15 dark:text-blue-300" disabled={saving} onClick={() => handleStatusChange(task, "todo")}>Reopen</button>}
+                      <button type="button" className="grid size-8 place-items-center rounded-lg border border-slate-200 bg-white text-slate-500 dark:border-slate-700 dark:bg-slate-900" aria-label={`Edit ${task.title}`} onClick={() => openEdit(task)}><Edit3 size={16} /></button>
+                      <button type="button" className="grid size-8 place-items-center rounded-lg border border-slate-200 bg-white text-rose-600 dark:border-slate-700 dark:bg-slate-900" aria-label={`Delete ${task.title}`} disabled={saving} onClick={() => handleDelete(task)}><Trash2 size={16} /></button>
                     </div>
                   </motion.article>
                 ))}
-                {column.tasks.length === 0 ? <div className="grid min-h-56 place-items-center text-center text-slate-400"><div><CheckSquare size={44} className="mx-auto" /><p className="mt-2 font-bold">No tasks here</p></div></div> : null}
+                {column.tasks.length === 0 ? <div className="grid min-h-64 place-items-center text-center text-slate-400"><div><CheckSquare size={44} className="mx-auto" /><p className="mt-2 font-bold">No tasks here</p></div></div> : null}
               </div>
             </motion.section>
           ))}
@@ -205,55 +205,59 @@ export default function TasksPage() {
       ) : null}
 
       {!loading && view === "list" ? (
-        <div className={`overflow-hidden ${card}`}>
+        <div className={`flex max-h-[calc(100vh-14rem)] min-h-0 flex-col overflow-hidden ${card}`}>
           <div className="overflow-x-auto">
             <table className="w-full border-collapse">
               <thead className="bg-slate-50 text-left dark:bg-slate-950/50">
-                <tr>{["Task", "Course", "Priority", "Due Date", "Status", "Actions"].map((head) => <th key={head} className="border-b border-slate-200 px-5 py-4 text-sm font-black text-slate-700 dark:border-slate-800 dark:text-slate-300">{head}</th>)}</tr>
+                <tr>{["Task", "Course", "Priority", "Due Date", "Status", "Actions"].map((head) => <th key={head} className="border-b border-slate-200 px-3 py-2.5 text-sm font-black text-slate-700 dark:border-slate-800 dark:text-slate-300">{head}</th>)}</tr>
               </thead>
               <tbody>
                 {allTasks.map((task) => (
                   <tr key={task.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                    <td className="border-b border-slate-200 px-5 py-4 dark:border-slate-800"><div className="flex items-center gap-3"><input type="checkbox" checked={task.status === "done"} disabled={saving} onChange={(event) => handleStatusChange(task, event.target.checked ? "done" : "todo")} className="size-4 accent-blue-600" /><span className="font-bold text-slate-900 dark:text-white">{task.title}</span></div></td>
-                    <td className="border-b border-slate-200 px-5 py-4 dark:border-slate-800">{task.course ? <span className="rounded-full bg-slate-200 px-3 py-1 text-xs font-black text-slate-600 dark:bg-slate-800 dark:text-slate-300">{task.course}</span> : "-"}</td>
-                    <td className="border-b border-slate-200 px-5 py-4 dark:border-slate-800"><span className={`rounded-full px-3 py-1 text-xs font-black ${priorityPill[task.priority]}`}>{task.priority.toUpperCase()}</span></td>
-                    <td className="border-b border-slate-200 px-5 py-4 dark:border-slate-800"><div className="inline-flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400"><Calendar size={14} /><span>{task.due}</span></div></td>
-                    <td className="border-b border-slate-200 px-5 py-4 dark:border-slate-800"><select className="min-h-9 rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200" value={task.status} disabled={saving} onChange={(event) => handleStatusChange(task, event.target.value)}><option value="todo">To Do</option><option value="in_progress">In Progress</option><option value="done">Done</option></select></td>
-                    <td className="border-b border-slate-200 px-5 py-4 dark:border-slate-800"><div className="flex gap-3"><button type="button" className="font-black text-blue-600 dark:text-blue-300" onClick={() => openEdit(task)}>Edit</button><button type="button" className="font-black text-rose-600 dark:text-rose-400" disabled={saving} onClick={() => handleDelete(task)}>Delete</button></div></td>
+                    <td className="border-b border-slate-200 px-3 py-2.5 dark:border-slate-800"><div className="flex items-center gap-3"><input type="checkbox" checked={task.status === "done"} disabled={saving} onChange={(event) => handleStatusChange(task, event.target.checked ? "done" : "todo")} className="size-4 accent-blue-600" /><span className="font-bold text-slate-900 dark:text-white">{task.title}</span></div></td>
+                    <td className="border-b border-slate-200 px-3 py-2.5 dark:border-slate-800">{task.course ? <span className="rounded-full bg-slate-200 px-3 py-1 text-xs font-black text-slate-600 dark:bg-slate-800 dark:text-slate-300">{task.course}</span> : "-"}</td>
+                    <td className="border-b border-slate-200 px-3 py-2.5 dark:border-slate-800"><span className={`rounded-full px-3 py-1 text-xs font-black ${priorityPill[task.priority]}`}>{task.priority.toUpperCase()}</span></td>
+                    <td className="border-b border-slate-200 px-3 py-2.5 dark:border-slate-800"><div className="inline-flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400"><Calendar size={14} /><span>{task.due}</span></div></td>
+                    <td className="border-b border-slate-200 px-3 py-2.5 dark:border-slate-800"><select className="min-h-8 rounded-lg border border-slate-200 bg-white px-3 text-sm font-bold text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200" value={task.status} disabled={saving} onChange={(event) => handleStatusChange(task, event.target.value)}><option value="todo">To Do</option><option value="in_progress">In Progress</option><option value="done">Done</option></select></td>
+                    <td className="border-b border-slate-200 px-3 py-2.5 dark:border-slate-800"><div className="flex gap-3"><button type="button" className="font-black text-blue-600 dark:text-blue-300" onClick={() => openEdit(task)}>Edit</button><button type="button" className="font-black text-rose-600 dark:text-rose-400" disabled={saving} onClick={() => handleDelete(task)}>Delete</button></div></td>
                   </tr>
                 ))}
-                {allTasks.length === 0 ? <tr><td colSpan="6" className="px-5 py-12 text-center font-bold text-slate-500">No tasks yet. Create your first task to get started.</td></tr> : null}
+                {allTasks.length === 0 ? <tr><td colSpan="6" className="px-5 py-8 text-center font-bold text-slate-500">No tasks yet. Create your first task to get started.</td></tr> : null}
               </tbody>
             </table>
           </div>
         </div>
       ) : null}
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
         {[["Total Tasks", allTasks.length, AlertCircle, ""], ["To Do", tasks.todo.length, null, ""], ["In Progress", tasks.inProgress.length, null, "text-blue-600 dark:text-blue-300"], ["Completed", tasks.done.length, CheckCircle2, "text-emerald-600 dark:text-emerald-300"]].map(([label, value, Icon, color]) => (
-          <div key={label} className="flex items-center justify-between rounded-3xl border border-slate-200 bg-white/95 p-5 shadow-xl shadow-slate-900/5 dark:border-slate-800 dark:bg-slate-900/90">
-            <div><p className="text-sm font-bold text-slate-500 dark:text-slate-400">{label}</p><strong className={`text-2xl ${color || "text-slate-950 dark:text-white"}`}>{value}</strong></div>
-            {Icon ? <Icon className={`size-8 ${color || "text-slate-400"}`} /> : <div className={`grid size-10 place-items-center rounded-2xl bg-slate-100 text-lg font-black dark:bg-slate-800 ${color || "text-slate-500"}`}>{value}</div>}
+          <div key={label} className="flex items-center justify-between rounded-lg border border-slate-200 bg-white/95 p-3 shadow-md shadow-slate-900/5 dark:border-slate-800 dark:bg-slate-900/90">
+            <div><p className="text-sm font-bold text-slate-500 dark:text-slate-400">{label}</p><strong className={`text-base ${color || "text-slate-950 dark:text-white"}`}>{value}</strong></div>
+            {Icon ? <Icon className={`size-7 ${color || "text-slate-400"}`} /> : <div className={`grid size-8 place-items-center rounded-lg bg-slate-100 text-base font-black dark:bg-slate-800 ${color || "text-slate-500"}`}>{value}</div>}
           </div>
         ))}
       </div>
 
       {isFormOpen ? (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-slate-950/40 p-5 backdrop-blur-sm">
-          <form className="max-h-[calc(100vh-40px)] w-[min(680px,100%)] overflow-auto rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl shadow-slate-900/25 dark:border-slate-700 dark:bg-slate-900" onSubmit={handleSubmit}>
-            <div className="mb-5 flex items-center justify-between gap-4">
-              <div><h2 className="text-2xl font-black text-slate-950 dark:text-white">{editingTask ? "Edit Task" : "New Task"}</h2><p className="text-sm font-semibold text-slate-500 dark:text-slate-400">{editingTask ? statusLabels[editingTask.status] : "Add a task to your list"}</p></div>
-              <button type="button" className="grid size-10 place-items-center rounded-xl border border-slate-200 text-slate-500 dark:border-slate-700" aria-label="Close task form" onClick={closeForm}><X size={18} /></button>
+        <div className="fixed inset-0 z-50 grid place-items-center bg-slate-950/40 p-3 backdrop-blur-sm">
+          <form className="max-h-[calc(100vh-40px)] w-[min(680px,100%)] overflow-auto rounded-lg border border-slate-200 bg-white p-3 shadow-md shadow-slate-900/25 dark:border-slate-700 dark:bg-slate-900" onSubmit={handleSubmit}>
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <div><h2 className="text-base font-black text-slate-950 dark:text-white">{editingTask ? "Edit Task" : "New Task"}</h2><p className="text-sm font-semibold text-slate-500 dark:text-slate-400">{editingTask ? statusLabels[editingTask.status] : "Add a task to your list"}</p></div>
+              <button type="button" className="grid size-8 place-items-center rounded-lg border border-slate-200 text-slate-500 dark:border-slate-700" aria-label="Close task form" onClick={closeForm}><X size={18} /></button>
             </div>
-            {error ? <div className="mb-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-bold text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-300">{error}</div> : null}
+            {error ? <div className="mb-4 rounded-lg border border-rose-200 bg-rose-50 px-3 py-1.5 text-sm font-bold text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-300">{error}</div> : null}
             <label className={field}><span className="text-sm font-bold text-slate-700 dark:text-slate-200">Title</span><input name="title" value={form.title} onChange={handleFieldChange} required maxLength="255" className={input} /></label>
-            <div className="mt-4 grid gap-4 md:grid-cols-2"><label className={field}><span className="text-sm font-bold text-slate-700 dark:text-slate-200">Course</span><input name="course" value={form.course} onChange={handleFieldChange} maxLength="120" className={input} /></label><label className={field}><span className="text-sm font-bold text-slate-700 dark:text-slate-200">Due Date</span><input type="datetime-local" name="due_at" value={form.due_at} onChange={handleFieldChange} className={input} /></label></div>
-            <div className="mt-4 grid gap-4 md:grid-cols-2"><label className={field}><span className="text-sm font-bold text-slate-700 dark:text-slate-200">Priority</span><select name="priority" value={form.priority} onChange={handleFieldChange} className={input}><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option></select></label><label className={field}><span className="text-sm font-bold text-slate-700 dark:text-slate-200">Status</span><select name="status" value={form.status} onChange={handleFieldChange} className={input}><option value="todo">To Do</option><option value="in_progress">In Progress</option><option value="done">Done</option></select></label></div>
-            <label className={`${field} mt-4`}><span className="text-sm font-bold text-slate-700 dark:text-slate-200">Notes</span><textarea name="notes" value={form.notes} onChange={handleFieldChange} rows="4" className={`${input} py-3`} /></label>
-            <div className="mt-5 flex justify-end gap-3"><button type="button" className="min-h-11 rounded-2xl border border-slate-200 px-5 font-bold text-slate-700 dark:border-slate-700 dark:text-slate-200" onClick={closeForm}>Cancel</button><button type="submit" className={primaryBtn} disabled={saving}>{saving ? "Saving..." : "Save Task"}</button></div>
+            <div className="mt-4 grid gap-3 md:grid-cols-2"><label className={field}><span className="text-sm font-bold text-slate-700 dark:text-slate-200">Course</span><input name="course" value={form.course} onChange={handleFieldChange} maxLength="120" className={input} /></label><label className={field}><span className="text-sm font-bold text-slate-700 dark:text-slate-200">Due Date</span><input type="datetime-local" name="due_at" value={form.due_at} onChange={handleFieldChange} className={input} /></label></div>
+            <div className="mt-4 grid gap-3 md:grid-cols-2"><label className={field}><span className="text-sm font-bold text-slate-700 dark:text-slate-200">Priority</span><select name="priority" value={form.priority} onChange={handleFieldChange} className={input}><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option></select></label><label className={field}><span className="text-sm font-bold text-slate-700 dark:text-slate-200">Status</span><select name="status" value={form.status} onChange={handleFieldChange} className={input}><option value="todo">To Do</option><option value="in_progress">In Progress</option><option value="done">Done</option></select></label></div>
+            <label className={`${field} mt-3`}><span className="text-sm font-bold text-slate-700 dark:text-slate-200">Notes</span><textarea name="notes" value={form.notes} onChange={handleFieldChange} rows="4" className={`${input} py-2`} /></label>
+            <div className="mt-5 flex justify-end gap-3"><button type="button" className="min-h-8 rounded-lg border border-slate-200 px-3 font-bold text-slate-700 dark:border-slate-700 dark:text-slate-200" onClick={closeForm}>Cancel</button><button type="submit" className={primaryBtn} disabled={saving}>{saving ? "Saving..." : "Save Task"}</button></div>
           </form>
         </div>
       ) : null}
     </div>
   );
 }
+
+
+
+

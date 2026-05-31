@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+﻿import { useEffect, useMemo, useState } from "react";
 import { Bell, Palette, Shield, SlidersHorizontal, UserCog } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -9,13 +9,13 @@ const defaultPreferences = {
   study_reminders: true,
 };
 
-const pageTitle = "text-3xl font-black tracking-tight text-slate-950 dark:text-white";
+const pageTitle = "text-base font-black tracking-tight text-slate-950 dark:text-white";
 const pageSubtitle = "mt-1 text-sm font-semibold text-slate-500 dark:text-slate-400";
-const card = "rounded-3xl border border-slate-200 bg-white/95 p-6 shadow-xl shadow-slate-900/5 dark:border-slate-800 dark:bg-slate-900/90";
-const cardHeader = "mb-5 flex items-center justify-between gap-4";
-const row = "flex items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-950/50 max-sm:flex-col max-sm:items-start";
-const selectBtn = "rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-black text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200";
-const primaryBtn = "inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 px-5 font-bold text-white shadow-lg shadow-blue-500/25";
+const card = "rounded-lg border border-slate-200 bg-white/95 p-3 shadow-md shadow-slate-900/5 dark:border-slate-800 dark:bg-slate-900/90";
+const cardHeader = "mb-4 flex items-center justify-between gap-3";
+const row = "flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-950/50 max-sm:flex-col max-sm:items-start";
+const selectBtn = "rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-black text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200";
+const primaryBtn = "inline-flex min-h-8 items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 px-3 font-bold text-white shadow-md shadow-blue-500/25";
 
 export default function SettingsPage({ preferences, onSave }) {
   const [draft, setDraft] = useState(defaultPreferences);
@@ -73,8 +73,8 @@ export default function SettingsPage({ preferences, onSave }) {
   };
 
   return (
-    <div className="grid gap-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
+    <div className="grid gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className={pageTitle}>Settings</h1>
           <p className={pageSubtitle}>Control notifications, privacy, and the app experience</p>
@@ -86,16 +86,16 @@ export default function SettingsPage({ preferences, onSave }) {
         </button>
       </div>
 
-      {status ? <div className="rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm font-bold text-blue-700 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300">{status}</div> : null}
+      {status ? <div className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-sm font-bold text-blue-700 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300">{status}</div> : null}
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(340px,0.8fr)]">
+      <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_minmax(340px,0.8fr)]">
         <motion.section initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className={card}>
           <div className={cardHeader}>
-            <h2 className="text-lg font-black text-slate-950 dark:text-white">Account Preferences</h2>
+            <h2 className="text-base font-black text-slate-950 dark:text-white">Account Preferences</h2>
             <UserCog className="size-5 text-slate-500 dark:text-slate-400" />
           </div>
 
-          <div className="grid gap-4">
+          <div className="grid gap-3">
             {[
               ["Language", "Choose your preferred app language", "English"],
               ["Timezone", "Use your local study schedule timezone", "UTC +6"],
@@ -112,17 +112,17 @@ export default function SettingsPage({ preferences, onSave }) {
           </div>
         </motion.section>
 
-        <div className="grid gap-6">
+        <div className="grid gap-3">
           {sections.map((section) => {
             const Icon = section.icon;
             return (
               <motion.section key={section.title} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className={card}>
                 <div className={cardHeader}>
-                  <h2 className="text-lg font-black text-slate-950 dark:text-white">{section.title}</h2>
+                  <h2 className="text-base font-black text-slate-950 dark:text-white">{section.title}</h2>
                   <Icon className="size-5 text-slate-500 dark:text-slate-400" />
                 </div>
 
-                <div className="grid gap-4">
+                <div className="grid gap-3">
                   {section.rows.map((item) => (
                     <label key={item.key} className={row}>
                       <div>
@@ -139,10 +139,10 @@ export default function SettingsPage({ preferences, onSave }) {
 
           <motion.section initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className={card}>
             <div className={cardHeader}>
-              <h2 className="text-lg font-black text-slate-950 dark:text-white">Security</h2>
+              <h2 className="text-base font-black text-slate-950 dark:text-white">Security</h2>
               <Shield className="size-5 text-slate-500 dark:text-slate-400" />
             </div>
-            <div className="grid gap-4">
+            <div className="grid gap-3">
               {[
                 ["Password", "Update your login password", "Change"],
                 ["Two-factor authentication", "Strengthen your account protection", "Enable"],
@@ -162,3 +162,5 @@ export default function SettingsPage({ preferences, onSave }) {
     </div>
   );
 }
+
+
