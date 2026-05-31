@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { motion } from "framer-motion";
 import { User, Mail, Lock, Eye, EyeOff, GraduationCap, BookOpen, Calendar } from "lucide-react";
 
@@ -24,7 +24,7 @@ const semesters = [
 const fieldWrap = "grid gap-2";
 const labelClass = "text-sm font-bold text-slate-700 dark:text-slate-200";
 const inputClass =
-  "min-h-12 w-full rounded-2xl border border-slate-200 bg-white/90 px-12 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-400 focus:ring-4 focus:ring-blue-500/10 dark:border-slate-700 dark:bg-slate-950/70 dark:text-slate-100";
+  "min-h-8 w-full rounded-lg border border-slate-200 bg-white/90 px-10 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-400 focus:ring-4 focus:ring-blue-500/10 dark:border-slate-700 dark:bg-slate-950/70 dark:text-slate-100";
 
 export default function RegisterForm({ onSwitchToLogin, onRegisterSuccess }) {
   const [showPassword, setShowPassword] = useState(false);
@@ -76,7 +76,7 @@ export default function RegisterForm({ onSwitchToLogin, onRegisterSuccess }) {
         <button
           type="button"
           onClick={() => setShow((current) => !current)}
-          className="absolute right-3 top-1/2 grid size-8 -translate-y-1/2 place-items-center rounded-xl text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+          className="absolute right-3 top-1/2 grid size-6 -translate-y-1/2 place-items-center rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
           aria-label={`Toggle ${label}`}
         >
           {show ? <EyeOff size={20} /> : <Eye size={20} />}
@@ -90,16 +90,16 @@ export default function RegisterForm({ onSwitchToLogin, onRegisterSuccess }) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="max-h-[calc(100vh-2rem)] w-full max-w-xl overflow-y-auto rounded-[2rem] border border-white/80 bg-white/90 p-6 shadow-2xl shadow-blue-500/10 backdrop-blur dark:border-slate-700 dark:bg-slate-900/90 sm:p-7"
+      className="max-h-none w-full max-w-lg overflow-visible rounded-2xl border border-white/80 bg-white/90 p-4 shadow-md shadow-blue-500/10 backdrop-blur dark:border-slate-700 dark:bg-slate-900/90 sm:rounded-[2rem] sm:p-6 lg:max-h-[calc(100vh-2rem)] lg:overflow-y-auto lg:p-7"
     >
       <div className="text-center">
-        <h2 className="text-3xl font-black text-slate-950 dark:text-white">Create Your Account</h2>
+        <h2 className="text-base font-black text-slate-950 dark:text-white">Create Your Account</h2>
         <p className="mt-2 text-sm font-semibold text-slate-500 dark:text-slate-400">Join thousands of students organizing their academic life</p>
       </div>
 
-      {status ? <div className="mt-5 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-bold text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-300">{status}</div> : null}
+      {status ? <div className="mt-5 rounded-lg border border-rose-200 bg-rose-50 px-3 py-1.5 text-sm font-bold text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-300">{status}</div> : null}
 
-      <form onSubmit={handleSubmit} className="mt-5 grid gap-3.5">
+      <form onSubmit={handleSubmit} className="mt-5 grid gap-3">
         <Input id="fullName" type="text" label="Full Name" leftIcon={<User size={20} />} value={formData.fullName} onChange={(event) => setFormData({ ...formData, fullName: event.target.value })} placeholder="John Doe" required />
         <Input id="email" type="email" label="Email Address" leftIcon={<Mail size={20} />} value={formData.email} onChange={(event) => setFormData({ ...formData, email: event.target.value })} placeholder="student@university.edu" required />
         <Input id="university" type="text" label="University Name" leftIcon={<GraduationCap size={20} />} value={formData.university} onChange={(event) => setFormData({ ...formData, university: event.target.value })} placeholder="e.g., MIT, Stanford University" />
@@ -131,7 +131,7 @@ export default function RegisterForm({ onSwitchToLogin, onRegisterSuccess }) {
         <PasswordField id="password" label="Password" show={showPassword} setShow={setShowPassword} value={formData.password} onChange={(event) => setFormData({ ...formData, password: event.target.value })} placeholder="Create a strong password" />
         <PasswordField id="confirmPassword" label="Confirm Password" show={showConfirmPassword} setShow={setShowConfirmPassword} value={formData.confirmPassword} onChange={(event) => setFormData({ ...formData, confirmPassword: event.target.value })} placeholder="Re-enter your password" />
 
-        <div className="flex gap-3 rounded-2xl bg-slate-50 p-3 text-sm text-slate-600 dark:bg-slate-950/60 dark:text-slate-300">
+        <div className="flex gap-3 rounded-lg bg-slate-50 p-3 text-sm text-slate-600 dark:bg-slate-950/60 dark:text-slate-300">
           <input type="checkbox" required checked={formData.terms} onChange={(event) => setFormData({ ...formData, terms: event.target.checked })} className="mt-1 size-4 shrink-0 accent-blue-600" />
           <label>
             I agree to the <span className="font-bold text-blue-600 dark:text-blue-300">Terms of Service</span> and <span className="font-bold text-blue-600 dark:text-blue-300">Privacy Policy</span>
@@ -142,7 +142,7 @@ export default function RegisterForm({ onSwitchToLogin, onRegisterSuccess }) {
           type="submit"
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
-          className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 px-5 font-black text-white shadow-lg shadow-blue-500/25"
+          className="inline-flex min-h-8 items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 px-3 font-black text-white shadow-md shadow-blue-500/25"
           disabled={loading}
         >
           <GraduationCap size={20} />
@@ -162,3 +162,6 @@ export default function RegisterForm({ onSwitchToLogin, onRegisterSuccess }) {
     </motion.div>
   );
 }
+
+
+

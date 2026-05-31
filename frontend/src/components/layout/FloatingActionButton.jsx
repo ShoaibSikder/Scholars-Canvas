@@ -1,4 +1,4 @@
-import { AnimatePresence, motion } from "framer-motion";
+﻿import { AnimatePresence, motion } from "framer-motion";
 import { CheckSquare, DollarSign, FolderPlus, Plus, X } from "lucide-react";
 import { useState } from "react";
 
@@ -12,7 +12,7 @@ export default function FloatingActionButton() {
   const [isExpanded, setIsExpanded] = useState(false);
 
   return (
-    <div className="fixed bottom-6 right-6 z-40 grid justify-items-end gap-3">
+    <div className="fixed bottom-6 right-6 z-40 hidden justify-items-end gap-3 lg:grid">
       <AnimatePresence>
         {isExpanded ? (
           <motion.div
@@ -34,8 +34,8 @@ export default function FloatingActionButton() {
                   className="flex items-center gap-3"
                   type="button"
                 >
-                  <span className="rounded-xl bg-white px-3 py-2 text-sm font-bold text-slate-700 shadow-lg dark:bg-slate-900 dark:text-slate-200">{action.label}</span>
-                  <span className={`grid size-12 place-items-center rounded-2xl bg-gradient-to-br text-white shadow-lg ${action.color}`}>
+                  <span className="rounded-lg bg-white px-3 py-1.5 text-sm font-bold text-slate-700 shadow-md dark:bg-slate-900 dark:text-slate-200">{action.label}</span>
+                  <span className={`grid size-8 place-items-center rounded-lg bg-gradient-to-br text-white shadow-md ${action.color}`}>
                     <Icon className="size-5" />
                   </span>
                 </motion.button>
@@ -49,14 +49,18 @@ export default function FloatingActionButton() {
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         onClick={() => setIsExpanded((current) => !current)}
-        className="grid size-14 place-items-center rounded-2xl bg-gradient-to-br from-blue-600 to-violet-600 text-white shadow-xl shadow-blue-500/30"
+        className="grid size-8 place-items-center rounded-lg bg-gradient-to-br from-blue-600 to-violet-600 text-white shadow-md shadow-blue-500/30"
         type="button"
         aria-label="Quick actions"
       >
         <motion.span animate={{ rotate: isExpanded ? 45 : 0 }} transition={{ duration: 0.2 }}>
-          {isExpanded ? <X className="size-6" /> : <Plus className="size-6" />}
+          {isExpanded ? <X className="size-5" /> : <Plus className="size-5" />}
         </motion.span>
       </motion.button>
     </div>
   );
 }
+
+
+
+

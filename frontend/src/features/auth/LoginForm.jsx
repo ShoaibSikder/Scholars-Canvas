@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { motion } from "framer-motion";
 import { Mail, Lock, Eye, EyeOff, LogIn } from "lucide-react";
 
@@ -49,17 +49,17 @@ export default function LoginForm({ onSwitchToRegister, onLoginSuccess, authNoti
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="w-full max-w-xl rounded-[2rem] border border-white/80 bg-white/90 p-7 shadow-2xl shadow-blue-500/10 backdrop-blur dark:border-slate-700 dark:bg-slate-900/90"
+      className="w-full max-w-lg rounded-2xl border border-white/80 bg-white/90 p-4 shadow-md shadow-blue-500/10 backdrop-blur dark:border-slate-700 dark:bg-slate-900/90 sm:rounded-[2rem] sm:p-5 lg:p-3"
     >
       <div className="text-center">
-        <h2 className="text-3xl font-black text-slate-950 dark:text-white">Welcome Back!</h2>
+        <h2 className="text-base font-black text-slate-950 dark:text-white">Welcome Back!</h2>
         <p className="mt-2 text-sm font-semibold text-slate-500 dark:text-slate-400">Sign in to access your academic dashboard</p>
       </div>
 
-      {authNotice ? <div className="mt-5 rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm font-bold text-blue-700 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300">{authNotice}</div> : null}
-      {status ? <div className="mt-5 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-bold text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-300">{status}</div> : null}
+      {authNotice ? <div className="mt-5 rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-sm font-bold text-blue-700 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300">{authNotice}</div> : null}
+      {status ? <div className="mt-5 rounded-lg border border-rose-200 bg-rose-50 px-3 py-1.5 text-sm font-bold text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-300">{status}</div> : null}
 
-      <form onSubmit={handleSubmit} className="mt-6 grid gap-4">
+      <form onSubmit={handleSubmit} className="mt-5 grid gap-3">
         <Input
           id="email"
           type="email"
@@ -83,13 +83,13 @@ export default function LoginForm({ onSwitchToRegister, onLoginSuccess, authNoti
               required
               value={formData.password}
               onChange={(event) => setFormData({ ...formData, password: event.target.value })}
-              className="min-h-12 w-full rounded-2xl border border-slate-200 bg-white/90 px-12 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-400 focus:ring-4 focus:ring-blue-500/10 dark:border-slate-700 dark:bg-slate-950/70 dark:text-slate-100"
+              className="min-h-8 w-full rounded-lg border border-slate-200 bg-white/90 px-10 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-400 focus:ring-4 focus:ring-blue-500/10 dark:border-slate-700 dark:bg-slate-950/70 dark:text-slate-100"
               placeholder="Enter your password"
             />
             <button
               type="button"
               onClick={() => setShowPassword((current) => !current)}
-              className="absolute right-3 top-1/2 grid size-8 -translate-y-1/2 place-items-center rounded-xl text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+              className="absolute right-3 top-1/2 grid size-6 -translate-y-1/2 place-items-center rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
               aria-label="Toggle password"
             >
               {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
@@ -97,7 +97,7 @@ export default function LoginForm({ onSwitchToRegister, onLoginSuccess, authNoti
           </div>
         </label>
 
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <label className="flex items-center gap-2 text-sm font-semibold text-slate-600 dark:text-slate-300">
             <input
               type="checkbox"
@@ -117,7 +117,7 @@ export default function LoginForm({ onSwitchToRegister, onLoginSuccess, authNoti
           type="submit"
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
-          className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 px-5 font-black text-white shadow-lg shadow-blue-500/25"
+          className="inline-flex min-h-8 items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 px-3 font-black text-white shadow-md shadow-blue-500/25"
           disabled={loading}
         >
           <LogIn size={20} />
@@ -137,3 +137,6 @@ export default function LoginForm({ onSwitchToRegister, onLoginSuccess, authNoti
     </motion.div>
   );
 }
+
+
+

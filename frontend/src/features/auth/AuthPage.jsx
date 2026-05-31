@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 
 import AuthLayout from "./AuthLayout";
 import LoginForm from "./LoginForm";
@@ -24,3 +24,5 @@ export default function AuthPage({ onLoginSuccess, onRegisterSuccess, authNotice
     </AuthLayout>
   );
 }
+
+

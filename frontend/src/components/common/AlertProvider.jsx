@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useMemo, useRef, useState } from "react";
+﻿import { createContext, useCallback, useContext, useMemo, useRef, useState } from "react";
 import { AlertTriangle, CheckCircle2, Info, X } from "lucide-react";
 
 const AlertContext = createContext(null);
@@ -61,28 +61,28 @@ export function AlertProvider({ children }) {
       {children}
 
       {dialog ? (
-        <div className="fixed inset-0 z-[100] grid place-items-center bg-slate-950/35 px-4 backdrop-blur-sm" role="presentation" onMouseDown={() => close(false)}>
-          <div className="w-full max-w-md rounded-3xl border border-white/80 bg-white p-5 shadow-2xl shadow-slate-950/20 dark:border-slate-700 dark:bg-slate-900" role="dialog" aria-modal="true" aria-labelledby="global-alert-title" onMouseDown={(event) => event.stopPropagation()}>
-            <div className="flex items-start gap-4">
-              <div className={`grid size-12 shrink-0 place-items-center rounded-2xl ${style.iconClass}`}>
+        <div className="fixed inset-0 z-[100] grid place-items-center bg-slate-950/35 px-3 backdrop-blur-sm" role="presentation" onMouseDown={() => close(false)}>
+          <div className="w-full max-w-md rounded-lg border border-white/80 bg-white p-3 shadow-md shadow-slate-950/20 dark:border-slate-700 dark:bg-slate-900" role="dialog" aria-modal="true" aria-labelledby="global-alert-title" onMouseDown={(event) => event.stopPropagation()}>
+            <div className="flex items-start gap-3">
+              <div className={`grid size-8 shrink-0 place-items-center rounded-lg ${style.iconClass}`}>
                 <Icon size={22} />
               </div>
               <div className="min-w-0 flex-1">
                 <h2 id="global-alert-title" className="text-lg font-black text-slate-950 dark:text-white">{dialog.title ?? "Are you sure?"}</h2>
                 {dialog.message ? <p className="mt-2 text-sm font-semibold leading-6 text-slate-600 dark:text-slate-300">{dialog.message}</p> : null}
               </div>
-              <button type="button" className="grid size-9 shrink-0 place-items-center rounded-xl text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200" onClick={() => close(false)} aria-label="Close dialog">
+              <button type="button" className="grid size-8 shrink-0 place-items-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200" onClick={() => close(false)} aria-label="Close dialog">
                 <X size={18} />
               </button>
             </div>
 
             <div className="mt-6 flex flex-wrap justify-end gap-3">
               {dialog.type === "confirm" ? (
-                <button type="button" className="inline-flex min-h-11 items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 text-sm font-black text-slate-700 shadow-sm transition hover:text-blue-600 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200" onClick={() => close(false)}>
+                <button type="button" className="inline-flex min-h-8 items-center justify-center rounded-lg border border-slate-200 bg-white px-3 text-sm font-black text-slate-700 shadow-sm transition hover:text-blue-600 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200" onClick={() => close(false)}>
                   {dialog.cancelLabel}
                 </button>
               ) : null}
-              <button type="button" className={`inline-flex min-h-11 items-center justify-center rounded-2xl px-5 text-sm font-black text-white shadow-lg transition ${style.confirmClass}`} onClick={() => close(true)}>
+              <button type="button" className={`inline-flex min-h-8 items-center justify-center rounded-lg px-3 text-sm font-black text-white shadow-md transition ${style.confirmClass}`} onClick={() => close(true)}>
                 {dialog.confirmLabel}
               </button>
             </div>
@@ -100,3 +100,5 @@ export function useAlert() {
   }
   return context;
 }
+
+
