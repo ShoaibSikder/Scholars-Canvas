@@ -1,105 +1,165 @@
-﻿from django.utils import timezone
+from django.utils import timezone
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.courses.models import RoutineSlot
-from apps.resources.models import VaultResource
 from apps.tasks.models import Task
+
+from .models import Notification
+
+
+PAGE_SIZE = 12
+IMPORTANT_GENERATED_PREFIXES = (
+    "task-overdue-",
+    "task-due-",
+    "class-live-",
+    "class-next-",
+)
+IMPORTANT_COMMUNICATION_PREFIXES = (
+    "friend-request-",
+    "friend-accepted-",
+    "message-",
+)
+IMPORTANT_ADMIN_PREFIXES = (
+    "admin-",
+    "announcement:",
+)
 
 
 def format_time(value):
     return timezone.datetime.combine(timezone.datetime.today(), value).strftime("%I:%M %p").lstrip("0")
 
 
-def resource_target(request, resource):
-    if resource.file:
-        return request.build_absolute_uri(resource.file.url)
-    return resource.url or ""
+def serialize_notification(notification):
+    return {
+        "id": notification.id,
+        "title": notification.title,
+        "message": notification.message,
+        "type": notification.type,
+        "page": notification.page,
+        "url": notification.url,
+        "courseId": notification.course_id,
+        "resourceId": notification.resource_id,
+        "is_read": notification.is_read,
+        "created_at": notification.created_at.isoformat(),
+    }
+
+
+def upsert_notification(user, source_key, defaults):
+    notification, created = Notification.objects.get_or_create(
+        owner=user,
+        source_key=source_key,
+        defaults=defaults,
+    )
+    if not created:
+        changed = False
+        for key, value in defaults.items():
+            if getattr(notification, key) != value:
+                setattr(notification, key, value)
+                changed = True
+        if changed:
+            notification.save(update_fields=[*defaults.keys()])
+    return notification
+
+
+def sync_generated_notifications(request):
+    user = request.user
+    now = timezone.localtime()
+    today = now.weekday()
+    current_time = now.time()
+
+    overdue_tasks = Task.objects.filter(user=user, due_at__lt=now).exclude(status=Task.Status.DONE).order_by("due_at")[:8]
+    for task in overdue_tasks:
+        upsert_notification(
+            user,
+            f"task-overdue-{task.id}",
+            {
+                "title": "Task overdue",
+                "message": f"{task.title} was due {timezone.localtime(task.due_at).strftime('%b %d, %I:%M %p')}.",
+                "type": Notification.Type.TASK,
+                "page": "tasks",
+            },
+        )
+
+    due_soon_limit = now + timezone.timedelta(hours=24)
+    due_tasks = Task.objects.filter(user=user, due_at__gte=now, due_at__lte=due_soon_limit).exclude(status=Task.Status.DONE).order_by("due_at")[:8]
+    for task in due_tasks:
+        upsert_notification(
+            user,
+            f"task-due-{task.id}",
+            {
+                "title": "Task due soon",
+                "message": f"{task.title} is due {timezone.localtime(task.due_at).strftime('%b %d, %I:%M %p')}.",
+                "type": Notification.Type.TASK,
+                "page": "tasks",
+            },
+        )
+
+    today_slots = RoutineSlot.objects.filter(user=user, day=today).order_by("start_time")
+    current_class = today_slots.filter(start_time__lte=current_time, end_time__gt=current_time).first()
+    if current_class:
+        upsert_notification(
+            user,
+            f"class-live-{current_class.id}-{now.date().isoformat()}",
+            {
+                "title": "Class is live now",
+                "message": f"{current_class.course_code} in {current_class.room_number} ends at {format_time(current_class.end_time)}.",
+                "type": Notification.Type.REMINDER,
+                "page": "routine",
+            },
+        )
+
+    next_class = today_slots.filter(start_time__gt=current_time).first()
+    if next_class:
+        class_start = timezone.make_aware(timezone.datetime.combine(now.date(), next_class.start_time), timezone.get_current_timezone())
+        if class_start <= now + timezone.timedelta(hours=2):
+            upsert_notification(
+                user,
+                f"class-next-{next_class.id}-{now.date().isoformat()}",
+                {
+                    "title": "Class starts soon",
+                    "message": f"{next_class.course_code} starts at {format_time(next_class.start_time)} in {next_class.room_number}.",
+                    "type": Notification.Type.REMINDER,
+                    "page": "routine",
+                },
+            )
+
+
+
+def is_important_notification(notification):
+    source_key = notification.source_key or ""
+    important_prefixes = IMPORTANT_GENERATED_PREFIXES + IMPORTANT_COMMUNICATION_PREFIXES + IMPORTANT_ADMIN_PREFIXES
+
+    return bool(source_key) and source_key.startswith(important_prefixes)
 
 
 class NotificationsView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        user = request.user
-        now = timezone.localtime()
-        today = now.weekday()
-        current_time = now.time()
-        items = []
+        sync_generated_notifications(request)
+        offset = max(int(request.query_params.get("offset", 0) or 0), 0)
+        limit = min(max(int(request.query_params.get("limit", PAGE_SIZE) or PAGE_SIZE), 1), 30)
 
-        overdue_tasks = Task.objects.filter(user=user, due_at__lt=now).exclude(status=Task.Status.DONE).order_by("due_at")[:4]
-        for task in overdue_tasks:
-            items.append(
-                {
-                    "id": f"task-overdue-{task.id}",
-                    "title": "Task overdue",
-                    "message": f"{task.title} was due {timezone.localtime(task.due_at).strftime('%b %d, %I:%M %p')}.",
-                    "type": "task",
-                    "page": "tasks",
-                    "created_at": task.due_at.isoformat(),
-                }
-            )
+        notifications = Notification.objects.filter(owner=request.user).exclude(source_key="").order_by("-created_at", "-id")
+        important_notifications = [item for item in notifications if is_important_notification(item)]
+        total = len(important_notifications)
+        items = important_notifications[offset : offset + limit]
 
-        due_soon_limit = now + timezone.timedelta(hours=24)
-        due_tasks = Task.objects.filter(user=user, due_at__gte=now, due_at__lte=due_soon_limit).exclude(status=Task.Status.DONE).order_by("due_at")[:4]
-        for task in due_tasks:
-            items.append(
-                {
-                    "id": f"task-due-{task.id}",
-                    "title": "Task due soon",
-                    "message": f"{task.title} is due {timezone.localtime(task.due_at).strftime('%b %d, %I:%M %p')}.",
-                    "type": "task",
-                    "page": "tasks",
-                    "created_at": task.due_at.isoformat(),
-                }
-            )
+        return Response(
+            {
+                "notifications": [serialize_notification(item) for item in items],
+                "unread_count": sum(1 for item in important_notifications if not item.is_read),
+                "has_more": offset + limit < total,
+                "next_offset": offset + len(items),
+            }
+        )
 
-        today_slots = RoutineSlot.objects.filter(user=user, day=today).order_by("start_time")
-        current_class = today_slots.filter(start_time__lte=current_time, end_time__gte=current_time).first()
-        if current_class:
-            items.append(
-                {
-                    "id": f"class-live-{current_class.id}",
-                    "title": "Class is live now",
-                    "message": f"{current_class.course_code} in {current_class.room_number} ends at {format_time(current_class.end_time)}.",
-                    "type": "reminder",
-                    "page": "routine",
-                    "created_at": now.isoformat(),
-                }
-            )
 
-        next_class = today_slots.filter(start_time__gt=current_time).first()
-        if next_class:
-            class_start = timezone.make_aware(timezone.datetime.combine(now.date(), next_class.start_time), timezone.get_current_timezone())
-            if class_start <= now + timezone.timedelta(hours=2):
-                items.append(
-                    {
-                        "id": f"class-next-{next_class.id}",
-                        "title": "Class starts soon",
-                        "message": f"{next_class.course_code} starts at {format_time(next_class.start_time)} in {next_class.room_number}.",
-                        "type": "reminder",
-                        "page": "routine",
-                        "created_at": class_start.isoformat(),
-                    }
-                )
+class NotificationsReadView(APIView):
+    permission_classes = [IsAuthenticated]
 
-        recent_cutoff = now - timezone.timedelta(days=3)
-        recent_resources = VaultResource.objects.filter(course__user=user, created_at__gte=recent_cutoff).select_related("course").order_by("-created_at")[:4]
-        for resource in recent_resources:
-            items.append(
-                {
-                    "id": f"resource-{resource.id}",
-                    "title": "New vault resource",
-                    "message": f"{resource.title} was added to {resource.course.code}.",
-                    "type": "file",
-                    "page": "vault",
-                    "courseId": resource.course_id,
-                    "resourceId": resource.id,
-                    "url": resource_target(request, resource),
-                    "created_at": resource.created_at.isoformat(),
-                }
-            )
-
-        items.sort(key=lambda item: item.get("created_at", ""), reverse=True)
-        return Response({"notifications": items[:10], "unread_count": len(items[:10])})
+    def post(self, request):
+        Notification.objects.filter(owner=request.user, is_read=False).update(is_read=True)
+        return Response({"message": "Notifications marked as read.", "unread_count": 0})

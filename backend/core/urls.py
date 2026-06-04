@@ -16,6 +16,8 @@ urlpatterns = [
     path('api/app/notification/', include('apps.notification.urls')),
     path('api/app/search/', include('apps.search.urls')),
     path('api/app/ai-lab/', include('apps.ai_lab.urls')),
+    path('api/app/communication/', include('apps.communication.urls')),
+    path('api/admin-panel/', include('apps.administration.urls')),
 ]
 
 if settings.DEBUG:
