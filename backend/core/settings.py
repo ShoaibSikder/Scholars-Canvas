@@ -61,6 +61,8 @@ INSTALLED_APPS = [
     'apps.notification',
     'apps.search',
     'apps.ai_lab',
+    'apps.communication',
+    'apps.administration',
 ]
 
 MIDDLEWARE = [
@@ -78,6 +80,9 @@ MIDDLEWARE = [
 # Allow React (local dev) to communicate with Django
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173", # Standard Vite port
+    "http://127.0.0.1:5173",
+    "http://localhost:5174",
+    "http://127.0.0.1:5174",
 ]
 
 ROOT_URLCONF = 'core.urls'
@@ -123,6 +128,9 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
     ),
+    'DEFAULT_THROTTLE_CLASSES': (
+        'core.throttles.SystemRateLimitThrottle',
+    ),
 }
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -146,7 +154,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Dhaka'
 
 USE_I18N = True
 
@@ -159,4 +167,8 @@ USE_TZ = True
 STATIC_URL = 'static/'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://localhost:5173")
+RESEND_API_KEY = os.environ.get("RESEND_API_KEY", "")
+RESEND_FROM_EMAIL = os.environ.get("RESEND_FROM_EMAIL", "onboarding@resend.dev")
 
