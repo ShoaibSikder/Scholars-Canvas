@@ -6,7 +6,7 @@ from django.urls import reverse
 from apps.resources.models import VaultResource
 
 from .models import AIStudyDocument
-from .services import SUPPORTED_TEXT_EXTENSIONS, extract_document_text
+from .services import extract_document_text
 
 
 class AIStudyDocumentSerializer(serializers.ModelSerializer):
@@ -28,8 +28,11 @@ class AIStudyDocumentSerializer(serializers.ModelSerializer):
             "preview_url",
             "text_preview",
             "summary_data",
+            "summary_source",
             "flashcards",
+            "flashcards_source",
             "quiz_data",
+            "quiz_source",
             "chat_history",
             "created_at",
             "updated_at",
@@ -42,8 +45,11 @@ class AIStudyDocumentSerializer(serializers.ModelSerializer):
             "preview_url",
             "text_preview",
             "summary_data",
+            "summary_source",
             "flashcards",
+            "flashcards_source",
             "quiz_data",
+            "quiz_source",
             "chat_history",
             "created_at",
             "updated_at",
@@ -73,20 +79,13 @@ class AIStudyDocumentSerializer(serializers.ModelSerializer):
         return url
 
     def get_text_preview(self, obj):
-        return (obj.extracted_text or "")[:500]
+        return (obj.extracted_text or "")[:12000]
 
 
 class AIStudyDocumentCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = AIStudyDocument
         fields = ["id", "title", "course", "file"]
-
-    def validate_file(self, value):
-        extension = Path(value.name).suffix.lower()
-        if extension not in SUPPORTED_TEXT_EXTENSIONS:
-            supported = ", ".join(sorted(SUPPORTED_TEXT_EXTENSIONS))
-            raise serializers.ValidationError(f"Unsupported file type. Supported study files: {supported}.")
-        return value
 
     def create(self, validated_data):
         request = self.context["request"]
@@ -117,11 +116,6 @@ class AIStudyDocumentVaultImportSerializer(serializers.Serializer):
             raise serializers.ValidationError("Vault file not found.")
         if not resource.file:
             raise serializers.ValidationError("Only uploaded Vault files can be opened in AI Lab.")
-
-        extension = Path(resource.file.name).suffix.lower()
-        if extension not in SUPPORTED_TEXT_EXTENSIONS:
-            supported = ", ".join(sorted(SUPPORTED_TEXT_EXTENSIONS))
-            raise serializers.ValidationError(f"Unsupported file type. Supported study files: {supported}.")
 
         self.context["resource"] = resource
         return value
