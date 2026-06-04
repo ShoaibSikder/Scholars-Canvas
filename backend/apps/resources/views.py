@@ -1,11 +1,18 @@
-from django.db.models import Count, Prefetch
+import mimetypes
+
+from django.db.models import Count, Prefetch, Q
+from django.http import FileResponse, HttpResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from django.utils.decorators import method_decorator
+from django.views.decorators.clickjacking import xframe_options_exempt
 from rest_framework import status
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+
+from apps.ai_lab.preview import can_render_html_preview, get_office_pdf_preview_path, render_html_preview
 
 from .models import VaultCourse, VaultResource
 from .serializers import VaultCourseSerializer, VaultResourceSerializer
@@ -14,8 +21,8 @@ from .serializers import VaultCourseSerializer, VaultResourceSerializer
 def courses_for_user(user):
     return (
         VaultCourse.objects.filter(user=user)
-        .annotate(resource_count=Count("resources"))
-        .prefetch_related(Prefetch("resources", queryset=VaultResource.objects.order_by("category", "-created_at")))
+        .annotate(resource_count=Count("resources", filter=Q(resources__is_removed_by_admin=False) & Q(resources__moderation_status__in=["active", "flagged"])))
+        .prefetch_related(Prefetch("resources", queryset=VaultResource.objects.filter(is_removed_by_admin=False).exclude(moderation_status="removed").order_by("category", "-created_at")))
         .order_by("-semester", "code")
     )
 
@@ -70,6 +77,31 @@ class CourseResourceView(APIView):
 
     def post(self, request, course_id):
         course = get_object_or_404(VaultCourse, user=request.user, pk=course_id)
+        files = request.FILES.getlist("files")
+
+        if files:
+            created_resources = []
+            base_data = {
+                "category": request.data.get("category", ""),
+                "url": request.data.get("url", ""),
+                "notes": request.data.get("notes", ""),
+            }
+            if "is_done" in request.data:
+                base_data["is_done"] = request.data.get("is_done")
+
+            for uploaded_file in files:
+                data = base_data.copy()
+                data["file"] = uploaded_file
+                data["title"] = uploaded_file.name.rsplit(".", 1)[0] if len(files) > 1 else request.data.get("title", "").strip() or uploaded_file.name.rsplit(".", 1)[0]
+                serializer = VaultResourceSerializer(data=data, context={"request": request})
+                serializer.is_valid(raise_exception=True)
+                is_done = serializer.validated_data.get("is_done", False)
+                resource = serializer.save(course=course, completed_at=timezone.now() if is_done else None)
+                created_resources.append(resource)
+
+            response_serializer = VaultResourceSerializer(created_resources, many=True, context={"request": request})
+            return Response(response_serializer.data, status=status.HTTP_201_CREATED)
+
         serializer = VaultResourceSerializer(data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
         is_done = serializer.validated_data.get("is_done", False)
@@ -82,7 +114,7 @@ class CourseResourceDetailView(APIView):
     parser_classes = [JSONParser, MultiPartParser, FormParser]
 
     def get_object(self, user, course_id, pk):
-        return get_object_or_404(VaultResource, course__user=user, course_id=course_id, pk=pk)
+        return get_object_or_404(VaultResource, course__user=user, course_id=course_id, pk=pk, is_removed_by_admin=False, moderation_status__in=["active", "flagged"])
 
     def patch(self, request, course_id, pk):
         resource = self.get_object(request.user, course_id, pk)
@@ -98,3 +130,52 @@ class CourseResourceDetailView(APIView):
         resource = self.get_object(request.user, course_id, pk)
         resource.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@method_decorator(xframe_options_exempt, name="dispatch")
+class CourseResourcePreviewView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, course_id, pk):
+        resource = get_object_or_404(VaultResource, course__user=request.user, course_id=course_id, pk=pk, is_removed_by_admin=False, moderation_status__in=["active", "flagged"])
+
+        if not resource.file:
+            return Response({"message": "File not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        pdf_preview_path = get_office_pdf_preview_path(resource.file.path)
+        if pdf_preview_path:
+            response = FileResponse(open(pdf_preview_path, "rb"), content_type="application/pdf")
+            response["Content-Disposition"] = f'inline; filename="{resource.title}.pdf"'
+            response.headers.pop("X-Frame-Options", None)
+            return response
+
+        if can_render_html_preview(resource.file.path):
+            response = HttpResponse(
+                render_html_preview(resource.file.path, title=resource.title),
+                content_type="text/html; charset=utf-8",
+            )
+            response["Content-Disposition"] = f'inline; filename="{resource.title}.html"'
+            response.headers.pop("X-Frame-Options", None)
+            return response
+
+        content_type = mimetypes.guess_type(resource.file.name)[0] or "application/octet-stream"
+        response = FileResponse(resource.file.open("rb"), content_type=content_type)
+        response["Content-Disposition"] = f'inline; filename="{resource.file.name.rsplit("/", 1)[-1]}"'
+        response.headers.pop("X-Frame-Options", None)
+        return response
+
+
+class CourseResourceDownloadView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, course_id, pk):
+        resource = get_object_or_404(VaultResource, course__user=request.user, course_id=course_id, pk=pk, is_removed_by_admin=False, moderation_status__in=["active", "flagged"])
+
+        if not resource.file:
+            return Response({"message": "File not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        filename = resource.file.name.rsplit("/", 1)[-1]
+        content_type = mimetypes.guess_type(resource.file.name)[0] or "application/octet-stream"
+        response = FileResponse(resource.file.open("rb"), content_type=content_type)
+        response["Content-Disposition"] = f'attachment; filename="{filename}"'
+        return response

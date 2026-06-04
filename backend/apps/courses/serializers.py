@@ -40,7 +40,7 @@ class RoutineSlotSerializer(serializers.ModelSerializer):
 
     def get_live(self, obj):
         now = timezone.localtime()
-        return obj.day == now.weekday() and obj.start_time <= now.time() <= obj.end_time
+        return obj.day == now.weekday() and obj.start_time <= now.time() < obj.end_time
 
     def get_duration_minutes(self, obj):
         start = datetime.combine(datetime.today(), obj.start_time)
