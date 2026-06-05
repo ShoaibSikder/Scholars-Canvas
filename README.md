@@ -1,4 +1,4 @@
-# StudentAssistant
+# Scholars Canvas
 
 ![License](https://img.shields.io/badge/License-Academic%20Project-blue)
 ![Frontend](https://img.shields.io/badge/Frontend-React-61DAFB)
