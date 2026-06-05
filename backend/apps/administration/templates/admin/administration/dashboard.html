@@ -1,0 +1,60 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+<div class="module">
+  <h2>Dashboard</h2>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:12px 0 24px;">
+    {% for label, value in cards %}
+      <div style="border:1px solid var(--hairline-color);border-radius:6px;padding:14px;background:var(--body-bg);">
+        <div style="font-size:12px;color:var(--body-quiet-color);">{{ label }}</div>
+        <strong style="font-size:24px;">{{ value }}</strong>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px;">
+  <div class="module">
+    <h2>Most-used Features</h2>
+    <table>
+      <tbody>
+        {% for label, value in feature_usage %}
+          <tr><th>{{ label }}</th><td>{{ value }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="module">
+    <h2>Uploaded File Types</h2>
+    <table>
+      <tbody>
+        {% for item in file_types %}
+          <tr><th>{{ item.resource_type }}</th><td>{{ item.total }}</td></tr>
+        {% empty %}
+          <tr><td>No files uploaded yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="module" style="margin-top:18px;">
+  <h2>Recent AI Errors</h2>
+  <table>
+    <thead><tr><th>User</th><th>Feature</th><th>Error</th><th>When</th></tr></thead>
+    <tbody>
+      {% for error in recent_errors %}
+        <tr>
+          <td>{{ error.user.email }}</td>
+          <td>{{ error.feature }}</td>
+          <td>{{ error.error_message|truncatechars:120 }}</td>
+          <td>{{ error.created_at }}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="4">No AI failures recorded.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
