@@ -167,7 +167,10 @@ export default function CommandBar({
               </div>
 
               {(navMode === "admin"
-                ? [{ label: "Admin Settings", page: "admin-settings", icon: Settings }]
+                ? [
+                    { label: "Profile", page: "admin-profile", icon: UserCircle },
+                    { label: "Settings", page: "admin-settings", icon: Settings },
+                  ]
                 : [
                     { label: "Profile", page: "profile", icon: UserCircle },
                     { label: "Settings", page: "settings", icon: Settings },

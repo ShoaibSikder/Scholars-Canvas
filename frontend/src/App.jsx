@@ -57,6 +57,7 @@ function AppRoutes() {
           }
         >
           <Route index element={<AdminRoute />} />
+          <Route path="profile" element={<ProfileRoute />} />
           <Route path="users" element={<AdminRoute />} />
           <Route path="resources" element={<AdminRoute />} />
           <Route path="ai" element={<AdminRoute />} />

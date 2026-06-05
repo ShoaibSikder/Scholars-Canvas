@@ -225,7 +225,7 @@ export function parseMarkdownTable(lines, startIndex) {
   return { rows, nextIndex: index };
 }
 
-export function FormattedChatMessage({ text }) {
+function getStructuredBlocks(text) {
   const lines = normalizeChatMarkdown(text).split("\n");
   const blocks = [];
   let index = 0;
@@ -247,6 +247,17 @@ export function FormattedChatMessage({ text }) {
     const heading = line.match(/^(#{2,4})\s+(.+)$/);
     if (heading) {
       blocks.push({ type: "heading", level: heading[1].length, text: heading[2] });
+      index += 1;
+      continue;
+    }
+
+    const labelMatch = line.match(/^([A-Z][A-Za-z0-9 /&().-]{2,48}):\s*(.+)?$/);
+    if (labelMatch) {
+      blocks.push({
+        type: "label",
+        label: labelMatch[1],
+        text: labelMatch[2] || "",
+      });
       index += 1;
       continue;
     }
@@ -286,24 +297,51 @@ export function FormattedChatMessage({ text }) {
     blocks.push({ type: "paragraph", text: paragraphLines.join(" ") });
   }
 
+  return blocks;
+}
+
+export function StructuredAIText({ text, variant = "chat" }) {
+  const blocks = getStructuredBlocks(text);
+  const isSummary = variant === "summary";
+
+  if (!blocks.length) {
+    return null;
+  }
+
   return (
-    <div className="grid gap-2 text-xs leading-5">
+    <div className={`grid gap-2.5 ${isSummary ? "text-sm leading-6" : "text-xs leading-5"}`}>
       {blocks.map((block, blockIndex) => {
         if (block.type === "heading") {
-          const headingClass = block.level <= 2 ? "text-sm" : "text-xs";
+          const headingClass = block.level <= 2 || isSummary ? "text-sm" : "text-xs";
           return (
-            <h4 key={`heading-${blockIndex}`} className={`${headingClass} pt-1 font-black text-slate-950 dark:text-white`}>
+            <h4 key={`heading-${blockIndex}`} className={`${headingClass} border-l-4 border-blue-500 pl-2 font-black text-slate-950 dark:text-white`}>
               {renderInlineMarkdown(block.text, `heading-${blockIndex}`)}
             </h4>
           );
         }
 
+        if (block.type === "label") {
+          return (
+            <div key={`label-${blockIndex}`} className="rounded-lg border border-slate-200 bg-white p-2.5 shadow-sm dark:border-slate-800 dark:bg-slate-900/70">
+              <p className="text-[0.68rem] font-black uppercase tracking-wide text-blue-600 dark:text-blue-300">
+                {block.label}
+              </p>
+              {block.text ? (
+                <p className="mt-1 text-slate-700 dark:text-slate-200">
+                  {renderInlineMarkdown(block.text, `label-${blockIndex}`)}
+                </p>
+              ) : null}
+            </div>
+          );
+        }
+
         if (block.type === "bullets") {
           return (
-            <ul key={`bullets-${blockIndex}`} className="ml-4 list-disc space-y-1">
+            <ul key={`bullets-${blockIndex}`} className="grid gap-1.5">
               {block.items.map((item, itemIndex) => (
-                <li key={`bullet-${blockIndex}-${itemIndex}`}>
-                  {renderInlineMarkdown(item, `bullet-${blockIndex}-${itemIndex}`)}
+                <li key={`bullet-${blockIndex}-${itemIndex}`} className="grid grid-cols-[auto_minmax(0,1fr)] gap-2 rounded-lg bg-white px-2.5 py-2 text-slate-700 ring-1 ring-slate-200/80 dark:bg-slate-900/70 dark:text-slate-200 dark:ring-slate-800">
+                  <span className="mt-2 size-1.5 rounded-full bg-blue-500" />
+                  <span>{renderInlineMarkdown(item, `bullet-${blockIndex}-${itemIndex}`)}</span>
                 </li>
               ))}
             </ul>
@@ -312,10 +350,13 @@ export function FormattedChatMessage({ text }) {
 
         if (block.type === "numbers") {
           return (
-            <ol key={`numbers-${blockIndex}`} className="ml-4 list-decimal space-y-1">
+            <ol key={`numbers-${blockIndex}`} className="grid gap-1.5">
               {block.items.map((item, itemIndex) => (
-                <li key={`number-${blockIndex}-${itemIndex}`}>
-                  {renderInlineMarkdown(item, `number-${blockIndex}-${itemIndex}`)}
+                <li key={`number-${blockIndex}-${itemIndex}`} className="grid grid-cols-[auto_minmax(0,1fr)] gap-2 rounded-lg bg-white px-2.5 py-2 text-slate-700 ring-1 ring-slate-200/80 dark:bg-slate-900/70 dark:text-slate-200 dark:ring-slate-800">
+                  <span className="grid size-5 shrink-0 place-items-center rounded-full bg-blue-100 text-[0.65rem] font-black text-blue-700 dark:bg-blue-500/20 dark:text-blue-200">
+                    {itemIndex + 1}
+                  </span>
+                  <span>{renderInlineMarkdown(item, `number-${blockIndex}-${itemIndex}`)}</span>
                 </li>
               ))}
             </ol>
@@ -353,13 +394,17 @@ export function FormattedChatMessage({ text }) {
         }
 
         return (
-          <p key={`paragraph-${blockIndex}`}>
+          <p key={`paragraph-${blockIndex}`} className="text-slate-700 dark:text-slate-200">
             {renderInlineMarkdown(block.text, `paragraph-${blockIndex}`)}
           </p>
         );
       })}
     </div>
   );
+}
+
+export function FormattedChatMessage({ text }) {
+  return <StructuredAIText text={text} variant="chat" />;
 }
 
 

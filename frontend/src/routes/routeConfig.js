@@ -17,6 +17,7 @@ export const PAGE_PATHS = {
 
 export const ADMIN_SECTION_PATHS = {
   "admin-dashboard": "/admin",
+  "admin-profile": "/admin/profile",
   "admin-users": "/admin/users",
   "admin-resources": "/admin/resources",
   "admin-ai": "/admin/ai",
@@ -51,6 +52,7 @@ export const baseSearchCatalog = [
   { id: "page-profile", kind: "page", label: "Profile", description: "Personal details", page: "profile" },
   { id: "page-settings", kind: "page", label: "Settings", description: "Preferences and security", page: "settings" },
   { id: "page-admin", kind: "page", label: "Admin", description: "Control center", page: "admin" },
+  { id: "page-admin-profile", kind: "page", label: "Profile", description: "Personal details", page: "admin-profile" },
   { id: "page-admin-users", kind: "page", label: "Admin Users", description: "User management", page: "admin-users" },
   { id: "page-admin-resources", kind: "page", label: "Admin Resources", description: "Courses and resource control", page: "admin-resources" },
   { id: "page-admin-ai", kind: "page", label: "Admin AI Usage", description: "AI lab controls and usage", page: "admin-ai" },
