@@ -82,3 +82,8 @@ frontend/
 ├── vite.config.js
 ├── package.json
 └── .env                    # API_BASE_URL
+
+
+
+
+
