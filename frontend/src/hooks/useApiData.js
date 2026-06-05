@@ -33,3 +33,4 @@ export function useApiData(fetcher, fallbackValue) {
 
   return { data, loading };
 }
+
