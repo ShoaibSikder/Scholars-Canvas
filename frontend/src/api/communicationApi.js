@@ -42,6 +42,8 @@ export const unsendConversationMessage = (conversationId, messageId) =>
 
 export function getConversationSocketUrl(conversationId) {
   const token =
+    localStorage.getItem("scholars_canvas_token") ||
+    sessionStorage.getItem("scholars_canvas_token") ||
     localStorage.getItem("studentassistant_token") ||
     sessionStorage.getItem("studentassistant_token") ||
     "";

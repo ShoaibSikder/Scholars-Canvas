@@ -71,7 +71,7 @@ export default function NotificationsPanel({ open, items, hasMore, loadingMore, 
             <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3 dark:border-slate-800">
               <div>
                 <h2 className="text-xl font-black text-slate-950 dark:text-white">Notifications</h2>
-                <p className="text-xs font-bold text-slate-500 dark:text-slate-400">Updates from StudentAssistant</p>
+                <p className="text-xs font-bold text-slate-500 dark:text-slate-400">Updates from Scholars Canvas</p>
               </div>
               <button type="button" className="rounded-full px-3 py-1.5 text-sm font-black text-blue-600 transition hover:bg-blue-50 dark:text-blue-300 dark:hover:bg-blue-500/10" onClick={onClose}>
                 Close

@@ -26,7 +26,7 @@ def admin_dashboard_view(request):
     today = timezone.now().date()
     context = {
         **admin.site.each_context(request),
-        "title": "StudentAssistant Admin Dashboard",
+        "title": "Scholars Canvas Admin Dashboard",
         "cards": [
             ("Total users", User.objects.count()),
             ("Active users", User.objects.filter(is_active=True, account_status=User.AccountStatus.ACTIVE).count()),
@@ -60,14 +60,14 @@ original_get_urls = admin.site.get_urls
 def get_admin_urls():
     urls = original_get_urls()
     custom_urls = [
-        path("studentassistant-dashboard/", staff_member_required(admin_dashboard_view), name="studentassistant-dashboard"),
+        path("scholars-canvas-dashboard/", staff_member_required(admin_dashboard_view), name="scholars-canvas-dashboard"),
     ]
     return custom_urls + urls
 
 
 admin.site.get_urls = get_admin_urls
-admin.site.site_header = "StudentAssistant Admin"
-admin.site.site_title = "StudentAssistant Admin"
+admin.site.site_header = "Scholars Canvas Admin"
+admin.site.site_title = "Scholars Canvas Admin"
 admin.site.index_title = "Admin Control Center"
 
 

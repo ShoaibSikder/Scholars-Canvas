@@ -3,6 +3,7 @@ import re
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 from django.contrib.auth import get_user_model
+from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
 from rest_framework import status
@@ -12,6 +13,7 @@ from rest_framework.views import APIView
 
 from apps.notification.models import Notification
 from apps.administration.utils import setting_value
+from apps.db_safety import parse_positive_int
 
 from .models import Conversation, FriendRequest, Friendship, Message, MessageRead
 from .serializers import ConversationSerializer, FriendRequestSerializer, FriendshipSerializer, MessageSerializer, UserCardSerializer
@@ -247,7 +249,7 @@ class FriendRequestView(APIView):
             return Response({"message": "Communication is available only for normal user accounts."}, status=status.HTTP_403_FORBIDDEN)
         if request.user.messaging_disabled:
             return messaging_disabled_response()
-        to_user_id = request.data.get("to_user_id")
+        to_user_id = parse_positive_int(request.data.get("to_user_id"), field_name="to_user_id")
         to_user = User.objects.filter(id=to_user_id).first()
 
         if not to_user or to_user == request.user or is_admin_account(to_user):
@@ -294,25 +296,26 @@ class FriendRequestActionView(APIView):
             return Response({"message": "Friend request not found."}, status=status.HTTP_404_NOT_FOUND)
 
         if action == "accept":
-            friend_request.status = FriendRequest.ACCEPTED
-            friend_request.save(update_fields=["status", "updated_at"])
-            Friendship.objects.get_or_create(user=friend_request.from_user, friend=friend_request.to_user)
-            Friendship.objects.get_or_create(user=friend_request.to_user, friend=friend_request.from_user)
-            conversation = get_or_create_conversation(friend_request.from_user, friend_request.to_user)
-            create_notification(
-                friend_request.from_user,
-                "Friend request accepted",
-                f"{user_label(friend_request.to_user)} accepted your friend request.",
-                notification_type=Notification.Type.SUCCESS,
-                source_key=f"friend-accepted-{friend_request.id}",
-            )
-            create_notification(
-                friend_request.to_user,
-                "Friend request accepted",
-                f"You accepted {user_label(friend_request.from_user)}'s friend request.",
-                notification_type=Notification.Type.SUCCESS,
-                source_key=f"friend-accepted-by-you-{friend_request.id}",
-            )
+            with transaction.atomic():
+                friend_request.status = FriendRequest.ACCEPTED
+                friend_request.save(update_fields=["status", "updated_at"])
+                Friendship.objects.get_or_create(user=friend_request.from_user, friend=friend_request.to_user)
+                Friendship.objects.get_or_create(user=friend_request.to_user, friend=friend_request.from_user)
+                conversation = get_or_create_conversation(friend_request.from_user, friend_request.to_user)
+                create_notification(
+                    friend_request.from_user,
+                    "Friend request accepted",
+                    f"{user_label(friend_request.to_user)} accepted your friend request.",
+                    notification_type=Notification.Type.SUCCESS,
+                    source_key=f"friend-accepted-{friend_request.id}",
+                )
+                create_notification(
+                    friend_request.to_user,
+                    "Friend request accepted",
+                    f"You accepted {user_label(friend_request.from_user)}'s friend request.",
+                    notification_type=Notification.Type.SUCCESS,
+                    source_key=f"friend-accepted-by-you-{friend_request.id}",
+                )
             return Response({"message": "Friend request accepted.", "conversation": ConversationSerializer(conversation, context={"request": request}).data})
 
         if action == "reject":
@@ -355,13 +358,15 @@ class ConversationView(APIView):
             title = (request.data.get("title") or "").strip()
             group_limit = setting_value("group_chat_creation_limit", 10)
             existing_groups = Conversation.objects.filter(is_group=True, participants=request.user).count()
-            if group_limit and existing_groups >= int(group_limit):
+            group_limit = parse_positive_int(group_limit, minimum=0, allow_none=True, field_name="group_chat_creation_limit")
+            if group_limit and existing_groups >= group_limit:
                 return Response({"message": "Group chat creation limit reached."}, status=status.HTTP_429_TOO_MANY_REQUESTS)
-            conversation = Conversation.objects.create(title=title[:160], is_group=True)
-            conversation.participants.add(*User.objects.filter(id__in=participant_ids))
+            with transaction.atomic():
+                conversation = Conversation.objects.create(title=title[:160], is_group=True)
+                conversation.participants.add(*User.objects.filter(id__in=participant_ids))
             return Response({"conversation": ConversationSerializer(conversation, context={"request": request}).data}, status=status.HTTP_201_CREATED)
 
-        friend_id = request.data.get("friend_id")
+        friend_id = parse_positive_int(request.data.get("friend_id"), field_name="friend_id")
         friend = User.objects.filter(id=friend_id).first()
 
         if not friend or is_admin_account(friend) or not are_friends(request.user, friend):

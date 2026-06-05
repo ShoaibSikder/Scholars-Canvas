@@ -56,10 +56,10 @@ def send_password_reset_email(user, reset_url):
     payload = {
         "from": resend_from_email,
         "to": [user.email],
-        "subject": "Reset your StudentAssistant password",
+        "subject": "Reset your Scholars Canvas password",
         "html": (
             f"<p>Hello {user.full_name or 'Student'},</p>"
-            "<p>Use the button below to reset your StudentAssistant password.</p>"
+            "<p>Use the button below to reset your Scholars Canvas password.</p>"
             f'<p><a href="{reset_url}">Reset password</a></p>'
             "<p>If you did not request this, you can ignore this email.</p>"
         ),
@@ -71,7 +71,7 @@ def send_password_reset_email(user, reset_url):
             headers={
                 "Authorization": f"Bearer {resend_api_key}",
                 "Content-Type": "application/json",
-                "User-Agent": "StudentAssistant/1.0",
+                "User-Agent": "Scholars Canvas/1.0",
             },
             timeout=15,
         )
@@ -115,7 +115,7 @@ class RegisterView(APIView):
 
     def post(self, request):
         if bool_setting("maintenance_mode", False):
-            return Response({"message": "StudentAssistant is currently in maintenance mode."}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+            return Response({"message": "Scholars Canvas is currently in maintenance mode."}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
         serializer = RegistrationSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
@@ -149,7 +149,7 @@ class LoginView(APIView):
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data["user"]
         if bool_setting("maintenance_mode", False) and not (user.is_staff or user.is_admin_role):
-            return Response({"message": "StudentAssistant is currently in maintenance mode."}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+            return Response({"message": "Scholars Canvas is currently in maintenance mode."}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
         token, _ = Token.objects.get_or_create(user=user)
         record_login(user, request)
 

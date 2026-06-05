@@ -57,7 +57,7 @@ export default function ResetPasswordForm({ uid, token, onBackToLogin }) {
           Create New Password
         </h2>
         <p className="mt-2 text-sm font-semibold text-slate-500 dark:text-slate-400">
-          Choose a new password for your StudentAssistant account.
+          Choose a new password for your Scholars Canvas account.
         </p>
       </div>
 

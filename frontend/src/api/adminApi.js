@@ -3,6 +3,11 @@ import { ADMIN_ENDPOINTS } from "./endpoints";
 
 export const fetchAdminOverview = () => request(ADMIN_ENDPOINTS.overview);
 export const fetchAdminUsers = (query = "") => request(`${ADMIN_ENDPOINTS.users}?q=${encodeURIComponent(query)}`);
+export const createAdminUser = (payload) =>
+  request(ADMIN_ENDPOINTS.users, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
 export const updateAdminUser = (id, payload) =>
   request(ADMIN_ENDPOINTS.user(id), {
     method: "PATCH",

@@ -1,7 +1,7 @@
 import { PieChart } from "lucide-react";
 import { motion } from "framer-motion";
 
-import { muted, panel, revealMotion, statusMeta, title } from "../dashboardConstants";
+import { dashboardListHoverSurface, muted, panel, revealMotion, statusMeta, title } from "../dashboardConstants";
 
 export default function TaskStatusCard({ donutGradient, taskStatus, taskStatusTotal }) {
   return (
@@ -20,10 +20,10 @@ export default function TaskStatusCard({ donutGradient, taskStatus, taskStatusTo
       </div>
 
       <div className="scroll-panel thin-scrollbar grid gap-4 pr-1">
-        <div className="relative mx-auto grid size-48 place-items-center rounded-full bg-gradient-to-br from-blue-50 via-white to-emerald-50 shadow-inner shadow-blue-500/10 dark:from-blue-500/10 dark:via-slate-950 dark:to-emerald-500/10">
+        <div className="relative mx-auto grid size-48 place-items-center rounded-full bg-white shadow-inner shadow-slate-900/10 dark:bg-slate-950">
           <motion.div
             key={donutGradient}
-            className="size-40 rounded-full shadow-inner"
+            className="size-40 rounded-full shadow-inner shadow-slate-900/10"
             style={{ background: `conic-gradient(${donutGradient})` }}
             initial={{ scale: 0.86, rotate: -50, opacity: 0 }}
             animate={{ scale: 1, rotate: 0, opacity: 1 }}
@@ -48,7 +48,7 @@ export default function TaskStatusCard({ donutGradient, taskStatus, taskStatusTo
             return (
               <motion.div
                 key={item.key}
-                className="rounded-xl border border-slate-200 bg-slate-50/80 p-3 dark:border-slate-800 dark:bg-slate-950/45"
+                className={`rounded-lg border border-transparent bg-slate-50/80 p-3 dark:bg-slate-950/45 ${dashboardListHoverSurface}`}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{

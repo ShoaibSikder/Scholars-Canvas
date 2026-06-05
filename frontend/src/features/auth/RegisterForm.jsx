@@ -100,7 +100,7 @@ export default function RegisterForm({ onSwitchToLogin, onRegisterSuccess }) {
           onChange={(event) =>
             setFormData({ ...formData, email: event.target.value })
           }
-          placeholder="student@university.edu"
+          placeholder="Enter your email"
           required
         />
         <Input

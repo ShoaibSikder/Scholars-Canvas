@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.courses.models import RoutineSlot
+from apps.db_safety import parse_page_window
 from apps.tasks.models import Task
 
 from .models import Notification
@@ -139,8 +140,7 @@ class NotificationsView(APIView):
 
     def get(self, request):
         sync_generated_notifications(request)
-        offset = max(int(request.query_params.get("offset", 0) or 0), 0)
-        limit = min(max(int(request.query_params.get("limit", PAGE_SIZE) or PAGE_SIZE), 1), 30)
+        limit, offset = parse_page_window(request.query_params, default_limit=PAGE_SIZE, max_limit=30)
 
         notifications = Notification.objects.filter(owner=request.user).exclude(source_key="").order_by("-created_at", "-id")
         important_notifications = [item for item in notifications if is_important_notification(item)]

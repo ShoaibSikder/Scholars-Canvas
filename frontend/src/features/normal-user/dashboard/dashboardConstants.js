@@ -26,6 +26,8 @@ export const panel =
 export const fixedPanel = `${panel} flex h-[calc(100vh-235px)] min-h-[460px] flex-col overflow-hidden md:h-[calc(100vh-220px)] xl:h-[calc(100vh-230px)]`;
 export const subtlePanel =
   "rounded-xl border border-slate-200/80 bg-slate-50/80 p-3 dark:border-slate-800 dark:bg-slate-950/45";
+export const dashboardListHoverSurface =
+  "transition-all duration-200 hover:border-blue-200 hover:bg-blue-50/70 hover:pl-3 hover:shadow-md hover:shadow-blue-500/10 dark:hover:border-blue-500/30 dark:hover:bg-blue-500/10";
 export const title = "text-sm font-black text-slate-950 dark:text-white";
 export const muted = "text-xs font-semibold text-slate-500 dark:text-slate-400";
 export const primaryBtn =
@@ -40,9 +42,9 @@ export const priorityStyles = {
 };
 
 export const priorityMeta = [
-  { key: "high", label: "High", color: "from-rose-500 to-pink-500" },
-  { key: "medium", label: "Medium", color: "from-amber-400 to-orange-500" },
-  { key: "low", label: "Low", color: "from-blue-500 to-cyan-500" },
+  { key: "high", label: "High", color: "#2563eb" },
+  { key: "medium", label: "Medium", color: "#10b981" },
+  { key: "low", label: "Low", color: "#f59e0b" },
 ];
 
 export const distributionColors = [
@@ -55,9 +57,9 @@ export const distributionColors = [
 ];
 
 export const statusMeta = [
-  { key: "todo", label: "To Do", color: "#64748b" },
-  { key: "inProgress", label: "In Progress", color: "#2563eb" },
-  { key: "done", label: "Completed", color: "#10b981" },
+  { key: "todo", label: "To Do", color: "#2563eb" },
+  { key: "inProgress", label: "In Progress", color: "#10b981" },
+  { key: "done", label: "Completed", color: "#f59e0b" },
 ];
 
 export const revealMotion = {

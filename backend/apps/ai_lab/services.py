@@ -1138,7 +1138,7 @@ class CloudAIService:
         request_headers = {
             "Accept": "application/json",
             "Content-Type": "application/json",
-            "User-Agent": "StudentAssistant/1.0",
+            "User-Agent": "Scholars Canvas/1.0",
         }
         if headers:
             request_headers.update(headers)
@@ -1205,7 +1205,7 @@ class CloudAIService:
             headers={
                 "Authorization": f"Bearer {self.openrouter_key}",
                 "HTTP-Referer": os.getenv("OPENROUTER_SITE_URL", "http://localhost:5173"),
-                "X-Title": os.getenv("OPENROUTER_APP_NAME", "StudentAssistant"),
+                "X-Title": os.getenv("OPENROUTER_APP_NAME", "Scholars Canvas"),
             },
         )
 

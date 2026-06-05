@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 
 import {
   fixedPanel,
+  dashboardListHoverSurface,
   muted,
   priorityMeta,
   priorityStyles,
@@ -32,18 +33,27 @@ export default function TaskLoadCard({
           const count = priorityCounts[item.key] ?? 0;
           const width = `${Math.max(6, (count / maxPriority) * 100)}%`;
           return (
-            <div key={item.key}>
+            <motion.div
+              key={item.key}
+              className={`rounded-lg border border-transparent p-2 ${dashboardListHoverSurface}`}
+              initial={{ opacity: 0, x: -8 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.12 + priorityMeta.findIndex((meta) => meta.key === item.key) * 0.05, duration: 0.28 }}
+            >
               <div className="mb-1 flex items-center justify-between text-xs font-black text-slate-600 dark:text-slate-300">
-                <span>{item.label}</span>
+                <span className="inline-flex items-center gap-2">
+                  <span className="size-2.5 rounded-full" style={{ backgroundColor: item.color }} />
+                  {item.label}
+                </span>
                 <span>{count}</span>
               </div>
               <div className="h-2 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
                 <div
-                  className={`h-full rounded-full bg-gradient-to-r ${item.color}`}
-                  style={{ width }}
+                  className="h-full rounded-full"
+                  style={{ width, backgroundColor: item.color }}
                 />
               </div>
-            </div>
+            </motion.div>
           );
         })}
       </div>
@@ -56,7 +66,7 @@ export default function TaskLoadCard({
           visibleTasks.slice(0, 6).map((task) => (
             <div
               key={task.id}
-              className={`rounded-xl border-l-4 p-3 ${priorityStyles[task.priority] ?? priorityStyles.medium}`}
+              className={`group rounded-xl border border-transparent border-l-4 p-3 transition-all duration-200 hover:translate-x-1 hover:bg-blue-50/70 hover:shadow-sm dark:hover:bg-blue-500/10 ${priorityStyles[task.priority] ?? priorityStyles.medium}`}
             >
               <div className="flex gap-3">
                 <input
@@ -65,7 +75,7 @@ export default function TaskLoadCard({
                   onChange={() => handleTaskDone(task)}
                 />
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-black text-slate-900 dark:text-white">
+                  <p className="truncate text-sm font-black text-slate-900 transition group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-300">
                     {task.title}
                   </p>
                   <span className="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-slate-500 dark:text-slate-400">

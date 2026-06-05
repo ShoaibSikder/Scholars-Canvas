@@ -285,6 +285,8 @@ export default function AILabPage() {
       }
 
       const token =
+        localStorage.getItem("scholars_canvas_token") ||
+        sessionStorage.getItem("scholars_canvas_token") ||
         localStorage.getItem("studentassistant_token") ||
         sessionStorage.getItem("studentassistant_token");
       setPreviewLoading(true);

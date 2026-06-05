@@ -6,7 +6,7 @@ const sections = {
   terms: {
     title: "Terms of Service",
     intro:
-      "These terms explain how you may use StudentAssistant, an academic productivity app for routines, tasks, resources, AI study tools, and student communication.",
+      "These terms explain how you may use Scholars Canvas, an academic productivity app for routines, tasks, resources, AI study tools, and student communication.",
     sections: [
       {
         heading: "Account Responsibilities",
@@ -18,7 +18,7 @@ const sections = {
       },
       {
         heading: "Academic Content",
-        body: "You remain responsible for files, links, notes, tasks, messages, and other content you add. StudentAssistant helps organize and process that content but does not replace your university rules, instructor instructions, or academic judgment.",
+        body: "You remain responsible for files, links, notes, tasks, messages, and other content you add. Scholars Canvas helps organize and process that content but does not replace your university rules, instructor instructions, or academic judgment.",
       },
       {
         heading: "AI Study Tools",
@@ -37,7 +37,7 @@ const sections = {
   privacy: {
     title: "Privacy Policy",
     intro:
-      "This policy describes the information StudentAssistant uses to provide your academic dashboard, account recovery, reminders, resources, AI study tools, and communication features.",
+      "This policy describes the information Scholars Canvas uses to provide your academic dashboard, account recovery, reminders, resources, AI study tools, and communication features.",
     sections: [
       {
         heading: "Information We Store",
@@ -90,7 +90,7 @@ export default function TermsModal({ type = "terms", onClose }) {
               {content.title}
             </h2>
             <p className="mt-1 text-xs font-bold text-slate-500 dark:text-slate-400">
-              StudentAssistant
+              Scholars Canvas
             </p>
           </div>
           <button
@@ -113,7 +113,7 @@ export default function TermsModal({ type = "terms", onClose }) {
             </section>
           ))}
           <p className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs font-bold leading-5 text-slate-500 dark:border-slate-800 dark:bg-slate-950/60 dark:text-slate-400">
-            Last updated: June 2026. These terms are intended for this StudentAssistant project and should be reviewed before production or institutional use.
+            Last updated: June 2026. These terms are intended for this Scholars Canvas project and should be reviewed before production or institutional use.
           </p>
         </div>
       </motion.section>

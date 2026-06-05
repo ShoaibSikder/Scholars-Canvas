@@ -16,6 +16,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.db_safety import parse_positive_int
 from apps.resources.models import VaultResource
 from apps.administration.models import AIUsageLog
 from apps.administration.utils import bool_setting, setting_value
@@ -273,7 +274,7 @@ class AIStudyVaultImportView(APIView):
         blocked = ai_allowed_response(request, "vault_import")
         if blocked:
             return blocked
-        resource_id = request.data.get("resource_id")
+        resource_id = parse_positive_int(request.data.get("resource_id"), field_name="resource_id")
         resource = VaultResource.objects.filter(pk=resource_id, course__user=request.user).select_related("course").first()
 
         if not resource:

@@ -34,12 +34,14 @@ export default function LoginForm({
         remember_me: formData.rememberMe,
       });
 
+      localStorage.removeItem("scholars_canvas_token");
+      sessionStorage.removeItem("scholars_canvas_token");
       localStorage.removeItem("studentassistant_token");
       sessionStorage.removeItem("studentassistant_token");
       if (formData.rememberMe) {
-        localStorage.setItem("studentassistant_token", response.token);
+        localStorage.setItem("scholars_canvas_token", response.token);
       } else {
-        sessionStorage.setItem("studentassistant_token", response.token);
+        sessionStorage.setItem("scholars_canvas_token", response.token);
       }
 
       onLoginSuccess?.(response.user);
@@ -79,7 +81,7 @@ export default function LoginForm({
           onChange={(event) =>
             setFormData({ ...formData, email: event.target.value })
           }
-          placeholder="student@university.edu"
+          placeholder="Enter your email"
           required
         />
 
@@ -151,7 +153,7 @@ export default function LoginForm({
       <div className="my-6 flex items-center gap-3">
         <span className="h-px flex-1 bg-slate-200 dark:bg-slate-700" />
         <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">
-          New to StudentAssistant?
+          New to Scholars Canvas?
         </p>
         <span className="h-px flex-1 bg-slate-200 dark:bg-slate-700" />
       </div>
@@ -167,4 +169,3 @@ export default function LoginForm({
     </motion.div>
   );
 }
-

@@ -1,4 +1,4 @@
-export const TOKEN_KEYS = ["studentassistant_token"];
+export const TOKEN_KEYS = ["scholars_canvas_token", "studentassistant_token"];
 export const ACTIVE_PAGE_KEY = "studentassistant_active_page";
 export const SELECTED_COURSE_KEY = "studentassistant_vault_selected_course";
 export const PREFERENCES_KEY = "studentassistant_preferences";

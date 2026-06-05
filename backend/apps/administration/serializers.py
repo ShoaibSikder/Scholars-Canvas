@@ -67,6 +67,39 @@ class AdminUserUpdateSerializer(serializers.ModelSerializer):
         ]
 
 
+class AdminUserCreateSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True, min_length=8)
+
+    class Meta:
+        model = User
+        fields = [
+            "full_name",
+            "email",
+            "password",
+            "university",
+            "major",
+            "current_semester",
+            "role",
+            "is_active",
+        ]
+        extra_kwargs = {
+            "university": {"required": False, "allow_blank": True},
+            "role": {"required": False},
+            "is_active": {"required": False},
+        }
+
+    def validate_role(self, value):
+        return User.Role.STUDENT if value == User.Role.STUDENT else User.Role.SUPER_ADMIN
+
+    def create(self, validated_data):
+        password = validated_data.pop("password")
+        role = validated_data.pop("role", User.Role.STUDENT)
+        user = User.objects.create_user(password=password, role=role, **validated_data)
+        user.is_staff = user.is_admin_role
+        user.save(update_fields=["is_staff"])
+        return user
+
+
 class AdminVaultCourseSerializer(serializers.ModelSerializer):
     user_id = serializers.IntegerField(source="user.id", read_only=True)
     owner_email = serializers.EmailField(source="user.email", read_only=True)

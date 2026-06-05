@@ -18,6 +18,7 @@ import {
   fetchAdminSettings,
   fetchAdminTasksRoutine,
   fetchAdminUsers,
+  createAdminUser,
   runAdminUserAction,
   sendAdminAnnouncement,
   updateAdminAIDocument,
@@ -78,6 +79,7 @@ export default function AdminPanelPage({ user, initialTab = "dashboard", showTab
   const actions = useMemo(
     () => ({
       runAdminUserAction,
+      createAdminUser,
       sendAdminAnnouncement,
       updateAdminAIDocument,
       updateAdminConversation,

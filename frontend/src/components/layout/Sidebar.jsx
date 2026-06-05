@@ -42,7 +42,7 @@ const adminNavItems = [
   { icon: Lock, label: "Audit", path: "admin-audit" },
 ];
 
-const ADMIN_MOBILE_NAV_SCROLL_KEY = "studentassistant_admin_mobile_nav_scroll";
+const ADMIN_MOBILE_NAV_SCROLL_KEY = "scholars_canvas_admin_mobile_nav_scroll";
 
 function canUseAdmin(user) {
   return Boolean(user?.is_staff || user?.is_superuser || ["support_admin", "moderator", "super_admin"].includes(user?.role));
@@ -81,7 +81,7 @@ export default function Sidebar({ activePage, navMode = "app", onNavigate, user 
           type="button"
           onClick={() => window.location.reload()}
           className="mt-4 grid size-9 place-items-center rounded-xl bg-gradient-to-br from-blue-600 to-violet-600 text-white shadow-lg shadow-blue-500/25 transition hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-500/20"
-          aria-label="Refresh StudentAssistant"
+          aria-label="Refresh Scholars Canvas"
           title="Refresh"
         >
           <GraduationCap className="size-5" />

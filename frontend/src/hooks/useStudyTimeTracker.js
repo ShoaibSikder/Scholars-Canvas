@@ -38,7 +38,7 @@ export default function useStudyTimeTracker(isAuthenticated) {
           started_at: startedAt,
           ended_at: endedAt,
           duration_minutes: minutes,
-          notes: "Automatically tracked from active time spent on StudentAssistant.",
+          notes: "Automatically tracked from active time spent on Scholars Canvas.",
         });
       } catch {
         tracker.activeSeconds += minutes * 60;

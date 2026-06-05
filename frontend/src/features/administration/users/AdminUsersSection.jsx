@@ -1,13 +1,27 @@
 import { useEffect, useMemo, useState } from "react";
-import { Save, Search } from "lucide-react";
+import { Plus, Save, Search, X } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import { createPortal } from "react-dom";
 
 import Button from "../../../components/common/Button";
-import { DataTable, Panel, RoleSelect, StatusPill, TinyButton, adminInput } from "../admin-panel/components/AdminPrimitives";
+import { DataTable, Panel, RoleSelect, StatusPill, TinyButton, adminInput, adminPanel, userRoleOptions } from "../admin-panel/components/AdminPrimitives";
+
+const emptyCreateDraft = {
+  full_name: "",
+  email: "",
+  password: "",
+  university: "",
+  major: "",
+  current_semester: "1",
+  role: "student",
+};
 
 export default function AdminUsersSection({ users, currentUser, userQuery, onUserQueryChange, onRefreshUsers, onRunAction, actions }) {
   const currentUserId = currentUser?.id ? String(currentUser.id) : null;
   const rows = users?.results ?? [];
   const [roleDrafts, setRoleDrafts] = useState({});
+  const [showCreate, setShowCreate] = useState(false);
+  const [createDraft, setCreateDraft] = useState(emptyCreateDraft);
 
   const roleForRow = (row) => (row.role === "student" ? "student" : "super_admin");
 
@@ -25,6 +39,20 @@ export default function AdminUsersSection({ users, currentUser, userQuery, onUse
       await Promise.all(dirtyRoleRows.map((row) => actions.updateAdminUser(row.id, { role: roleDrafts[row.id] })));
     });
 
+  const updateCreateDraft = (key, value) => {
+    setCreateDraft((current) => ({ ...current, [key]: value }));
+  };
+
+  const createUser = () =>
+    onRunAction("User created", async () => {
+      await actions.createAdminUser({
+        ...createDraft,
+        current_semester: Number(createDraft.current_semester || 1),
+      });
+      setCreateDraft(emptyCreateDraft);
+      setShowCreate(false);
+    });
+
   return (
     <Panel
       title="User management"
@@ -36,6 +64,10 @@ export default function AdminUsersSection({ users, currentUser, userQuery, onUse
             <input className={`${adminInput} h-9 w-full pl-8 sm:w-72`} value={userQuery} onChange={(event) => onUserQueryChange(event.target.value)} placeholder="Search users" />
           </div>
           <Button className="w-full sm:w-auto" variant="ghost" type="submit">Search</Button>
+          <Button className="w-full sm:w-auto" type="button" variant="ghost" onClick={() => setShowCreate(true)}>
+            <Plus className="size-4" />
+            Add user
+          </Button>
           <Button className="w-full sm:w-auto" type="button" onClick={saveRoleChanges} disabled={!dirtyRoleRows.length}>
             <Save className="size-4" />
             Save roles
@@ -43,6 +75,78 @@ export default function AdminUsersSection({ users, currentUser, userQuery, onUse
         </form>
       }
     >
+      <AnimatePresence>
+        {showCreate ? createPortal(
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[80] grid min-h-dvh place-items-center bg-slate-950/60 p-3"
+            onMouseDown={(event) => {
+              if (event.target === event.currentTarget) setShowCreate(false);
+            }}
+          >
+            <motion.form
+              initial={{ opacity: 0, y: 18, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 10, scale: 0.98 }}
+              transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+              className={`${adminPanel} grid max-h-[calc(100dvh-2rem)] w-[min(820px,100%)] gap-4 overflow-y-auto bg-white backdrop-blur-none dark:bg-slate-900`}
+              onSubmit={(event) => {
+                event.preventDefault();
+                createUser();
+              }}
+            >
+              <div className="flex items-center justify-between gap-3 border-b border-slate-200 pb-3 dark:border-slate-800">
+                <h3 className="text-base font-black text-slate-950 dark:text-white">Add user</h3>
+                <button type="button" className="grid size-8 place-items-center rounded-lg text-slate-500 transition hover:bg-blue-50 hover:text-blue-700 dark:hover:bg-blue-500/10 dark:hover:text-blue-300" onClick={() => setShowCreate(false)} aria-label="Close add user form">
+                  <X className="size-4" />
+                </button>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <label className="grid gap-1 text-xs font-black text-slate-500 dark:text-slate-400">
+                  Full name
+                  <input className={adminInput} value={createDraft.full_name} onChange={(event) => updateCreateDraft("full_name", event.target.value)} required />
+                </label>
+                <label className="grid gap-1 text-xs font-black text-slate-500 dark:text-slate-400">
+                  Email
+                  <input className={adminInput} type="email" value={createDraft.email} onChange={(event) => updateCreateDraft("email", event.target.value)} required />
+                </label>
+                <label className="grid gap-1 text-xs font-black text-slate-500 dark:text-slate-400">
+                  Password
+                  <input className={adminInput} type="password" minLength={8} value={createDraft.password} onChange={(event) => updateCreateDraft("password", event.target.value)} required />
+                </label>
+                <label className="grid gap-1 text-xs font-black text-slate-500 dark:text-slate-400">
+                  Role
+                  <select className={adminInput} value={createDraft.role} onChange={(event) => updateCreateDraft("role", event.target.value)}>
+                    {userRoleOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+                  </select>
+                </label>
+                <label className="grid gap-1 text-xs font-black text-slate-500 dark:text-slate-400">
+                  University
+                  <input className={adminInput} value={createDraft.university} onChange={(event) => updateCreateDraft("university", event.target.value)} />
+                </label>
+                <label className="grid gap-1 text-xs font-black text-slate-500 dark:text-slate-400">
+                  Major
+                  <input className={adminInput} value={createDraft.major} onChange={(event) => updateCreateDraft("major", event.target.value)} required />
+                </label>
+                <label className="grid gap-1 text-xs font-black text-slate-500 dark:text-slate-400">
+                  Semester
+                  <input className={adminInput} type="number" min="1" max="12" value={createDraft.current_semester} onChange={(event) => updateCreateDraft("current_semester", event.target.value)} required />
+                </label>
+              </div>
+              <div className="flex flex-wrap justify-end gap-2 border-t border-slate-200 pt-3 dark:border-slate-800">
+                <Button type="button" variant="ghost" onClick={() => setShowCreate(false)}>Cancel</Button>
+                <Button type="submit">
+                  <Plus className="size-4" />
+                  Add user
+                </Button>
+              </div>
+            </motion.form>
+          </motion.div>,
+          document.body,
+        ) : null}
+      </AnimatePresence>
       <DataTable
         className="min-h-0 flex-1"
         rows={rows}

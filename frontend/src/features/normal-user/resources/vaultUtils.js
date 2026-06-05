@@ -80,7 +80,7 @@ export function getResourceTarget(item) {
 }
 
 export function getAuthToken() {
-  return localStorage.getItem("studentassistant_token") || sessionStorage.getItem("studentassistant_token") || "";
+  return localStorage.getItem("scholars_canvas_token") || sessionStorage.getItem("scholars_canvas_token") || localStorage.getItem("studentassistant_token") || sessionStorage.getItem("studentassistant_token") || "";
 }
 
 export function getUrlInfo(url) {

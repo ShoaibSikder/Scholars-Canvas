@@ -451,7 +451,7 @@ export default function VaultPage({ openRequest = null } = {}) {
 
     try {
       if (navigator.share) {
-        await navigator.share({ title: resource.title, text: resource.notes || "Shared from StudentAssistant", url: shareUrlFor(resource) });
+        await navigator.share({ title: resource.title, text: resource.notes || "Shared from Scholars Canvas", url: shareUrlFor(resource) });
         setSharePanel((current) => ({ ...current, message: "Shared successfully." }));
         return;
       }
@@ -707,7 +707,7 @@ export default function VaultPage({ openRequest = null } = {}) {
           </div>
 
           <div className="mt-5">
-            <h3 className="mb-2 text-sm font-black text-slate-950 dark:text-white">Share inside StudentAssistant</h3>
+            <h3 className="mb-2 text-sm font-black text-slate-950 dark:text-white">Share inside Scholars Canvas</h3>
             {sharePanel.loading ? (
               <div className="inline-flex items-center gap-2 text-sm font-bold text-slate-500"><Loader2 size={16} className="animate-spin" /> Loading friends...</div>
             ) : sharePanel.friends.length ? (

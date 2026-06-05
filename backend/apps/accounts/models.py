@@ -1,6 +1,7 @@
 from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.db.models.functions import Lower
 
 from apps.storage_paths import profile_picture_upload_path
 
@@ -12,7 +13,7 @@ class UserManager(BaseUserManager):
         if not email:
             raise ValueError("The email field must be set.")
 
-        email = self.normalize_email(email)
+        email = self.normalize_email(email).lower()
         user = self.model(email=email, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
@@ -71,9 +72,19 @@ class User(AbstractUser):
     def __str__(self):
         return self.email
 
+    def save(self, *args, **kwargs):
+        if self.email:
+            self.email = self.__class__.objects.normalize_email(self.email).lower()
+        super().save(*args, **kwargs)
+
     @property
     def is_admin_role(self):
         return self.role in {self.Role.SUPPORT_ADMIN, self.Role.MODERATOR, self.Role.SUPER_ADMIN}
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(Lower("email"), name="unique_user_email_ci"),
+        ]
 
 
 class UserPreferences(models.Model):

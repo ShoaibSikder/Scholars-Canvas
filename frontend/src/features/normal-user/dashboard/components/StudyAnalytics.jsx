@@ -72,7 +72,7 @@ export default function StudyAnalytics({
       <div className="mb-3 flex items-start justify-between gap-3">
         <div>
           <h2 className={title}>Study Analytics</h2>
-          <p className={muted}>Auto-tracked from active time in StudentAssistant</p>
+          <p className={muted}>Auto-tracked from active time in Scholars Canvas</p>
         </div>
         <div className="flex items-center gap-2">
           <div className="grid grid-cols-2 gap-1 rounded-xl bg-slate-100/70 p-1 dark:bg-slate-950/70">

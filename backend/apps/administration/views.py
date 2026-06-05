@@ -1,7 +1,9 @@
 from django.contrib.auth import get_user_model
-from django.db.models import Count, Max, Q, Sum
+from django.db import transaction
+from django.db.models import Count, Max, Q, Sum, TextField
+from django.db.models.functions import Cast
 from django.utils import timezone
-from rest_framework import status
+from rest_framework import serializers, status
 from rest_framework.authtoken.models import Token
 from rest_framework.permissions import BasePermission
 from rest_framework.response import Response
@@ -10,6 +12,7 @@ from rest_framework.views import APIView
 from apps.ai_lab.models import AIStudyDocument
 from apps.communication.models import Conversation, FriendRequest, Friendship, Message
 from apps.courses.models import RoutineSlot
+from apps.db_safety import parse_page_window, parse_positive_int
 from apps.notification.models import Notification
 from apps.resources.models import VaultCourse, VaultResource
 from apps.tasks.models import StudySession, Task
@@ -25,6 +28,7 @@ from .serializers import (
     AdminReportSerializer,
     AdminSystemAnnouncementSerializer,
     AdminSystemSettingSerializer,
+    AdminUserCreateSerializer,
     AdminUserSerializer,
     AdminUserUpdateSerializer,
     AdminVaultCourseSerializer,
@@ -52,11 +56,7 @@ def audit(request, action, target="", obj=None, metadata=None):
 
 
 def page(queryset, serializer_class, request, limit=20):
-    try:
-        limit = min(int(request.query_params.get("limit", limit)), 100)
-        offset = max(int(request.query_params.get("offset", 0)), 0)
-    except ValueError:
-        limit, offset = 20, 0
+    limit, offset = parse_page_window(request.query_params, default_limit=limit, max_limit=100)
     total = queryset.count()
     serializer = serializer_class(queryset[offset : offset + limit], many=True, context={"request": request})
     return {"results": serializer.data, "total": total, "limit": limit, "offset": offset, "has_more": offset + limit < total}
@@ -118,6 +118,29 @@ def describe_setting_value(value):
     return str(value)
 
 
+def normalize_system_setting_value(setting, value):
+    if setting.setting_type == SystemSetting.SettingType.INTEGER:
+        if isinstance(value, bool):
+            raise serializers.ValidationError({"value": f"{setting.label} must be a number."})
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            raise serializers.ValidationError({"value": f"{setting.label} must be a number."})
+    if setting.setting_type == SystemSetting.SettingType.BOOLEAN:
+        if isinstance(value, bool):
+            return value
+        if isinstance(value, str):
+            normalized = value.strip().lower()
+            if normalized in {"1", "true", "yes", "on"}:
+                return True
+            if normalized in {"0", "false", "no", "off"}:
+                return False
+        raise serializers.ValidationError({"value": f"{setting.label} must be true or false."})
+    if setting.setting_type == SystemSetting.SettingType.STRING:
+        return "" if value is None else str(value)
+    return value
+
+
 class AdminOverviewView(APIView):
     permission_classes = [IsAdminRole]
 
@@ -174,6 +197,20 @@ class AdminUsersView(APIView):
         if query:
             users = users.filter(Q(email__icontains=query) | Q(full_name__icontains=query) | Q(university__icontains=query) | Q(major__icontains=query))
         return Response(page(users, AdminUserSerializer, request, limit=30))
+
+    def post(self, request):
+        serializer = AdminUserCreateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        audit(request, "user_created", user.email, user, {"role": user.role})
+        notify_user_admin_action(
+            user,
+            "Account created",
+            f"An admin created your Scholars Canvas account as {user.get_role_display()}.",
+            Notification.Type.SUCCESS,
+            "settings",
+        )
+        return Response({"user": AdminUserSerializer(user).data}, status=status.HTTP_201_CREATED)
 
 
 class AdminUserDetailView(APIView):
@@ -584,11 +621,9 @@ class AdminReportDetailView(APIView):
     def patch(self, request, pk):
         report = Report.objects.select_related("reporter", "reported_user").get(pk=pk)
         old_status = report.status
-        for field in ["status", "assigned_to_id", "resolution_note"]:
-            source = "assigned_to" if field == "assigned_to_id" else field
-            if source in request.data or field in request.data:
-                setattr(report, field, request.data.get(source, request.data.get(field)))
-        report.save()
+        serializer = AdminReportSerializer(report, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
         if old_status != report.status and report.reporter:
             notify_user_admin_action(
                 report.reporter,
@@ -681,31 +716,40 @@ class AdminNotificationsView(APIView):
         )
 
     def post(self, request):
-        announcement = SystemAnnouncement.objects.create(
-            title=request.data.get("title", ""),
-            message=request.data.get("message", ""),
-            university=request.data.get("university", ""),
-            department=request.data.get("department", ""),
-            semester=request.data.get("semester") or None,
-            sent_by=request.user,
-            sent_at=timezone.now(),
+        semester = parse_positive_int(
+            request.data.get("semester"),
+            minimum=1,
+            maximum=12,
+            allow_none=True,
+            field_name="semester",
         )
-        users = User.objects.filter(is_active=True, is_staff=False, is_superuser=False, role=User.Role.STUDENT)
-        if announcement.university:
-            users = users.filter(university__iexact=announcement.university)
-        if announcement.department:
-            users = users.filter(major__iexact=announcement.department)
-        if announcement.semester:
-            users = users.filter(current_semester=announcement.semester)
-        Notification.objects.bulk_create(
-            [
-                Notification(owner=user, title=announcement.title, message=announcement.message, type=Notification.Type.INFO, source_key=f"announcement:{announcement.pk}:{user.pk}")
-                for user in users
-            ],
-            ignore_conflicts=True,
-        )
-        audit(request, "announcement_sent", announcement.title, announcement, {"recipients": users.count()})
-        return Response({"announcement": AdminSystemAnnouncementSerializer(announcement).data, "recipients": users.count()}, status=status.HTTP_201_CREATED)
+        with transaction.atomic():
+            announcement = SystemAnnouncement.objects.create(
+                title=str(request.data.get("title", "")).strip(),
+                message=str(request.data.get("message", "")).strip(),
+                university=str(request.data.get("university", "")).strip(),
+                department=str(request.data.get("department", "")).strip(),
+                semester=semester,
+                sent_by=request.user,
+                sent_at=timezone.now(),
+            )
+            users = User.objects.filter(is_active=True, is_staff=False, is_superuser=False, role=User.Role.STUDENT)
+            if announcement.university:
+                users = users.filter(university__iexact=announcement.university)
+            if announcement.department:
+                users = users.filter(major__iexact=announcement.department)
+            if announcement.semester:
+                users = users.filter(current_semester=announcement.semester)
+            recipient_count = users.count()
+            Notification.objects.bulk_create(
+                [
+                    Notification(owner=user, title=announcement.title, message=announcement.message, type=Notification.Type.INFO, source_key=f"announcement:{announcement.pk}:{user.pk}")
+                    for user in users
+                ],
+                ignore_conflicts=True,
+            )
+            audit(request, "announcement_sent", announcement.title, announcement, {"recipients": recipient_count})
+        return Response({"announcement": AdminSystemAnnouncementSerializer(announcement).data, "recipients": recipient_count}, status=status.HTTP_201_CREATED)
 
 
 class AdminSettingsView(APIView):
@@ -717,31 +761,32 @@ class AdminSettingsView(APIView):
 
     def patch(self, request):
         updated = []
-        for item in request.data.get("settings", []):
-            setting = SystemSetting.objects.filter(key=item.get("key")).first()
-            if not setting:
-                continue
-            old_value = setting.value
-            next_value = item.get("value", setting.value)
-            if old_value == next_value:
-                continue
-            setting.value = next_value
-            setting.updated_by = request.user
-            setting.save(update_fields=["value", "updated_by", "updated_at"])
-            updated.append(setting)
-        if updated:
-            setting_names = ", ".join(setting.label for setting in updated[:4])
-            if len(updated) > 4:
-                setting_names = f"{setting_names}, and {len(updated) - 4} more"
-            notify_users_admin_action(
-                User.objects.filter(is_active=True),
-                "Website settings updated",
-                f"An admin updated website settings: {setting_names}.",
-                Notification.Type.INFO,
-                "settings",
-                "admin-global-settings",
-            )
-        audit(request, "settings_updated", "System settings", metadata={"count": len(updated)})
+        with transaction.atomic():
+            for item in request.data.get("settings", []):
+                setting = SystemSetting.objects.filter(key=item.get("key")).first()
+                if not setting:
+                    continue
+                old_value = setting.value
+                next_value = normalize_system_setting_value(setting, item.get("value", setting.value))
+                if old_value == next_value:
+                    continue
+                setting.value = next_value
+                setting.updated_by = request.user
+                setting.save(update_fields=["value", "updated_by", "updated_at"])
+                updated.append(setting)
+            if updated:
+                setting_names = ", ".join(setting.label for setting in updated[:4])
+                if len(updated) > 4:
+                    setting_names = f"{setting_names}, and {len(updated) - 4} more"
+                notify_users_admin_action(
+                    User.objects.filter(is_active=True),
+                    "Website settings updated",
+                    f"An admin updated website settings: {setting_names}.",
+                    Notification.Type.INFO,
+                    "settings",
+                    "admin-global-settings",
+                )
+            audit(request, "settings_updated", "System settings", metadata={"count": len(updated)})
         return Response({"settings": AdminSystemSettingSerializer(SystemSetting.objects.order_by("key"), many=True).data})
 
 
@@ -752,11 +797,12 @@ class AdminAuditLogsView(APIView):
         logs = AdminAuditLog.objects.select_related("actor").order_by("-created_at")
         query = (request.query_params.get("q") or "").strip()
         if query:
+            logs = logs.annotate(metadata_text=Cast("metadata", TextField()))
             logs = logs.filter(
                 Q(actor__email__icontains=query)
                 | Q(actor__full_name__icontains=query)
                 | Q(action__icontains=query)
                 | Q(target_label__icontains=query)
-                | Q(metadata__icontains=query)
+                | Q(metadata_text__icontains=query)
             )
         return Response({"logs": page(logs, AdminAuditLogSerializer, request, limit=80)})

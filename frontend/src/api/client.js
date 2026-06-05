@@ -52,6 +52,8 @@ function networkErrorMessage(error) {
 
 async function request(url, options = {}) {
   const token =
+    localStorage.getItem("scholars_canvas_token") ||
+    sessionStorage.getItem("scholars_canvas_token") ||
     localStorage.getItem("studentassistant_token") ||
     sessionStorage.getItem("studentassistant_token");
   const isFormData = options.body instanceof FormData;

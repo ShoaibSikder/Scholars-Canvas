@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.courses.models import RoutineSlot
+from apps.db_safety import maybe_positive_int
 from apps.media_urls import request_media_url
 from apps.resources.models import VaultCourse, VaultResource
 from apps.tasks.models import Task
@@ -28,7 +29,10 @@ class SearchView(APIView):
         if not query:
             return Response({"results": []})
 
-        course_filter = Q(code__icontains=query) | Q(title__icontains=query) | Q(semester__icontains=query)
+        course_filter = Q(code__icontains=query) | Q(title__icontains=query)
+        semester_query = maybe_positive_int(query, minimum=1, maximum=12)
+        if semester_query is not None:
+            course_filter |= Q(semester=semester_query)
         resource_filter = (
             Q(title__icontains=query)
             | Q(notes__icontains=query)
