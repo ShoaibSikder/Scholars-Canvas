@@ -198,35 +198,108 @@ export function isMarkdownTableSeparator(line) {
   return /^\s*\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?\s*$/.test(line);
 }
 
+function splitTableRow(line) {
+  return String(line || "")
+    .trim()
+    .replace(/^\|+/, "")
+    .replace(/\|+$/, "")
+    .split(/(?<!\\)\|/g)
+    .map((cell) => cell.replace(/\\\|/g, "|").trim());
+}
+
+function isTableLikeLine(line) {
+  const trimmed = String(line || "").trim();
+  if (!trimmed || isMarkdownTableSeparator(trimmed)) return false;
+  if (/^\|+\s*$/.test(trimmed)) return false;
+  if (/^\s*[-*]\s+/.test(trimmed) || /^\s*\d+[.)]\s+/.test(trimmed)) return false;
+  return splitTableRow(trimmed).length >= 2;
+}
+
+function isPipeOnlyLine(line) {
+  return /^\s*\|+\s*$/.test(String(line || ""));
+}
+
+function expandInlineTableRows(lines) {
+  return lines.flatMap((rawLine) => {
+    const line = String(rawLine || "");
+    if (isPipeOnlyLine(line)) {
+      return [];
+    }
+
+    const firstPipeIndex = line.indexOf("|");
+
+    if (firstPipeIndex <= 0) {
+      return [line];
+    }
+
+    const beforeTable = line.slice(0, firstPipeIndex).trim();
+    const possibleTable = line.slice(firstPipeIndex).trim();
+
+    if (!beforeTable || !isTableLikeLine(possibleTable)) {
+      return [line];
+    }
+
+    return [beforeTable, possibleTable];
+  });
+}
+
+function normalizeTableRows(rows) {
+  const columnCount = Math.max(...rows.map((row) => row.length), 0);
+  return rows
+    .filter((row) => row.some((cell) => cell.trim()))
+    .map((row) => [...row, ...Array(Math.max(0, columnCount - row.length)).fill("")]);
+}
+
 export function parseMarkdownTable(lines, startIndex) {
   const tableLines = [];
   let index = startIndex;
 
-  while (index < lines.length && lines[index].includes("|")) {
-    tableLines.push(lines[index]);
-    index += 1;
+  while (index < lines.length) {
+    const line = lines[index];
+    if (isTableLikeLine(line) || isMarkdownTableSeparator(line)) {
+      tableLines.push(line);
+      index += 1;
+      continue;
+    }
+
+    if ((isPipeOnlyLine(line) || !String(line || "").trim()) && tableLines.length > 0) {
+      let nextContentIndex = index + 1;
+      while (
+        nextContentIndex < lines.length &&
+        (isPipeOnlyLine(lines[nextContentIndex]) || !String(lines[nextContentIndex] || "").trim())
+      ) {
+        nextContentIndex += 1;
+      }
+
+      if (
+        nextContentIndex < lines.length &&
+        (isTableLikeLine(lines[nextContentIndex]) || isMarkdownTableSeparator(lines[nextContentIndex]))
+      ) {
+        index = nextContentIndex;
+        continue;
+      }
+    }
+
+    break;
   }
 
-  if (tableLines.length < 2 || !isMarkdownTableSeparator(tableLines[1])) {
+  const hasSeparator = tableLines.length >= 2 && isMarkdownTableSeparator(lines[startIndex + 1]);
+
+  if (!hasSeparator && tableLines.length < 2) {
     return null;
   }
 
-  const rows = tableLines
-    .filter((line, lineIndex) => lineIndex !== 1)
-    .map((line) =>
-      line
-        .trim()
-        .replace(/^\|/, "")
-        .replace(/\|$/, "")
-        .split("|")
-        .map((cell) => cell.trim()),
-    );
+  const rows = normalizeTableRows(
+    tableLines
+      .filter((line, lineIndex) => !hasSeparator || lineIndex !== 1)
+      .map(splitTableRow),
+  );
 
-  return { rows, nextIndex: index };
+  return rows.length >= 2 ? { rows, nextIndex: index } : null;
 }
 
 function getStructuredBlocks(text) {
-  const lines = normalizeChatMarkdown(text).split("\n");
+  const lines = expandInlineTableRows(normalizeChatMarkdown(text).split("\n"));
   const blocks = [];
   let index = 0;
 
@@ -371,7 +444,7 @@ export function StructuredAIText({ text, variant = "chat" }) {
                 <thead className="bg-slate-100/90 text-slate-700 dark:bg-slate-800 dark:text-slate-200">
                   <tr>
                     {head.map((cell, cellIndex) => (
-                      <th key={`table-head-${cellIndex}`} className="min-w-[8.5rem] border-b border-slate-200 px-3 py-2 font-black leading-5 first:min-w-[7rem] last:min-w-[12rem] dark:border-slate-700">
+                      <th key={`table-head-${cellIndex}`} scope="col" className="max-w-[18rem] min-w-[8.5rem] whitespace-normal break-words border-b border-slate-200 px-3 py-2 align-top font-black leading-5 first:min-w-[7rem] last:min-w-[12rem] dark:border-slate-700">
                         {renderInlineMarkdown(cell, `table-head-${blockIndex}-${cellIndex}`)}
                       </th>
                     ))}
@@ -381,7 +454,7 @@ export function StructuredAIText({ text, variant = "chat" }) {
                   {body.map((row, rowIndex) => (
                     <tr key={`table-row-${rowIndex}`} className="transition odd:bg-white even:bg-slate-50/70 hover:bg-blue-50/70 dark:odd:bg-slate-950 dark:even:bg-slate-900/55 dark:hover:bg-blue-500/10">
                       {row.map((cell, cellIndex) => (
-                        <td key={`table-cell-${rowIndex}-${cellIndex}`} className="min-w-[8.5rem] border-t border-slate-100 px-3 py-2 align-top leading-5 first:min-w-[7rem] last:min-w-[12rem] dark:border-slate-800">
+                        <td key={`table-cell-${rowIndex}-${cellIndex}`} className="max-w-[18rem] min-w-[8.5rem] whitespace-normal break-words border-t border-slate-100 px-3 py-2 align-top leading-5 first:min-w-[7rem] last:min-w-[12rem] dark:border-slate-800">
                           {renderInlineMarkdown(cell, `table-cell-${blockIndex}-${rowIndex}-${cellIndex}`)}
                         </td>
                       ))}
