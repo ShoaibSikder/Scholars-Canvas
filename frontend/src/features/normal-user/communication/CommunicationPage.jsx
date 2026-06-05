@@ -94,6 +94,8 @@ export default function CommunicationPage({ user }) {
   const typingStopTimerRef = useRef(null);
   const typingActiveRef = useRef(false);
   const typingUserTimersRef = useRef({});
+  const shouldStickToBottomRef = useRef(true);
+  const previousConversationIdRef = useRef(null);
 
   useAutoClearStatus(status, setStatus);
 
@@ -310,6 +312,12 @@ export default function CommunicationPage({ user }) {
     return undefined;
   }, [activeConversation?.id, editingMessageId, messageText]);
 
+  const isNearMessageBottom = (threshold = 120) => {
+    const element = messagesScrollRef.current;
+    if (!element) return true;
+    return element.scrollHeight - element.scrollTop - element.clientHeight <= threshold;
+  };
+
   const scrollToLatestMessage = (behavior = "smooth") => {
     window.requestAnimationFrame(() => {
       if (messagesScrollRef.current) {
@@ -318,15 +326,28 @@ export default function CommunicationPage({ user }) {
           behavior,
         });
       }
-      messagesEndRef.current?.scrollIntoView({ behavior, block: "end" });
     });
   };
 
   useEffect(() => {
-    const timeoutId = window.setTimeout(
-      () => scrollToLatestMessage("smooth"),
-      80,
-    );
+    const conversationChanged = previousConversationIdRef.current !== activeConversation?.id;
+    previousConversationIdRef.current = activeConversation?.id ?? null;
+
+    if (conversationChanged) {
+      shouldStickToBottomRef.current = true;
+    }
+
+    if (!shouldStickToBottomRef.current && !isNearMessageBottom(180)) {
+      setShowScrollDown(messages.length > 0);
+      return undefined;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      scrollToLatestMessage("auto");
+      shouldStickToBottomRef.current = true;
+      setShowScrollDown(false);
+    }, conversationChanged ? 80 : 0);
+
     return () => window.clearTimeout(timeoutId);
   }, [messages, messageLoading, activeConversation?.id]);
 
@@ -351,7 +372,9 @@ export default function CommunicationPage({ user }) {
     if (!element) return;
     const distanceFromBottom =
       element.scrollHeight - element.scrollTop - element.clientHeight;
-    setShowScrollDown(distanceFromBottom > 140);
+    const isAtBottom = distanceFromBottom <= 140;
+    shouldStickToBottomRef.current = isAtBottom;
+    setShowScrollDown(!isAtBottom);
   };
 
   const friendUsers = useMemo(
@@ -518,7 +541,15 @@ export default function CommunicationPage({ user }) {
           onUploadProgress: file ? setMessageUploadProgress : undefined,
         },
       );
-      setMessages((current) => [...current, response.message]);
+      setMessages((current) => {
+        if (!response.message) return current;
+        if (current.some((message) => message.id === response.message.id)) {
+          return current.map((message) =>
+            message.id === response.message.id ? response.message : message,
+          );
+        }
+        return [...current, response.message];
+      });
       loadCommunication();
     } catch (error) {
       setStatus(error.message || "Unable to send message.");
