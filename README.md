@@ -26,84 +26,84 @@ All screenshots are stored in `frontend/public/systemimages`.
 ### Authentication
 
 <div>
-  <a href="frontend/public/systemimages/login%20page.png">
-    <img src="frontend/public/systemimages/login%20page.png" width="420" alt="Login page" />
+  <a href="frontend/public/systemimages/login page.png">
+    <img src="frontend/public/systemimages/login page.png" width="420" alt="Login page" />
   </a>
-  <a href="frontend/public/systemimages/Registration%20page.png">
-    <img src="frontend/public/systemimages/Registration%20page.png" width="420" alt="Registration page" />
+  <a href="frontend/public/systemimages/Registration page.png">
+    <img src="frontend/public/systemimages/Registration page.png" width="420" alt="Registration page" />
   </a>
 </div>
 
 ### Normal User Workspace
 
 <div>
-  <a href="frontend/public/systemimages/User%20Dashboard.png">
-    <img src="frontend/public/systemimages/User%20Dashboard.png" width="300" alt="User dashboard" />
+  <a href="frontend/public/systemimages/User Dashboard.png">
+    <img src="frontend/public/systemimages/User Dashboard.png" width="300" alt="User dashboard" />
   </a>
-  <a href="frontend/public/systemimages/User%20Routine.png">
-    <img src="frontend/public/systemimages/User%20Routine.png" width="300" alt="User routine" />
+  <a href="frontend/public/systemimages/User Routine.png">
+    <img src="frontend/public/systemimages/User Routine.png" width="300" alt="User routine" />
   </a>
-  <a href="frontend/public/systemimages/User%20To%20Do%20list.png">
-    <img src="frontend/public/systemimages/User%20To%20Do%20list.png" width="300" alt="User to-do list" />
-  </a>
-</div>
-
-<div>
-  <a href="frontend/public/systemimages/Users%20Resource%20Vault.png">
-    <img src="frontend/public/systemimages/Users%20Resource%20Vault.png" width="300" alt="User resource vault" />
-  </a>
-  <a href="frontend/public/systemimages/User%20Resourse%20Workspace.png">
-    <img src="frontend/public/systemimages/User%20Resourse%20Workspace.png" width="300" alt="User resource workspace" />
-  </a>
-  <a href="frontend/public/systemimages/User%20AI%20Lab.png">
-    <img src="frontend/public/systemimages/User%20AI%20Lab.png" width="300" alt="User AI Lab" />
+  <a href="frontend/public/systemimages/User To Do list.png">
+    <img src="frontend/public/systemimages/User To Do list.png" width="300" alt="User to-do list" />
   </a>
 </div>
 
 <div>
-  <a href="frontend/public/systemimages/Users%20Communication%20section.png">
-    <img src="frontend/public/systemimages/Users%20Communication%20section.png" width="420" alt="User communication section" />
+  <a href="frontend/public/systemimages/Users Resource Vault.png">
+    <img src="frontend/public/systemimages/Users Resource Vault.png" width="300" alt="User resource vault" />
   </a>
-  <a href="frontend/public/systemimages/Settings%20option%20for%20use%20and%20admin.png">
-    <img src="frontend/public/systemimages/Settings%20option%20for%20use%20and%20admin.png" width="420" alt="Settings options" />
+  <a href="frontend/public/systemimages/User Resourse Workspace.png">
+    <img src="frontend/public/systemimages/User Resourse Workspace.png" width="300" alt="User resource workspace" />
+  </a>
+  <a href="frontend/public/systemimages/User AI Lab.png">
+    <img src="frontend/public/systemimages/User AI Lab.png" width="300" alt="User AI Lab" />
+  </a>
+</div>
+
+<div>
+  <a href="frontend/public/systemimages/Users Communication section.png">
+    <img src="frontend/public/systemimages/Users Communication section.png" width="420" alt="User communication section" />
+  </a>
+  <a href="frontend/public/systemimages/Settings option for use and admin.png">
+    <img src="frontend/public/systemimages/Settings option for use and admin.png" width="420" alt="Settings options" />
   </a>
 </div>
 
 ### Administration Workspace
 
 <div>
-  <a href="frontend/public/systemimages/Admin%20Dashboard.png">
-    <img src="frontend/public/systemimages/Admin%20Dashboard.png" width="300" alt="Admin dashboard" />
+  <a href="frontend/public/systemimages/Admin Dashboard.png">
+    <img src="frontend/public/systemimages/Admin Dashboard.png" width="300" alt="Admin dashboard" />
   </a>
-  <a href="frontend/public/systemimages/Admin%20User%20Management.png">
-    <img src="frontend/public/systemimages/Admin%20User%20Management.png" width="300" alt="Admin user management" />
+  <a href="frontend/public/systemimages/Admin User Management.png">
+    <img src="frontend/public/systemimages/Admin User Management.png" width="300" alt="Admin user management" />
   </a>
-  <a href="frontend/public/systemimages/Admin%20course%20and%20resourse%20management.png">
-    <img src="frontend/public/systemimages/Admin%20course%20and%20resourse%20management.png" width="300" alt="Admin course and resource management" />
-  </a>
-</div>
-
-<div>
-  <a href="frontend/public/systemimages/Admin%20ai%20usage%20management.png">
-    <img src="frontend/public/systemimages/Admin%20ai%20usage%20management.png" width="300" alt="Admin AI usage management" />
-  </a>
-  <a href="frontend/public/systemimages/Admin%20communication%20report.png">
-    <img src="frontend/public/systemimages/Admin%20communication%20report.png" width="300" alt="Admin communication report" />
-  </a>
-  <a href="frontend/public/systemimages/Admin%20Task%20and%20reoutine%20report.png">
-    <img src="frontend/public/systemimages/Admin%20Task%20and%20reoutine%20report.png" width="300" alt="Admin task and routine report" />
+  <a href="frontend/public/systemimages/Admin course and resourse management.png">
+    <img src="frontend/public/systemimages/Admin course and resourse management.png" width="300" alt="Admin course and resource management" />
   </a>
 </div>
 
 <div>
-  <a href="frontend/public/systemimages/admin%20notication.png">
-    <img src="frontend/public/systemimages/admin%20notication.png" width="300" alt="Admin notifications" />
+  <a href="frontend/public/systemimages/Admin ai usage management.png">
+    <img src="frontend/public/systemimages/Admin ai usage management.png" width="300" alt="Admin AI usage management" />
   </a>
-  <a href="frontend/public/systemimages/Admin%20System%20control.png">
-    <img src="frontend/public/systemimages/Admin%20System%20control.png" width="300" alt="Admin system control" />
+  <a href="frontend/public/systemimages/Admin communication report.png">
+    <img src="frontend/public/systemimages/Admin communication report.png" width="300" alt="Admin communication report" />
   </a>
-  <a href="frontend/public/systemimages/Admin%20Audit%20log.png">
-    <img src="frontend/public/systemimages/Admin%20Audit%20log.png" width="300" alt="Admin audit log" />
+  <a href="frontend/public/systemimages/Admin Task and reoutine report.png">
+    <img src="frontend/public/systemimages/Admin Task and reoutine report.png" width="300" alt="Admin task and routine report" />
+  </a>
+</div>
+
+<div>
+  <a href="frontend/public/systemimages/admin notication.png">
+    <img src="frontend/public/systemimages/admin notication.png" width="300" alt="Admin notifications" />
+  </a>
+  <a href="frontend/public/systemimages/Admin System control.png">
+    <img src="frontend/public/systemimages/Admin System control.png" width="300" alt="Admin system control" />
+  </a>
+  <a href="frontend/public/systemimages/Admin Audit log.png">
+    <img src="frontend/public/systemimages/Admin Audit log.png" width="300" alt="Admin audit log" />
   </a>
 </div>
 
@@ -761,3 +761,4 @@ Common route smoke checks:
 ## License
 
 This project is currently provided for academic/project use. Add a license file if you plan to publish or distribute it publicly.
+
