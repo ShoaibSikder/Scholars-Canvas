@@ -1,5 +1,23 @@
-﻿import { useState } from "react";
-import { Brain, Calendar, CheckSquare, FolderOpen, GraduationCap, Home, Settings } from "lucide-react";
+import { useLayoutEffect, useRef, useState } from "react";
+import {
+  Bell,
+  Bot,
+  Brain,
+  Calendar,
+  CheckSquare,
+  Database,
+  FolderOpen,
+  Gauge,
+  GraduationCap,
+  Home,
+  Lock,
+  MessageCircle,
+  MessageSquareWarning,
+  Settings,
+  Shield,
+  SlidersHorizontal,
+  Users,
+} from "lucide-react";
 
 const navItems = [
   { icon: Home, label: "Home", path: "dashboard" },
@@ -7,11 +25,54 @@ const navItems = [
   { icon: Calendar, label: "Routine", path: "routine" },
   { icon: CheckSquare, label: "Tasks", path: "tasks" },
   { icon: Brain, label: "AI Lab", path: "ai-lab" },
+  { icon: MessageCircle, label: "Communicate", path: "communication" },
   { icon: Settings, label: "Settings", path: "settings" },
 ];
 
-export default function Sidebar({ activePage, onNavigate }) {
+const adminNavItems = [
+  { icon: Gauge, label: "Dashboard", path: "admin-dashboard" },
+  { icon: Users, label: "Users", path: "admin-users" },
+  { icon: Database, label: "Resources", path: "admin-resources" },
+  { icon: Bot, label: "AI Usage", path: "admin-ai" },
+  { icon: MessageSquareWarning, label: "Communication Reports", path: "admin-communication" },
+  { icon: CheckSquare, label: "Tasks", path: "admin-tasks" },
+  { icon: Bell, label: "Notices", path: "admin-notifications" },
+  { icon: Settings, label: "Settings", path: "admin-settings" },
+  { icon: SlidersHorizontal, label: "Controls", path: "admin-system-controls" },
+  { icon: Lock, label: "Audit", path: "admin-audit" },
+];
+
+const ADMIN_MOBILE_NAV_SCROLL_KEY = "studentassistant_admin_mobile_nav_scroll";
+
+function canUseAdmin(user) {
+  return Boolean(user?.is_staff || user?.is_superuser || ["support_admin", "moderator", "super_admin"].includes(user?.role));
+}
+
+export default function Sidebar({ activePage, navMode = "app", onNavigate, user }) {
   const [hoveredItem, setHoveredItem] = useState(null);
+  const mobileNavRef = useRef(null);
+  const mobileNavScrollRef = useRef(Number(sessionStorage.getItem(ADMIN_MOBILE_NAV_SCROLL_KEY) || 0));
+  const isAdminMode = navMode === "admin" && canUseAdmin(user);
+  const visibleNavItems = isAdminMode
+    ? adminNavItems
+    : canUseAdmin(user)
+    ? [...navItems, { icon: Shield, label: "Admin", path: "admin" }]
+    : navItems;
+
+  useLayoutEffect(() => {
+    if (!isAdminMode || !mobileNavRef.current) return undefined;
+    const nav = mobileNavRef.current;
+    const restore = () => {
+      nav.scrollLeft = mobileNavScrollRef.current;
+    };
+    restore();
+    const frame = window.requestAnimationFrame(restore);
+    const timer = window.setTimeout(restore, 120);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.clearTimeout(timer);
+    };
+  }, [activePage, isAdminMode]);
 
   return (
     <>
@@ -27,7 +88,7 @@ export default function Sidebar({ activePage, onNavigate }) {
         </button>
 
         <nav className="mt-6 flex flex-1 flex-col items-center gap-2.5">
-          {navItems.map((item) => {
+          {visibleNavItems.map((item) => {
             const Icon = item.icon;
             const isActive = activePage === item.path;
 
@@ -45,7 +106,7 @@ export default function Sidebar({ activePage, onNavigate }) {
                   className={`grid size-8 place-items-center rounded-xl transition ${
                     isActive
                       ? "bg-blue-600 text-white shadow-lg shadow-blue-500/25"
-                      : "text-slate-500 hover:bg-slate-100 hover:text-blue-600 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-blue-300"
+                      : "text-slate-500 hover:bg-blue-50 hover:text-blue-700 dark:text-slate-400 dark:hover:bg-blue-500/10 dark:hover:text-blue-300"
                   }`}
                   aria-label={item.label}
                 >
@@ -63,8 +124,19 @@ export default function Sidebar({ activePage, onNavigate }) {
         </nav>
       </aside>
 
-      <nav className="fixed inset-x-2 bottom-2 z-40 grid grid-cols-6 gap-1 rounded-2xl border border-slate-200/80 bg-white/92 p-1.5 shadow-xl shadow-slate-900/12 backdrop-blur-xl dark:border-slate-800 dark:bg-slate-950/90 lg:hidden">
-        {navItems.map((item) => {
+      <nav
+        ref={mobileNavRef}
+        className={`fixed inset-x-2 bottom-2 z-40 gap-1 rounded-2xl border border-slate-200/80 bg-white/92 p-1.5 shadow-xl shadow-slate-900/12 backdrop-blur-xl dark:border-slate-800 dark:bg-slate-950/90 lg:hidden ${
+          isAdminMode ? "flex overflow-x-auto" : "grid"
+        }`}
+        onScroll={(event) => {
+          if (!isAdminMode) return;
+          mobileNavScrollRef.current = event.currentTarget.scrollLeft;
+          sessionStorage.setItem(ADMIN_MOBILE_NAV_SCROLL_KEY, String(event.currentTarget.scrollLeft));
+        }}
+        style={isAdminMode ? undefined : { gridTemplateColumns: `repeat(${visibleNavItems.length}, minmax(0, 1fr))` }}
+      >
+        {visibleNavItems.map((item) => {
           const Icon = item.icon;
           const isActive = activePage === item.path;
 
@@ -72,8 +144,21 @@ export default function Sidebar({ activePage, onNavigate }) {
             <button
               key={item.path}
               type="button"
-              onClick={() => onNavigate(item.path)}
+              onPointerDown={() => {
+                if (!isAdminMode || !mobileNavRef.current) return;
+                mobileNavScrollRef.current = mobileNavRef.current.scrollLeft;
+                sessionStorage.setItem(ADMIN_MOBILE_NAV_SCROLL_KEY, String(mobileNavRef.current.scrollLeft));
+              }}
+              onClick={() => {
+                if (isAdminMode && mobileNavRef.current) {
+                  mobileNavScrollRef.current = mobileNavRef.current.scrollLeft;
+                  sessionStorage.setItem(ADMIN_MOBILE_NAV_SCROLL_KEY, String(mobileNavRef.current.scrollLeft));
+                }
+                onNavigate(item.path);
+              }}
               className={`grid min-h-12 place-items-center rounded-xl px-1 py-1 text-[10px] font-black transition active:scale-95 ${
+                isAdminMode ? "min-w-16 shrink-0" : ""
+              } ${
                 isActive
                   ? "bg-blue-600 text-white shadow-md shadow-blue-500/25"
                   : "text-slate-500 dark:text-slate-400"
@@ -89,3 +174,4 @@ export default function Sidebar({ activePage, onNavigate }) {
     </>
   );
 }
+

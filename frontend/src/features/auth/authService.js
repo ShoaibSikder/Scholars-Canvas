@@ -1,5 +1,5 @@
-import { AUTH_ENDPOINTS } from "../../services/endpoints";
-import { request } from "../../services/api";
+import { AUTH_ENDPOINTS } from "../../api/endpoints";
+import { request } from "../../api/client";
 
 export function registerUser(payload) {
   return request(AUTH_ENDPOINTS.register, {
@@ -14,3 +14,19 @@ export function loginUser(payload) {
     body: JSON.stringify(payload),
   });
 }
+
+export function requestPasswordReset(payload) {
+  return request(AUTH_ENDPOINTS.passwordResetRequest, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function confirmPasswordReset(payload) {
+  return request(AUTH_ENDPOINTS.passwordResetConfirm, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+

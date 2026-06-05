@@ -1,28 +1,33 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 
 import AuthLayout from "./AuthLayout";
+import ForgotPasswordForm from "./ForgotPasswordForm";
 import LoginForm from "./LoginForm";
 import RegisterForm from "./RegisterForm";
 
 export default function AuthPage({ onLoginSuccess, onRegisterSuccess, authNotice = "" }) {
-  const [isLogin, setIsLogin] = useState(true);
+  const [authMode, setAuthMode] = useState("login");
 
   return (
     <AuthLayout>
-      {isLogin ? (
+      {authMode === "forgot" ? (
+        <ForgotPasswordForm onBackToLogin={() => setAuthMode("login")} />
+      ) : authMode === "login" ? (
         <LoginForm
           authNotice={authNotice}
           onLoginSuccess={onLoginSuccess}
-          onSwitchToRegister={() => setIsLogin(false)}
+          onForgotPassword={() => setAuthMode("forgot")}
+          onSwitchToRegister={() => setAuthMode("register")}
         />
       ) : (
         <RegisterForm
           onRegisterSuccess={onRegisterSuccess}
-          onSwitchToLogin={() => setIsLogin(true)}
+          onSwitchToLogin={() => setAuthMode("login")}
         />
       )}
     </AuthLayout>
   );
 }
+
 
 

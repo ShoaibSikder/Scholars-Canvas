@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Bell, GraduationCap, LogOut, Search, Settings, User, UserCircle, X } from "lucide-react";
 
 export default function CommandBar({
@@ -6,6 +6,7 @@ export default function CommandBar({
   onLogout,
   onToggleNotifications,
   onNavigate,
+  navMode = "app",
   searchQuery,
   searchResults,
   onSearchChange,
@@ -56,9 +57,9 @@ export default function CommandBar({
     <header className="fixed left-0 right-0 top-0 z-30 grid min-h-12 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 border-b border-slate-200/80 bg-white/88 px-2.5 py-1.5 shadow-sm shadow-slate-900/5 backdrop-blur-xl dark:border-slate-800 dark:bg-slate-950/84 sm:px-3 lg:left-14 lg:min-h-8 lg:grid-cols-[minmax(10rem,auto)_1fr_auto] lg:px-4">
       <button
         type="button"
-        onClick={() => onNavigate?.("dashboard")}
+        onClick={() => searchInputRef.current?.focus()}
         className="grid size-9 place-items-center rounded-xl bg-gradient-to-br from-blue-600 to-violet-600 text-white shadow-md shadow-blue-500/25 lg:hidden"
-        aria-label="StudentAssistant home"
+        aria-label="Focus search"
       >
         <GraduationCap className="size-5" />
       </button>
@@ -112,7 +113,7 @@ export default function CommandBar({
                   <button
                     key={`${item.page}-${item.label}`}
                     type="button"
-                    className="flex w-full items-center justify-between gap-3 px-3 py-2 text-left transition active:bg-slate-50 dark:active:bg-slate-800 lg:py-1.5 lg:hover:bg-slate-50 lg:dark:hover:bg-slate-800"
+                    className="flex w-full items-center justify-between gap-3 px-3 py-2 text-left transition active:bg-blue-50 dark:active:bg-blue-500/10 lg:py-1.5 lg:hover:bg-blue-50 lg:dark:hover:bg-blue-500/10"
                     onMouseDown={(event) => event.preventDefault()}
                     onClick={() => {
                       onSearchSelect(item);
@@ -137,7 +138,7 @@ export default function CommandBar({
       <div className="ml-auto flex items-center gap-1.5 sm:gap-2 lg:gap-3">
         <button
           type="button"
-          className="relative grid size-9 place-items-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-sm transition active:scale-95 active:text-blue-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 lg:size-8 lg:rounded-lg lg:hover:text-blue-600"
+          className="relative grid size-9 place-items-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-sm transition-all hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 active:scale-95 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-blue-500/40 dark:hover:bg-blue-500/10 dark:hover:text-blue-300 lg:size-8 lg:rounded-lg"
           onClick={() => {
             setShowProfileMenu(false);
             onToggleNotifications?.();
@@ -165,16 +166,19 @@ export default function CommandBar({
                 <span className="text-sm text-slate-500 dark:text-slate-400">{user?.email ?? "student@university.edu"}</span>
               </div>
 
-              {[
-                { label: "Profile", page: "profile", icon: UserCircle },
-                { label: "Settings", page: "settings", icon: Settings },
-              ].map((item) => {
+              {(navMode === "admin"
+                ? [{ label: "Admin Settings", page: "admin-settings", icon: Settings }]
+                : [
+                    { label: "Profile", page: "profile", icon: UserCircle },
+                    { label: "Settings", page: "settings", icon: Settings },
+                  ]
+              ).map((item) => {
                 const Icon = item.icon;
                 return (
                   <button
                     key={item.page}
                     type="button"
-                    className="flex w-full items-center gap-3 px-3 py-2 text-sm font-bold text-slate-700 transition active:bg-slate-50 dark:text-slate-200 dark:active:bg-slate-800 lg:py-1.5 lg:hover:bg-slate-50 lg:dark:hover:bg-slate-800"
+                    className="flex w-full items-center gap-3 px-3 py-2 text-sm font-bold text-slate-700 transition active:bg-blue-50 dark:text-slate-200 dark:active:bg-blue-500/10 lg:py-1.5 lg:hover:bg-blue-50 lg:dark:hover:bg-blue-500/10"
                     onClick={() => {
                       onNavigate?.(item.page);
                       setShowProfileMenu(false);
@@ -204,6 +208,7 @@ export default function CommandBar({
     </header>
   );
 }
+
 
 
 

@@ -1,4 +1,4 @@
-﻿import { motion } from "framer-motion";
+import { motion } from "framer-motion";
 import { GraduationCap, BookOpen, Brain, Target, Sparkles, Clock, TrendingUp } from "lucide-react";
 
 export default function AuthLayout({ children }) {
@@ -10,13 +10,13 @@ export default function AuthLayout({ children }) {
           <div className="absolute right-[12%] top-[26%] size-40 rounded-full bg-violet-500/30 blur-3xl" />
           <div className="absolute bottom-[20%] left-[28%] size-44 rounded-full bg-blue-500/25 blur-3xl" />
 
-          <div className="relative z-10 flex w-full flex-col items-center gap-2 pt-5">
-            <div className="text-center">
-              <div className="mx-auto grid size-8 place-items-center rounded-lg bg-gradient-to-br from-blue-600 to-violet-600 text-white shadow-md shadow-blue-500/25">
-                <GraduationCap className="size-6" />
+            <div className="relative z-10 flex w-full flex-col items-center gap-2 pt-5">
+              <div className="text-center">
+              <div className="mx-auto grid size-16 place-items-center rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white shadow-xl shadow-blue-500/25">
+                <GraduationCap className="size-9" />
               </div>
-              <h1 className="mt-4 text-4xl font-black tracking-tight">StudentAssistant</h1>
-              <p className="mt-1 text-sm font-bold text-slate-500 dark:text-slate-400">Your Academic Command Center</p>
+              <h1 className="mt-4 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-5xl font-black tracking-tight text-transparent">StudentAssistant</h1>
+              <p className="mt-2 text-lg font-bold text-slate-600 dark:text-slate-300">Your Academic Command Center</p>
             </div>
 
             <div className="relative mt-3 h-[500px] w-[460px]">
@@ -50,23 +50,30 @@ export default function AuthLayout({ children }) {
               </div>
 
               {[
-                { icon: BookOpen, className: "left-3 top-14", delay: 0.1 },
-                { icon: Brain, className: "right-0 top-24", delay: 0.7 },
-                { icon: Sparkles, className: "left-0 bottom-20", delay: 1 },
-                { icon: Clock, className: "right-12 bottom-14", delay: 0.5 },
+                { icon: BookOpen, className: "-left-9 top-10 size-16 rounded-full bg-gradient-to-br from-pink-400 to-pink-500 shadow-pink-500/25", iconClass: "size-8", delay: 0, duration: 3 },
+                { icon: Brain, className: "-right-8 bottom-8 size-20 rounded-full bg-gradient-to-br from-purple-400 to-purple-600 shadow-purple-500/25", iconClass: "size-10", delay: 0.5, duration: 2.5 },
+                { icon: Sparkles, className: "-right-14 top-[30%] size-14 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 shadow-blue-500/25", iconClass: "size-7", delay: 1, duration: 2.8 },
+                { icon: Clock, className: "-left-14 top-1/2 size-12 rounded-full bg-gradient-to-br from-yellow-400 to-orange-400 shadow-orange-500/25", iconClass: "size-6", delay: 1.5, duration: 3.2 },
               ].map((item) => {
                 const Icon = item.icon;
                 return (
                   <motion.div
                     key={item.className}
-                    className={`absolute grid size-8 place-items-center rounded-lg bg-white text-blue-600 shadow-md shadow-slate-900/10 dark:bg-slate-800 dark:text-blue-300 ${item.className}`}
+                    className={`absolute grid place-items-center text-white shadow-lg ${item.className}`}
                     animate={{ y: [0, -10, 0] }}
-                    transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut", delay: item.delay }}
+                    transition={{ duration: item.duration, repeat: Infinity, ease: "easeInOut", delay: item.delay }}
                   >
-                    <Icon className="size-6" />
+                    <Icon className={item.iconClass} />
                   </motion.div>
                 );
               })}
+
+              <div className="absolute -left-24 bottom-0 h-32 w-24">
+                <div className="relative">
+                  <div className="absolute left-1/2 top-0 size-12 -translate-x-1/2 rounded-full bg-gradient-to-br from-blue-300 to-blue-400" />
+                  <div className="absolute left-1/2 top-10 h-20 w-16 -translate-x-1/2 rounded-t-full bg-gradient-to-br from-indigo-500 to-purple-600" />
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -85,3 +92,4 @@ export default function AuthLayout({ children }) {
     </div>
   );
 }
+
