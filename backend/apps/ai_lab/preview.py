@@ -4,12 +4,10 @@ import html
 import mimetypes
 import shutil
 import subprocess
+import tempfile
 import zipfile
 from pathlib import Path
 from xml.etree import ElementTree
-
-from django.conf import settings
-
 
 WORD_NS = {
     "w": "http://schemas.openxmlformats.org/wordprocessingml/2006/main",
@@ -29,7 +27,7 @@ def get_office_pdf_preview_path(file_path):
     if not soffice:
         return None
 
-    preview_dir = Path(settings.MEDIA_ROOT) / "generated_previews"
+    preview_dir = Path(tempfile.gettempdir()) / "studentassistant_generated_previews"
     preview_dir.mkdir(parents=True, exist_ok=True)
     cache_key = hashlib.sha256(f"{source_path.resolve()}:{source_path.stat().st_mtime_ns}".encode("utf-8")).hexdigest()[:24]
     cached_pdf = preview_dir / f"{cache_key}.pdf"

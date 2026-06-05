@@ -5,7 +5,7 @@ DEFAULT_SETTINGS = [
     ("maintenance_mode", "Maintenance mode", "boolean", {"value": False}, "Temporarily block public login and registration."),
     ("public_registration_enabled", "Public registration enabled", "boolean", {"value": True}, "Allow students to create accounts from the public registration form."),
     ("ai_features_enabled", "AI features enabled", "boolean", {"value": True}, "Global AI Lab feature toggle."),
-    ("allowed_ai_file_extensions", "Allowed AI file extensions", "json", [".pdf", ".docx", ".pptx", ".txt", ".md", ".csv"], "File extensions allowed for AI processing."),
+    ("allowed_ai_file_extensions", "Allowed AI file extensions", "json", [".pdf", ".docx", ".pptx", ".xlsx", ".xlsm", ".txt", ".md", ".csv", ".json", ".xml", ".html", ".htm", ".rtf", ".odt"], "File extensions allowed for AI processing."),
     ("allowed_upload_file_extensions", "Allowed upload file extensions", "json", [".pdf", ".doc", ".docx", ".ppt", ".pptx", ".txt", ".md", ".csv", ".png", ".jpg", ".jpeg", ".webp"], "File extensions allowed in Vault and chat uploads."),
     ("max_upload_size_mb", "Default max upload size MB", "integer", {"value": 25}, "Fallback upload size limit when a user-specific limit is not set."),
     ("active_ai_provider", "Active AI provider", "string", {"value": "openrouter"}, "Current AI provider label, such as Gemini, Groq, OpenRouter, or fallback."),

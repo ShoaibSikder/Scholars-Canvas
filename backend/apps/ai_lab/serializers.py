@@ -3,10 +3,11 @@ from pathlib import Path
 from rest_framework import serializers
 from django.urls import reverse
 
+from apps.media_urls import request_media_url
 from apps.resources.models import VaultResource
 
 from .models import AIStudyDocument
-from .services import extract_document_text
+from .services import extract_document_text_from_bytes
 
 
 class AIStudyDocumentSerializer(serializers.ModelSerializer):
@@ -56,12 +57,9 @@ class AIStudyDocumentSerializer(serializers.ModelSerializer):
         ]
 
     def get_file_url(self, obj):
-        request = self.context.get("request")
         if not obj.file:
             return ""
-        if request:
-            return request.build_absolute_uri(obj.file.url)
-        return obj.file.url
+        return request_media_url(self.context.get("request"), obj.file)
 
     def get_file_name(self, obj):
         if not obj.file:
@@ -90,17 +88,23 @@ class AIStudyDocumentCreateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         request = self.context["request"]
         owner = request.user
-        title = validated_data.get("title") or Path(validated_data["file"].name).stem
+        uploaded_file = validated_data["file"]
+        title = validated_data.get("title") or Path(uploaded_file.name).stem
         course = validated_data.get("course") or ""
+        if hasattr(uploaded_file, "seek"):
+            uploaded_file.seek(0)
+        file_bytes = uploaded_file.read()
+        if hasattr(uploaded_file, "seek"):
+            uploaded_file.seek(0)
 
         document = AIStudyDocument.objects.create(
             owner=owner,
             title=title,
             course=course,
-            file=validated_data["file"],
+            file=uploaded_file,
         )
 
-        document.extracted_text = extract_document_text(document.file.path)
+        document.extracted_text = extract_document_text_from_bytes(file_bytes, document.file.name)
         document.save(update_fields=["extracted_text", "updated_at"])
         return document
 
@@ -132,6 +136,6 @@ class AIStudyDocumentVaultImportSerializer(serializers.Serializer):
             course=f"{course.code} - {course.title}",
             file=resource.file.name,
         )
-        document.extracted_text = extract_document_text(document.file.path)
+        document.extracted_text = extract_document_text_from_bytes(resource.file.open("rb").read(), resource.file.name)
         document.save(update_fields=["extracted_text", "updated_at"])
         return document

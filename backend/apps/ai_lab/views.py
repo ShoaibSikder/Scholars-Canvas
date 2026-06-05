@@ -52,7 +52,7 @@ def make_temp_document(
     source_resource=None,
     file_bytes=None,
     file_content_type="",
-    source_file_path="",
+    source_file_url="",
 ):
     now = timezone.now().isoformat()
     return SimpleNamespace(
@@ -64,7 +64,7 @@ def make_temp_document(
         file_name=file_name,
         file_bytes=file_bytes,
         file_content_type=file_content_type,
-        source_file_path=source_file_path,
+        source_file_url=source_file_url,
         extracted_text=extracted_text,
         summary_data=[],
         summary_source="",
@@ -101,7 +101,10 @@ def ai_allowed_response(request, feature):
 
 
 def ai_file_type_allowed(file_name):
-    allowed = setting_value("allowed_ai_file_extensions", [".pdf", ".docx", ".pptx", ".txt", ".md", ".csv"])
+    allowed = setting_value(
+        "allowed_ai_file_extensions",
+        [".pdf", ".docx", ".pptx", ".xlsx", ".xlsm", ".txt", ".md", ".csv", ".json", ".xml", ".html", ".htm", ".rtf", ".odt"],
+    )
     if isinstance(allowed, str):
         allowed = [item.strip() for item in allowed.split(",") if item.strip()]
     extension = Path(file_name).suffix.lower()
@@ -140,7 +143,7 @@ def serialize_document(document, request):
         "title": document.title,
         "course": document.course,
         "file": "",
-        "file_url": "",
+        "file_url": getattr(document, "source_file_url", "") or "",
         "file_name": document.file_name,
         "preview_url": preview_url,
         "text_preview": (document.extracted_text or "")[:12000],
@@ -171,30 +174,6 @@ def temp_document_preview_html(document):
         f"<h1>{title}</h1><pre>{content}</pre>"
         "</main></body></html>"
     )
-
-
-def preview_response_from_path(document, file_path):
-    path = Path(file_path)
-    pdf_preview_path = get_office_pdf_preview_path(path)
-    if pdf_preview_path:
-        response = FileResponse(open(pdf_preview_path, "rb"), content_type="application/pdf")
-        response["Content-Disposition"] = f'inline; filename="{document.title or path.stem}.pdf"'
-        response.headers.pop("X-Frame-Options", None)
-        return response
-
-    if can_render_html_preview(path):
-        response = HttpResponse(
-            render_html_preview(path, title=document.title),
-            content_type="text/html; charset=utf-8",
-        )
-        response["Content-Disposition"] = f'inline; filename="{document.title or path.stem}.html"'
-    else:
-        content_type = mimetypes.guess_type(path.name)[0] or "application/octet-stream"
-        response = FileResponse(open(path, "rb"), content_type=content_type)
-        response["Content-Disposition"] = f'inline; filename="{path.name}"'
-
-    response.headers.pop("X-Frame-Options", None)
-    return response
 
 
 def preview_response_from_bytes(document):
@@ -305,14 +284,17 @@ class AIStudyVaultImportView(APIView):
             return Response({"message": "This file type is not allowed for AI processing."}, status=status.HTTP_400_BAD_REQUEST)
 
         course = resource.course
+        file_bytes = resource.file.open("rb").read()
         document = make_temp_document(
             owner=request.user,
             source_resource=resource,
             title=resource.title,
             course=f"{course.code} - {course.title}",
             file_name=Path(resource.file.name).name,
-            source_file_path=resource.file.path,
-            extracted_text=extract_document_text(resource.file.path),
+            source_file_url=resource.file.url,
+            file_bytes=file_bytes,
+            file_content_type=getattr(resource, "content_type", "") or mimetypes.guess_type(resource.file.name)[0] or "",
+            extracted_text=extract_document_text_from_bytes(file_bytes, resource.file.name),
         )
         user_temp_documents(request)[document.id] = document
 
@@ -352,8 +334,6 @@ class AIStudyDocumentPreviewView(APIView):
 
     def get(self, request, pk):
         document = get_temp_document(request, pk)
-        if document.source_file_path:
-            return preview_response_from_path(document, document.source_file_path)
         if document.file_bytes:
             return preview_response_from_bytes(document)
 

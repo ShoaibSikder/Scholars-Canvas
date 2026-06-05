@@ -1,4 +1,6 @@
 import ast
+import csv
+import html as html_lib
 import json
 import logging
 import os
@@ -24,7 +26,22 @@ OPENROUTER_MODELS = [
     ).split(",")
     if model.strip()
 ]
-SUPPORTED_TEXT_EXTENSIONS = {".pdf", ".docx", ".pptx", ".txt", ".md", ".csv"}
+SUPPORTED_TEXT_EXTENSIONS = {
+    ".pdf",
+    ".docx",
+    ".pptx",
+    ".xlsx",
+    ".xlsm",
+    ".csv",
+    ".txt",
+    ".md",
+    ".json",
+    ".xml",
+    ".html",
+    ".htm",
+    ".rtf",
+    ".odt",
+}
 AI_CONTEXT_LIMIT = 25000
 AI_TOPIC_CONTEXT_LIMIT = 10000
 AI_RETRY_ATTEMPTS = 2
@@ -64,21 +81,13 @@ TOPIC_STOPWORDS = {
     "will",
 }
 
-
 def extract_document_text(file_path):
-    extension = Path(file_path).suffix.lower()
-
-    if extension == ".pdf":
-        return extract_pdf_text(file_path)
-    if extension == ".docx":
-        return extract_docx_text(file_path)
-    if extension == ".pptx":
-        return extract_pptx_text(file_path)
-    if extension in {".txt", ".md", ".csv"}:
-        return extract_plain_text(file_path)
-
-    return ""
-
+    path = Path(file_path)
+    try:
+        return extract_document_text_from_bytes(path.read_bytes(), path.name)
+    except Exception as exc:
+        logger.warning("Unable to read document %s: %s", file_path, exc)
+        return ""
 
 def extract_document_text_from_upload(uploaded_file):
     name = getattr(uploaded_file, "name", "") or "uploaded-file"
@@ -93,36 +102,269 @@ def extract_document_text_from_bytes(data, file_name):
     extension = Path(file_name).suffix.lower()
 
     if extension == ".pdf":
-        return extract_pdf_text(BytesIO(data))
+        return clean_extracted_text(extract_pdf_text(BytesIO(data)))
     if extension == ".docx":
-        return extract_docx_text(BytesIO(data))
+        return clean_extracted_text(extract_docx_text(BytesIO(data)))
     if extension == ".pptx":
-        return extract_pptx_text(BytesIO(data))
-    if extension in {".txt", ".md", ".csv"}:
-        return extract_plain_text_from_bytes(data)
+        return clean_extracted_text(extract_pptx_text(BytesIO(data)))
+    if extension in {".xlsx", ".xlsm"}:
+        return clean_extracted_text(extract_xlsx_text(BytesIO(data)))
+    if extension == ".csv":
+        return clean_extracted_text(extract_csv_text(data))
+    if extension in {".html", ".htm"}:
+        return clean_extracted_text(extract_html_text(data))
+    if extension == ".json":
+        return clean_extracted_text(extract_json_text(data))
+    if extension == ".xml":
+        return clean_extracted_text(extract_xml_text(data))
+    if extension == ".rtf":
+        return clean_extracted_text(extract_rtf_text(data))
+    if extension == ".odt":
+        return clean_extracted_text(extract_odt_text(BytesIO(data)))
+    if extension in {".txt", ".md"}:
+        return clean_extracted_text(extract_plain_text_from_bytes(data))
 
     return ""
 
 
-def extract_pdf_text(file_path):
-    text_parts = []
+def read_binary(file_obj):
+    if isinstance(file_obj, (bytes, bytearray)):
+        return bytes(file_obj)
+    if hasattr(file_obj, "getvalue"):
+        return file_obj.getvalue()
+    if hasattr(file_obj, "seek"):
+        file_obj.seek(0)
+    data = file_obj.read() if hasattr(file_obj, "read") else Path(file_obj).read_bytes()
+    if hasattr(file_obj, "seek"):
+        file_obj.seek(0)
+    return data
 
+
+def extract_pdf_text(file_obj):
+    data = read_binary(file_obj)
+    rich_text = extract_pdf_text_with_pdfplumber(data)
+    if rich_text:
+        return rich_text
+
+    text_parts = []
     try:
         from pypdf import PdfReader
 
-        reader = PdfReader(file_path)
-        for page in reader.pages:
+        reader = PdfReader(BytesIO(data))
+        for index, page in enumerate(reader.pages, start=1):
             page_text = page.extract_text() or ""
             if page_text.strip():
-                text_parts.append(page_text.strip())
+                text_parts.append(f"Page {index}\nText\n{page_text.strip()}")
     except Exception as exc:
-        logger.warning("Unable to extract PDF text from %s: %s", file_path, exc)
+        logger.warning("Unable to extract PDF text: %s", exc)
 
-    return "\n\n".join(text_parts).strip()
+    fallback_text = "\n\n".join(text_parts).strip()
+    ocr_text = extract_pdf_ocr_text(data)
+    return "\n\n".join(part for part in (fallback_text, ocr_text) if part).strip()
+
+
+def extract_pdf_text_with_pdfplumber(data):
+    try:
+        import pdfplumber
+    except Exception as exc:
+        logger.debug("pdfplumber extraction unavailable: %s", exc)
+        return ""
+
+    pages = []
+    try:
+        with pdfplumber.open(BytesIO(data)) as pdf:
+            metadata = []
+            if pdf.metadata:
+                for key in ("Title", "Author", "Subject", "Creator", "Producer"):
+                    value = pdf.metadata.get(key)
+                    if value:
+                        metadata.append(f"{key}: {value}")
+            if metadata:
+                pages.append("Document metadata\n" + "\n".join(metadata))
+
+            for page_index, page in enumerate(pdf.pages, start=1):
+                page_parts = [f"Page {page_index}"]
+                text = extract_pdf_layout_text(page)
+                if text:
+                    page_parts.append("Layout text\n" + text)
+
+                tables = extract_pdf_tables(page)
+                if tables:
+                    page_parts.append("Tables\n" + tables)
+
+                needs_ocr = len(text or "") < 80
+                ocr_text = extract_pdf_page_ocr_text(data, page_index - 1) if needs_ocr else ""
+                if ocr_text:
+                    page_parts.append("OCR text\n" + ocr_text)
+
+                if len(page_parts) > 1:
+                    pages.append("\n".join(page_parts))
+    except Exception as exc:
+        logger.warning("pdfplumber extraction failed: %s", exc)
+        return ""
+
+    return "\n\n".join(pages).strip()
+
+
+def extract_pdf_layout_text(page):
+    try:
+        words = page.extract_words(
+            keep_blank_chars=False,
+            use_text_flow=True,
+            extra_attrs=["size", "fontname"],
+        )
+    except Exception:
+        raw_text = page.extract_text() or ""
+        return mark_probable_headings(raw_text)
+
+    if not words:
+        return ""
+
+    sizes = [float(word.get("size") or 0) for word in words if word.get("size")]
+    body_size = sorted(sizes)[len(sizes) // 2] if sizes else 0
+    lines = []
+    current_top = None
+    current_words = []
+
+    for word in words:
+        top = round(float(word.get("top", 0)), 1)
+        if current_top is None or abs(top - current_top) <= 3:
+            current_words.append(word)
+            current_top = top if current_top is None else current_top
+            continue
+        lines.append(format_pdf_line(current_words, body_size))
+        current_words = [word]
+        current_top = top
+
+    if current_words:
+        lines.append(format_pdf_line(current_words, body_size))
+
+    return "\n".join(line for line in lines if line).strip()
+
+
+def format_pdf_line(words, body_size):
+    sorted_words = sorted(words, key=lambda word: float(word.get("x0", 0)))
+    pieces = []
+    previous_x1 = None
+    for word in sorted_words:
+        word_text = word.get("text", "").strip()
+        if not word_text:
+            continue
+        x0 = float(word.get("x0", 0))
+        if previous_x1 is not None and x0 - previous_x1 > 28:
+            pieces.append("|")
+        pieces.append(word_text)
+        previous_x1 = float(word.get("x1", x0))
+    text = " ".join(pieces).replace(" | ", " | ").strip()
+    if not text:
+        return ""
+    sizes = [float(word.get("size") or 0) for word in sorted_words if word.get("size")]
+    avg_size = sum(sizes) / len(sizes) if sizes else 0
+    is_heading = (
+        avg_size and body_size and avg_size >= body_size * 1.18
+    ) or (
+        len(text) <= 90 and text == text.upper() and any(char.isalpha() for char in text)
+    )
+    return f"Heading: {text}" if is_heading else text
+
+
+def mark_probable_headings(text):
+    lines = []
+    for line in (text or "").splitlines():
+        stripped = line.strip()
+        if not stripped:
+            continue
+        if len(stripped) <= 90 and (stripped == stripped.upper() or re.match(r"^\d+(\.\d+)*\s+\S+", stripped)):
+            lines.append(f"Heading: {stripped}")
+        else:
+            lines.append(stripped)
+    return "\n".join(lines)
+
+
+def extract_pdf_tables(page):
+    table_blocks = []
+    try:
+        tables = page.extract_tables() or []
+    except Exception as exc:
+        logger.debug("PDF table extraction failed on page: %s", exc)
+        return ""
+
+    for table_index, table in enumerate(tables, start=1):
+        rows = []
+        for row in table:
+            values = [clean_cell(value) for value in row if clean_cell(value)]
+            if values:
+                rows.append(" | ".join(values))
+        if rows:
+            table_blocks.append(f"Table {table_index}\n" + "\n".join(rows))
+    return "\n\n".join(table_blocks)
+
+
+def clean_cell(value):
+    return re.sub(r"\s+", " ", str(value or "")).strip()
+
+
+def ocr_image(image):
+    try:
+        import pytesseract
+
+        text = pytesseract.image_to_string(image) or ""
+        return text.strip()
+    except Exception as exc:
+        logger.debug("OCR unavailable or failed: %s", exc)
+        return ""
+
+
+def extract_pdf_page_ocr_text(data, page_index):
+    try:
+        import fitz
+
+        document = fitz.open(stream=data, filetype="pdf")
+        page = document.load_page(page_index)
+        pixmap = page.get_pixmap(matrix=fitz.Matrix(2, 2), alpha=False)
+        from PIL import Image
+
+        image = Image.open(BytesIO(pixmap.tobytes("png")))
+        return ocr_image(image)
+    except Exception as exc:
+        logger.debug("PDF page OCR failed: %s", exc)
+        return ""
+
+
+def extract_pdf_ocr_text(data, max_pages=6):
+    blocks = []
+    try:
+        import fitz
+
+        document = fitz.open(stream=data, filetype="pdf")
+        page_count = min(len(document), max_pages)
+    except Exception as exc:
+        logger.debug("Unable to open PDF for OCR: %s", exc)
+        return ""
+
+    for page_index in range(page_count):
+        text = extract_pdf_page_ocr_text(data, page_index)
+        if text:
+            blocks.append(f"Page {page_index + 1} OCR text\n{text}")
+    return "\n\n".join(blocks)
+
+
+def clean_extracted_text(text):
+    text = str(text or "").replace("\x00", " ")
+    lines = []
+    for raw_line in text.replace("\r\n", "\n").replace("\r", "\n").split("\n"):
+        line = re.sub(r"[ \t\f\v]+", " ", raw_line).strip()
+        if line:
+            lines.append(line)
+        elif lines and lines[-1] != "":
+            lines.append("")
+    cleaned = "\n".join(lines)
+    cleaned = re.sub(r"\n{3,}", "\n\n", cleaned)
+    return cleaned.strip()
 
 
 def extract_plain_text_from_bytes(data):
-    for encoding in ("utf-8", "utf-16", "latin-1"):
+    for encoding in ("utf-8-sig", "utf-8", "utf-16", "utf-16-le", "utf-16-be", "cp1252", "latin-1"):
         try:
             return data.decode(encoding).strip()
         except UnicodeDecodeError:
@@ -144,17 +386,37 @@ def extract_plain_text(file_path):
 
 
 def extract_docx_text(file_path):
+    library_text = extract_docx_text_with_library(file_path)
+    if library_text:
+        return library_text
+
     try:
         with zipfile.ZipFile(file_path) as archive:
-            xml = archive.read("word/document.xml")
+            parts = []
+            for name in (
+                "word/document.xml",
+                "word/footnotes.xml",
+                "word/endnotes.xml",
+                "word/comments.xml",
+            ):
+                try:
+                    text = extract_openxml_text(archive.read(name))
+                    if text:
+                        parts.append(text)
+                except KeyError:
+                    continue
     except Exception as exc:
         logger.warning("Unable to read DOCX file %s: %s", file_path, exc)
         return ""
 
-    return extract_openxml_text(xml)
+    return "\n\n".join(parts)
 
 
 def extract_pptx_text(file_path):
+    library_text = extract_pptx_text_with_library(file_path)
+    if library_text:
+        return library_text
+
     text_parts = []
 
     try:
@@ -169,6 +431,247 @@ def extract_pptx_text(file_path):
         return ""
 
     return "\n\n".join(text_parts).strip()
+
+
+def extract_docx_text_with_library(file_obj):
+    try:
+        from docx import Document
+
+        document = Document(file_obj)
+        parts = []
+        properties = document.core_properties
+        metadata = []
+        for label, value in (
+            ("Title", properties.title),
+            ("Author", properties.author),
+            ("Subject", properties.subject),
+            ("Keywords", properties.keywords),
+            ("Category", properties.category),
+        ):
+            if value:
+                metadata.append(f"{label}: {value}")
+        if metadata:
+            parts.append("Document metadata\n" + "\n".join(metadata))
+
+        section = []
+        for paragraph in document.paragraphs:
+            text = paragraph.text.strip()
+            if not text:
+                continue
+            style_name = getattr(paragraph.style, "name", "") or ""
+            if style_name.lower().startswith("heading") or style_name.lower() in {"title", "subtitle"}:
+                if section:
+                    parts.append("\n".join(section))
+                    section = []
+                parts.append(f"{style_name}: {text}")
+            else:
+                section.append(text)
+        if section:
+            parts.append("\n".join(section))
+
+        for table_index, table in enumerate(document.tables, start=1):
+            rows = []
+            for row in table.rows:
+                cells = [cell.text.strip() for cell in row.cells if cell.text.strip()]
+                if cells:
+                    rows.append(" | ".join(cells))
+            if rows:
+                parts.append(f"Table {table_index}\n" + "\n".join(rows))
+        return "\n\n".join(parts).strip()
+    except Exception as exc:
+        logger.debug("python-docx extraction unavailable or failed: %s", exc)
+        return ""
+
+
+def extract_pptx_text_with_library(file_obj):
+    try:
+        from pptx import Presentation
+
+        data = read_binary(file_obj)
+        presentation = Presentation(BytesIO(data))
+        notes_by_slide = extract_pptx_notes(data)
+        slides = []
+        for slide_index, slide in enumerate(presentation.slides, start=1):
+            parts = [f"Slide {slide_index}"]
+            title_shape = getattr(slide.shapes, "title", None)
+            if title_shape and getattr(title_shape, "text", "").strip():
+                parts.append(f"Title: {title_shape.text.strip()}")
+
+            for shape in slide.shapes:
+                if title_shape is not None and shape == title_shape:
+                    continue
+                if getattr(shape, "has_text_frame", False):
+                    text = shape.text.strip()
+                    if text:
+                        parts.append("Text\n" + text)
+                if getattr(shape, "has_table", False):
+                    rows = []
+                    for row in shape.table.rows:
+                        cells = [cell.text.strip() for cell in row.cells if cell.text.strip()]
+                        if cells:
+                            rows.append(" | ".join(cells))
+                    if rows:
+                        parts.append("Table\n" + "\n".join(rows))
+
+                image_text = extract_pptx_shape_ocr(shape)
+                if image_text:
+                    parts.append("OCR text from slide image\n" + image_text)
+
+            notes = notes_by_slide.get(slide_index, "")
+            if notes:
+                parts.append("Speaker notes\n" + notes)
+
+            if len(parts) > 1:
+                slides.append("\n".join(parts))
+        return "\n\n".join(slides).strip()
+    except Exception as exc:
+        logger.debug("python-pptx extraction unavailable or failed: %s", exc)
+        return ""
+
+
+def extract_pptx_shape_ocr(shape):
+    try:
+        image = shape.image
+    except Exception:
+        return ""
+    try:
+        from PIL import Image
+
+        pil_image = Image.open(BytesIO(image.blob))
+        return ocr_image(pil_image)
+    except Exception as exc:
+        logger.debug("PPTX image OCR failed: %s", exc)
+        return ""
+
+
+def extract_pptx_notes(data):
+    notes = {}
+    try:
+        with zipfile.ZipFile(BytesIO(data)) as archive:
+            note_names = sorted(
+                name
+                for name in archive.namelist()
+                if name.startswith("ppt/notesSlides/notesSlide") and name.endswith(".xml")
+            )
+            for index, name in enumerate(note_names, start=1):
+                text = extract_openxml_text(archive.read(name))
+                if text:
+                    notes[index] = text
+    except Exception as exc:
+        logger.debug("PPTX notes extraction failed: %s", exc)
+    return notes
+
+
+def extract_xlsx_text(file_obj):
+    try:
+        from openpyxl import load_workbook
+
+        workbook = load_workbook(file_obj, read_only=True, data_only=True)
+        sheets = []
+        for sheet in workbook.worksheets:
+            rows = []
+            for row in sheet.iter_rows(values_only=True):
+                values = [str(value).strip() for value in row if value is not None and str(value).strip()]
+                if values:
+                    rows.append(" | ".join(values))
+            if rows:
+                sheets.append(f"Sheet: {sheet.title}\n" + "\n".join(rows))
+        return "\n\n".join(sheets).strip()
+    except Exception as exc:
+        logger.warning("Unable to extract spreadsheet text: %s", exc)
+        return ""
+
+
+def extract_csv_text(data):
+    text = extract_plain_text_from_bytes(data)
+    if not text:
+        return ""
+    try:
+        sample = text[:4096]
+        dialect = csv.Sniffer().sniff(sample)
+    except Exception:
+        dialect = csv.excel
+    rows = []
+    try:
+        for row in csv.reader(text.splitlines(), dialect):
+            values = [value.strip() for value in row if value.strip()]
+            if values:
+                rows.append(" | ".join(values))
+    except Exception:
+        return text
+    return "\n".join(rows)
+
+
+def extract_html_text(data):
+    text = extract_plain_text_from_bytes(data)
+    if not text:
+        return ""
+    try:
+        from bs4 import BeautifulSoup
+
+        soup = BeautifulSoup(text, "html.parser")
+        for element in soup(["script", "style", "noscript"]):
+            element.decompose()
+        return soup.get_text("\n")
+    except Exception:
+        without_scripts = re.sub(r"(?is)<(script|style).*?>.*?</\1>", " ", text)
+        without_tags = re.sub(r"(?s)<[^>]+>", "\n", without_scripts)
+        return html_lib.unescape(without_tags)
+
+
+def extract_json_text(data):
+    text = extract_plain_text_from_bytes(data)
+    if not text:
+        return ""
+    try:
+        parsed = json.loads(text)
+    except Exception:
+        return text
+    return json.dumps(parsed, indent=2, ensure_ascii=False)
+
+
+def extract_xml_text(data):
+    text = extract_plain_text_from_bytes(data)
+    if not text:
+        return ""
+    try:
+        root = ElementTree.fromstring(text)
+    except Exception:
+        return re.sub(r"(?s)<[^>]+>", "\n", text)
+
+    parts = []
+
+    def walk(node, path=""):
+        tag = node.tag.rsplit("}", 1)[-1]
+        next_path = f"{path}/{tag}" if path else tag
+        node_text = (node.text or "").strip()
+        if node_text:
+            parts.append(f"{next_path}: {node_text}")
+        for child in node:
+            walk(child, next_path)
+
+    walk(root)
+    return "\n".join(parts)
+
+
+def extract_rtf_text(data):
+    text = extract_plain_text_from_bytes(data)
+    if not text:
+        return ""
+    text = re.sub(r"\\'[0-9a-fA-F]{2}", " ", text)
+    text = re.sub(r"\\[a-zA-Z]+-?\d* ?", " ", text)
+    text = text.replace("{", " ").replace("}", " ")
+    return text
+
+
+def extract_odt_text(file_obj):
+    try:
+        with zipfile.ZipFile(file_obj) as archive:
+            xml = archive.read("content.xml")
+    except Exception as exc:
+        logger.warning("Unable to read ODT file: %s", exc)
+        return ""
+    return extract_openxml_text(xml)
 
 
 def extract_openxml_text(xml_bytes):
@@ -458,7 +961,7 @@ def _fallback_summary(document):
     text = document.extracted_text or ""
     sentences = _split_sentences(text)
     if not sentences:
-        raise ValueError("This file does not contain extractable text. Try a text-based PDF, DOCX, PPTX, TXT, Markdown, or CSV file.")
+        raise ValueError("This file does not contain extractable text. Try a text-based PDF, DOCX, PPTX, XLSX, TXT, Markdown, CSV, JSON, XML, HTML, RTF, or ODT file.")
 
     summary = []
     topics = detect_topics(text, top_n=8)
@@ -509,7 +1012,7 @@ def _fallback_flashcards(document):
     text = document.extracted_text or ""
     sentences = _diverse_study_sentences(text, limit=10)
     if not sentences:
-        raise ValueError("This file does not contain extractable text. Try a text-based PDF, DOCX, PPTX, TXT, Markdown, or CSV file.")
+        raise ValueError("This file does not contain extractable text. Try a text-based PDF, DOCX, PPTX, XLSX, TXT, Markdown, CSV, JSON, XML, HTML, RTF, or ODT file.")
 
     cards = []
     for index, sentence in enumerate(sentences[:10]):
@@ -533,7 +1036,7 @@ def _fallback_multiple_choice_quiz(document):
     text = document.extracted_text or ""
     sentences = _diverse_study_sentences(text, limit=10)
     if not sentences:
-        raise ValueError("This file does not contain extractable text. Try a text-based PDF, DOCX, PPTX, TXT, Markdown, or CSV file.")
+        raise ValueError("This file does not contain extractable text. Try a text-based PDF, DOCX, PPTX, XLSX, TXT, Markdown, CSV, JSON, XML, HTML, RTF, or ODT file.")
 
     quiz_items = []
     for index, sentence in enumerate(sentences[:10]):
@@ -556,7 +1059,7 @@ def _fallback_answer(document, question, history=None):
     text = document.extracted_text or ""
     sentences = _split_sentences(text)
     if not sentences:
-        raise ValueError("This file does not contain extractable text. Try a text-based PDF, DOCX, PPTX, TXT, Markdown, or CSV file.")
+        raise ValueError("This file does not contain extractable text. Try a text-based PDF, DOCX, PPTX, XLSX, TXT, Markdown, CSV, JSON, XML, HTML, RTF, or ODT file.")
 
     normalized_question = (question or "").lower()
     overview_terms = ("what does", "what is this", "what this", "about", "shows", "summarize", "summary", "overview")
@@ -846,7 +1349,7 @@ def _summary_context_for_generation(document):
 def _build_summary_prompt(document):
     text = document.extracted_text or ""
     if not text.strip():
-        raise ValueError("This file does not contain extractable text. Try a text-based PDF, DOCX, PPTX, TXT, Markdown, or CSV file.")
+        raise ValueError("This file does not contain extractable text. Try a text-based PDF, DOCX, PPTX, XLSX, TXT, Markdown, CSV, JSON, XML, HTML, RTF, or ODT file.")
 
     topics = extract_document_topics(document)
     classification = classify_document(document)
@@ -877,7 +1380,7 @@ def _build_summary_prompt(document):
 def _build_flashcard_prompt(document):
     text = document.extracted_text or ""
     if not text.strip():
-        raise ValueError("This file does not contain extractable text. Try a text-based PDF, DOCX, PPTX, TXT, Markdown, or CSV file.")
+        raise ValueError("This file does not contain extractable text. Try a text-based PDF, DOCX, PPTX, XLSX, TXT, Markdown, CSV, JSON, XML, HTML, RTF, or ODT file.")
 
     summary = _summary_context_for_generation(document)
     formulas = extract_formulas(text)
@@ -908,7 +1411,7 @@ def _build_quiz_prompt(document):
 def _build_multiple_choice_prompt(document):
     text = document.extracted_text or ""
     if not text.strip():
-        raise ValueError("This file does not contain extractable text. Try a text-based PDF, DOCX, PPTX, TXT, Markdown, or CSV file.")
+        raise ValueError("This file does not contain extractable text. Try a text-based PDF, DOCX, PPTX, XLSX, TXT, Markdown, CSV, JSON, XML, HTML, RTF, or ODT file.")
 
     summary = _summary_context_for_generation(document)
     formulas = extract_formulas(text)
@@ -1055,7 +1558,7 @@ def generate_multiple_choice_quiz_with_source(document):
 
 def answer_question(document, question, history=None):
     if not (document.extracted_text or "").strip():
-        raise ValueError("This file does not contain extractable text. Try a text-based PDF, DOCX, PPTX, TXT, Markdown, or CSV file.")
+        raise ValueError("This file does not contain extractable text. Try a text-based PDF, DOCX, PPTX, XLSX, TXT, Markdown, CSV, JSON, XML, HTML, RTF, or ODT file.")
 
     chunks = split_text(document.extracted_text)
     context_chunks = select_relevant_chunks(chunks, question, limit=4)
@@ -1231,3 +1734,4 @@ def normalize_flashcards(items):
         raise ValueError("Flashcard response did not contain valid study cards.")
 
     return normalized[:10]
+
