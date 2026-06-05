@@ -26,84 +26,84 @@ All screenshots are stored in `frontend/public/systemimages`.
 ### Authentication
 
 <div>
-  <a href="frontend/public/systemimages/login page.png">
-    <img src="frontend/public/systemimages/login page.png" width="420" alt="Login page" />
+  <a href="frontend/public/systemimages/login-page.png">
+    <img src="frontend/public/systemimages/login-page.png" width="420" alt="Login page" />
   </a>
-  <a href="frontend/public/systemimages/Registration page.png">
-    <img src="frontend/public/systemimages/Registration page.png" width="420" alt="Registration page" />
+  <a href="frontend/public/systemimages/registration-page.png">
+    <img src="frontend/public/systemimages/registration-page.png" width="420" alt="Registration page" />
   </a>
 </div>
 
 ### Normal User Workspace
 
 <div>
-  <a href="frontend/public/systemimages/User Dashboard.png">
-    <img src="frontend/public/systemimages/User Dashboard.png" width="300" alt="User dashboard" />
+  <a href="frontend/public/systemimages/user-dashboard.png">
+    <img src="frontend/public/systemimages/user-dashboard.png" width="300" alt="User dashboard" />
   </a>
-  <a href="frontend/public/systemimages/User Routine.png">
-    <img src="frontend/public/systemimages/User Routine.png" width="300" alt="User routine" />
+  <a href="frontend/public/systemimages/user-routine.png">
+    <img src="frontend/public/systemimages/user-routine.png" width="300" alt="User routine" />
   </a>
-  <a href="frontend/public/systemimages/User To Do list.png">
-    <img src="frontend/public/systemimages/User To Do list.png" width="300" alt="User to-do list" />
-  </a>
-</div>
-
-<div>
-  <a href="frontend/public/systemimages/Users Resource Vault.png">
-    <img src="frontend/public/systemimages/Users Resource Vault.png" width="300" alt="User resource vault" />
-  </a>
-  <a href="frontend/public/systemimages/User Resourse Workspace.png">
-    <img src="frontend/public/systemimages/User Resourse Workspace.png" width="300" alt="User resource workspace" />
-  </a>
-  <a href="frontend/public/systemimages/User AI Lab.png">
-    <img src="frontend/public/systemimages/User AI Lab.png" width="300" alt="User AI Lab" />
+  <a href="frontend/public/systemimages/user-todo-list.png">
+    <img src="frontend/public/systemimages/user-todo-list.png" width="300" alt="User to-do list" />
   </a>
 </div>
 
 <div>
-  <a href="frontend/public/systemimages/Users Communication section.png">
-    <img src="frontend/public/systemimages/Users Communication section.png" width="420" alt="User communication section" />
+  <a href="frontend/public/systemimages/users-resource-vault.png">
+    <img src="frontend/public/systemimages/users-resource-vault.png" width="300" alt="User resource vault" />
   </a>
-  <a href="frontend/public/systemimages/Settings option for use and admin.png">
-    <img src="frontend/public/systemimages/Settings option for use and admin.png" width="420" alt="Settings options" />
+  <a href="frontend/public/systemimages/user-resource-workspace.png">
+    <img src="frontend/public/systemimages/user-resource-workspace.png" width="300" alt="User resource workspace" />
+  </a>
+  <a href="frontend/public/systemimages/user-ai-lab.png">
+    <img src="frontend/public/systemimages/user-ai-lab.png" width="300" alt="User AI Lab" />
+  </a>
+</div>
+
+<div>
+  <a href="frontend/public/systemimages/users-communication-section.png">
+    <img src="frontend/public/systemimages/users-communication-section.png" width="420" alt="User communication section" />
+  </a>
+  <a href="frontend/public/systemimages/settings-options-user-admin.png">
+    <img src="frontend/public/systemimages/settings-options-user-admin.png" width="420" alt="Settings options" />
   </a>
 </div>
 
 ### Administration Workspace
 
 <div>
-  <a href="frontend/public/systemimages/Admin Dashboard.png">
-    <img src="frontend/public/systemimages/Admin Dashboard.png" width="300" alt="Admin dashboard" />
+  <a href="frontend/public/systemimages/admin-dashboard.png">
+    <img src="frontend/public/systemimages/admin-dashboard.png" width="300" alt="Admin dashboard" />
   </a>
-  <a href="frontend/public/systemimages/Admin User Management.png">
-    <img src="frontend/public/systemimages/Admin User Management.png" width="300" alt="Admin user management" />
+  <a href="frontend/public/systemimages/admin-user-management.png">
+    <img src="frontend/public/systemimages/admin-user-management.png" width="300" alt="Admin user management" />
   </a>
-  <a href="frontend/public/systemimages/Admin course and resourse management.png">
-    <img src="frontend/public/systemimages/Admin course and resourse management.png" width="300" alt="Admin course and resource management" />
-  </a>
-</div>
-
-<div>
-  <a href="frontend/public/systemimages/Admin ai usage management.png">
-    <img src="frontend/public/systemimages/Admin ai usage management.png" width="300" alt="Admin AI usage management" />
-  </a>
-  <a href="frontend/public/systemimages/Admin communication report.png">
-    <img src="frontend/public/systemimages/Admin communication report.png" width="300" alt="Admin communication report" />
-  </a>
-  <a href="frontend/public/systemimages/Admin Task and reoutine report.png">
-    <img src="frontend/public/systemimages/Admin Task and reoutine report.png" width="300" alt="Admin task and routine report" />
+  <a href="frontend/public/systemimages/admin-course-resource-management.png">
+    <img src="frontend/public/systemimages/admin-course-resource-management.png" width="300" alt="Admin course and resource management" />
   </a>
 </div>
 
 <div>
-  <a href="frontend/public/systemimages/admin notication.png">
-    <img src="frontend/public/systemimages/admin notication.png" width="300" alt="Admin notifications" />
+  <a href="frontend/public/systemimages/admin-ai-usage-management.png">
+    <img src="frontend/public/systemimages/admin-ai-usage-management.png" width="300" alt="Admin AI usage management" />
   </a>
-  <a href="frontend/public/systemimages/Admin System control.png">
-    <img src="frontend/public/systemimages/Admin System control.png" width="300" alt="Admin system control" />
+  <a href="frontend/public/systemimages/admin-communication-report.png">
+    <img src="frontend/public/systemimages/admin-communication-report.png" width="300" alt="Admin communication report" />
   </a>
-  <a href="frontend/public/systemimages/Admin Audit log.png">
-    <img src="frontend/public/systemimages/Admin Audit log.png" width="300" alt="Admin audit log" />
+  <a href="frontend/public/systemimages/admin-task-routine-report.png">
+    <img src="frontend/public/systemimages/admin-task-routine-report.png" width="300" alt="Admin task and routine report" />
+  </a>
+</div>
+
+<div>
+  <a href="frontend/public/systemimages/admin-notification.png">
+    <img src="frontend/public/systemimages/admin-notification.png" width="300" alt="Admin notifications" />
+  </a>
+  <a href="frontend/public/systemimages/admin-system-control.png">
+    <img src="frontend/public/systemimages/admin-system-control.png" width="300" alt="Admin system control" />
+  </a>
+  <a href="frontend/public/systemimages/admin-audit-log.png">
+    <img src="frontend/public/systemimages/admin-audit-log.png" width="300" alt="Admin audit log" />
   </a>
 </div>
 
