@@ -6,6 +6,7 @@ from rest_framework.authtoken.models import Token
 
 from .models import User, UserPreferences
 from apps.administration.utils import bool_setting
+from apps.media_urls import request_media_url
 
 
 class RegistrationSerializer(serializers.ModelSerializer):
@@ -92,10 +93,7 @@ class UserSerializer(serializers.ModelSerializer):
         if not obj.avatar:
             return ""
 
-        request = self.context.get("request")
-        if request:
-            return request.build_absolute_uri(obj.avatar.url)
-        return obj.avatar.url
+        return request_media_url(self.context.get("request"), obj.avatar)
 
 
 class UserPreferencesSerializer(serializers.ModelSerializer):

@@ -2,6 +2,8 @@ from django.conf import settings
 from django.db import models
 from django.db.models import Q
 
+from apps.storage_paths import communication_upload_path
+
 
 class FriendRequest(models.Model):
     PENDING = "pending"
@@ -66,7 +68,7 @@ class Message(models.Model):
     conversation = models.ForeignKey(Conversation, on_delete=models.CASCADE, related_name="messages")
     sender = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="sent_messages")
     body = models.TextField(blank=True)
-    attachment = models.FileField(upload_to="communication/%Y/%m/", blank=True)
+    attachment = models.FileField(upload_to=communication_upload_path, blank=True)
     attachment_name = models.CharField(max_length=255, blank=True)
     attachment_size = models.PositiveIntegerField(default=0)
     attachment_content_type = models.CharField(max_length=120, blank=True)

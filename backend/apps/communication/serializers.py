@@ -1,6 +1,8 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
+from apps.media_urls import request_media_url
+
 from .models import Conversation, FriendRequest, Friendship, Message
 
 User = get_user_model()
@@ -22,10 +24,7 @@ class UserCardSerializer(serializers.ModelSerializer):
         if not getattr(obj, "avatar", None):
             return ""
 
-        request = self.context.get("request")
-        if request:
-            return request.build_absolute_uri(obj.avatar.url)
-        return obj.avatar.url
+        return request_media_url(self.context.get("request"), obj.avatar)
 
     def get_relationship_status(self, obj):
         request = self.context.get("request")
@@ -85,10 +84,7 @@ class MessageSerializer(serializers.ModelSerializer):
     def get_attachment_url(self, obj):
         if obj.deleted_at or not obj.attachment:
             return ""
-        request = self.context.get("request")
-        if request:
-            return request.build_absolute_uri(obj.attachment.url)
-        return obj.attachment.url
+        return request_media_url(self.context.get("request"), obj.attachment)
 
     def get_is_deleted(self, obj):
         return bool(obj.deleted_at)

@@ -12,8 +12,6 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.ai_lab.preview import can_render_html_preview, get_office_pdf_preview_path, render_html_preview
-
 from .models import VaultCourse, VaultResource
 from .serializers import VaultCourseSerializer, VaultResourceSerializer
 
@@ -141,22 +139,6 @@ class CourseResourcePreviewView(APIView):
 
         if not resource.file:
             return Response({"message": "File not found."}, status=status.HTTP_404_NOT_FOUND)
-
-        pdf_preview_path = get_office_pdf_preview_path(resource.file.path)
-        if pdf_preview_path:
-            response = FileResponse(open(pdf_preview_path, "rb"), content_type="application/pdf")
-            response["Content-Disposition"] = f'inline; filename="{resource.title}.pdf"'
-            response.headers.pop("X-Frame-Options", None)
-            return response
-
-        if can_render_html_preview(resource.file.path):
-            response = HttpResponse(
-                render_html_preview(resource.file.path, title=resource.title),
-                content_type="text/html; charset=utf-8",
-            )
-            response["Content-Disposition"] = f'inline; filename="{resource.title}.html"'
-            response.headers.pop("X-Frame-Options", None)
-            return response
 
         content_type = mimetypes.guess_type(resource.file.name)[0] or "application/octet-stream"
         response = FileResponse(resource.file.open("rb"), content_type=content_type)

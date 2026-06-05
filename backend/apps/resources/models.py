@@ -1,6 +1,8 @@
 from django.conf import settings
 from django.db import models
 
+from apps.storage_paths import vault_resource_upload_path
+
 
 class VaultCourse(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="vault_courses")
@@ -37,7 +39,7 @@ class VaultResource(models.Model):
     category = models.CharField(max_length=24, choices=Category.choices)
     title = models.CharField(max_length=180)
     resource_type = models.CharField(max_length=16, choices=ResourceType.choices, default=ResourceType.PDF)
-    file = models.FileField(upload_to="vault_resources/", blank=True)
+    file = models.FileField(upload_to=vault_resource_upload_path, blank=True)
     url = models.URLField(blank=True)
     notes = models.TextField(blank=True)
     is_public = models.BooleanField(default=False)

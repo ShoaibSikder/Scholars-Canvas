@@ -7,6 +7,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.media_urls import request_media_url
 from apps.resources.models import VaultCourse, VaultResource
 from apps.tasks.models import StudySession, Task
 
@@ -20,7 +21,7 @@ def format_time(value):
 
 def resource_target(request, resource):
     if resource.file:
-        return request.build_absolute_uri(resource.file.url)
+        return request_media_url(request, resource.file)
     return resource.url or ""
 
 

@@ -2,6 +2,8 @@ from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
+from apps.storage_paths import profile_picture_upload_path
+
 
 class UserManager(BaseUserManager):
     use_in_migrations = True
@@ -48,7 +50,7 @@ class User(AbstractUser):
     university = models.CharField(max_length=255, blank=True)
     major = models.CharField(max_length=255)
     current_semester = models.PositiveSmallIntegerField(default=1)
-    avatar = models.ImageField(upload_to="profile_pictures/", blank=True)
+    avatar = models.ImageField(upload_to=profile_picture_upload_path, blank=True)
     role = models.CharField(max_length=24, choices=Role.choices, default=Role.STUDENT)
     account_status = models.CharField(max_length=24, choices=AccountStatus.choices, default=AccountStatus.ACTIVE)
     institutional_email_verified = models.BooleanField(default=False)

@@ -4,6 +4,7 @@ from rest_framework import serializers
 from django.urls import reverse
 
 from apps.administration.utils import setting_value
+from apps.media_urls import request_media_url
 
 from .models import VaultCourse, VaultResource
 
@@ -92,10 +93,7 @@ class VaultResourceSerializer(serializers.ModelSerializer):
         if not obj.file:
             return ""
 
-        request = self.context.get("request")
-        if request:
-            return request.build_absolute_uri(obj.file.url)
-        return obj.file.url
+        return request_media_url(self.context.get("request"), obj.file)
 
     def get_preview_url(self, obj):
         if not obj.file or not obj.pk:
