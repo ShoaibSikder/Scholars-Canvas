@@ -11,7 +11,7 @@ python -m venv venv
 # For Mac/Linux:
 source venv/bin/activate
 
-pip install django djangorestframework django-cors-headers django-environ psycopg2-binary celery redis
+pip install django djangorestframework django-cors-headers django-environ celery redis
 
 # 1. Start the project (we call the config folder 'core')
 django-admin startproject core .
