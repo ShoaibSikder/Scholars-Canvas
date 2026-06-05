@@ -51,7 +51,7 @@ backend/
 │       ├── tasks.py        # Asynchronous Celery tasks
 │       ├── services.py     # External API calls (OpenAI/Claude)
 │       └── utils.py        # PDF processing helpers
-├── media/                  # User-uploaded PDFs/Images (Local dev only)
+├── Supabase Storage        # User-uploaded files
 ├── static/                 # Collected static files
 ├── manage.py
 ├── requirements.txt
