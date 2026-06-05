@@ -63,6 +63,9 @@ class MessageSerializer(serializers.ModelSerializer):
     attachment_url = serializers.SerializerMethodField()
     is_deleted = serializers.SerializerMethodField()
     is_edited = serializers.SerializerMethodField()
+    is_seen = serializers.SerializerMethodField()
+    seen_at = serializers.SerializerMethodField()
+    read_by_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Message
@@ -79,6 +82,9 @@ class MessageSerializer(serializers.ModelSerializer):
             "deleted_at",
             "is_deleted",
             "is_edited",
+            "is_seen",
+            "seen_at",
+            "read_by_count",
         ]
 
     def get_attachment_url(self, obj):
@@ -91,6 +97,33 @@ class MessageSerializer(serializers.ModelSerializer):
 
     def get_is_edited(self, obj):
         return bool(obj.edited_at and not obj.deleted_at)
+
+    def get_is_seen(self, obj):
+        request = self.context.get("request")
+        user = getattr(request, "user", None)
+        if not user or obj.sender_id != getattr(user, "id", None):
+            return False
+        participant_ids = set(obj.conversation.participants.exclude(id=obj.sender_id).values_list("id", flat=True))
+        if not participant_ids:
+            return False
+        read_user_ids = set(obj.reads.values_list("user_id", flat=True))
+        return participant_ids.issubset(read_user_ids)
+
+    def get_seen_at(self, obj):
+        request = self.context.get("request")
+        user = getattr(request, "user", None)
+        if not user or obj.sender_id != getattr(user, "id", None):
+            return None
+        participant_ids = set(obj.conversation.participants.exclude(id=obj.sender_id).values_list("id", flat=True))
+        if not participant_ids:
+            return None
+        reads = list(obj.reads.filter(user_id__in=participant_ids).order_by("read_at"))
+        if len({read.user_id for read in reads}) < len(participant_ids):
+            return None
+        return reads[-1].read_at if reads else None
+
+    def get_read_by_count(self, obj):
+        return obj.reads.exclude(user_id=obj.sender_id).count()
 
     def to_representation(self, instance):
         data = super().to_representation(instance)

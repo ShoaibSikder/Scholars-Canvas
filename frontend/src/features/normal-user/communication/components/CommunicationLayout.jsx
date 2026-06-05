@@ -85,6 +85,7 @@ export default function CommunicationLayout({
   showScrollDown,
   startEditMessage,
   status,
+  typingUsers,
   user,
   visiblePeople,
 }) {
@@ -471,6 +472,22 @@ export default function CommunicationLayout({
                     />
                   );
                 })}
+                {typingUsers.length > 0 ? (
+                  <div className="flex justify-start">
+                    <div className="inline-flex max-w-[76%] items-center gap-2 rounded-2xl bg-slate-100 px-3 py-2 text-xs font-black text-slate-500 shadow-sm dark:bg-slate-800 dark:text-slate-300">
+                      <span className="flex items-center gap-1">
+                        <span className="size-1.5 animate-bounce rounded-full bg-blue-500 [animation-delay:-0.2s]" />
+                        <span className="size-1.5 animate-bounce rounded-full bg-blue-500 [animation-delay:-0.1s]" />
+                        <span className="size-1.5 animate-bounce rounded-full bg-blue-500" />
+                      </span>
+                      <span className="truncate">
+                        {typingUsers.length === 1
+                          ? `${userLabel(typingUsers[0])} is typing...`
+                          : `${typingUsers.length} people are typing...`}
+                      </span>
+                    </div>
+                  </div>
+                ) : null}
                 {!messageLoading && messages.length === 0 ? (
                   <Empty text="No messages yet. Send the first study note." />
                 ) : null}

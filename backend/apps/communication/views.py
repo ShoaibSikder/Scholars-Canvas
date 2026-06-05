@@ -1,5 +1,7 @@
 import re
 
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
 from django.contrib.auth import get_user_model
 from django.db.models import Q
 from django.utils import timezone
@@ -11,7 +13,7 @@ from rest_framework.views import APIView
 from apps.notification.models import Notification
 from apps.administration.utils import setting_value
 
-from .models import Conversation, FriendRequest, Friendship, Message
+from .models import Conversation, FriendRequest, Friendship, Message, MessageRead
 from .serializers import ConversationSerializer, FriendRequestSerializer, FriendshipSerializer, MessageSerializer, UserCardSerializer
 
 User = get_user_model()
@@ -75,6 +77,36 @@ def create_notification(owner, title, message, notification_type=Notification.Ty
         return
 
     Notification.objects.create(owner=owner, **defaults)
+
+
+def broadcast_conversation_event(conversation_id, event, payload):
+    channel_layer = get_channel_layer()
+    if not channel_layer:
+        return
+    async_to_sync(channel_layer.group_send)(
+        f"communication_{conversation_id}",
+        {
+            "type": "communication.message",
+            "event": event,
+            **payload,
+        },
+    )
+
+
+def broadcast_read_event(conversation_id, reader_id, message_ids):
+    if not message_ids:
+        return
+    channel_layer = get_channel_layer()
+    if not channel_layer:
+        return
+    async_to_sync(channel_layer.group_send)(
+        f"communication_{conversation_id}",
+        {
+            "type": "communication.read",
+            "reader_id": reader_id,
+            "message_ids": message_ids,
+        },
+    )
 
 
 def validate_upload_for_user(user, uploaded_file):
@@ -353,7 +385,13 @@ class MessageView(APIView):
         conversation = self.get_conversation(request, conversation_id)
         if not conversation:
             return Response({"message": "Conversation not found."}, status=status.HTTP_404_NOT_FOUND)
-        messages = conversation.messages.select_related("sender")
+        unread_messages = list(conversation.messages.exclude(sender=request.user).exclude(reads__user=request.user))
+        MessageRead.objects.bulk_create(
+            [MessageRead(message=message, user=request.user) for message in unread_messages],
+            ignore_conflicts=True,
+        )
+        broadcast_read_event(conversation.id, request.user.id, [message.id for message in unread_messages])
+        messages = conversation.messages.select_related("sender").prefetch_related("reads", "conversation__participants")
         return Response({"messages": MessageSerializer(messages, many=True, context={"request": request}).data})
 
     def post(self, request, conversation_id):
@@ -396,7 +434,9 @@ class MessageView(APIView):
                 notification_type=Notification.Type.MESSAGE,
                 source_key=f"message-{message.id}-to-{participant.id}",
             )
-        return Response({"message": MessageSerializer(message, context={"request": request}).data}, status=status.HTTP_201_CREATED)
+        serialized_message = MessageSerializer(message, context={"request": request}).data
+        broadcast_conversation_event(conversation.id, "message.created", {"message": serialized_message})
+        return Response({"message": serialized_message}, status=status.HTTP_201_CREATED)
 
 
 class MessageDetailView(APIView):
@@ -431,7 +471,9 @@ class MessageDetailView(APIView):
         message.edited_at = timezone.now()
         message.save(update_fields=["body", "edited_at"])
         message.conversation.save(update_fields=["updated_at"])
-        return Response({"message": MessageSerializer(message, context={"request": request}).data})
+        serialized_message = MessageSerializer(message, context={"request": request}).data
+        broadcast_conversation_event(message.conversation_id, "message.updated", {"message": serialized_message})
+        return Response({"message": serialized_message})
 
     def delete(self, request, conversation_id, message_id):
         if request.user.messaging_disabled:
@@ -448,4 +490,6 @@ class MessageDetailView(APIView):
             message.save(update_fields=["body", "deleted_at"])
             message.conversation.save(update_fields=["updated_at"])
 
-        return Response({"message": MessageSerializer(message, context={"request": request}).data})
+        serialized_message = MessageSerializer(message, context={"request": request}).data
+        broadcast_conversation_event(message.conversation_id, "message.deleted", {"message": serialized_message})
+        return Response({"message": serialized_message})

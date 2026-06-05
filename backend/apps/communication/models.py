@@ -83,3 +83,34 @@ class Message(models.Model):
 
     def __str__(self):
         return f"{self.sender.email}: {self.body[:40]}"
+
+
+class MessageRead(models.Model):
+    message = models.ForeignKey(Message, on_delete=models.CASCADE, related_name="reads")
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="read_communication_messages")
+    read_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["read_at"]
+        constraints = [
+            models.UniqueConstraint(fields=["message", "user"], name="unique_message_read_user"),
+        ]
+
+    def __str__(self):
+        return f"{self.user_id} read message {self.message_id}"
+
+
+class TypingIndicator(models.Model):
+    conversation = models.ForeignKey(Conversation, on_delete=models.CASCADE, related_name="typing_indicators")
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="communication_typing_indicators")
+    is_typing = models.BooleanField(default=False)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-updated_at"]
+        constraints = [
+            models.UniqueConstraint(fields=["conversation", "user"], name="unique_conversation_typing_user"),
+        ]
+
+    def __str__(self):
+        return f"{self.user_id} typing in {self.conversation_id}: {self.is_typing}"

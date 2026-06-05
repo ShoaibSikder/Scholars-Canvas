@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import { BookOpen, Download, Edit3, Eye, FileText, Loader2, Mail, MoreHorizontal, Trash2, User, Users, X } from "lucide-react";
+import { BookOpen, Check, CheckCheck, Download, Edit3, Eye, FileText, Loader2, Mail, MoreHorizontal, Trash2, User, Users, X } from "lucide-react";
 
 import { input, primaryBtn, scrollArea, softBtn } from "../communicationConstants";
 import { formatMessageTime, userLabel } from "../communicationUtils";
@@ -180,10 +180,17 @@ export function MessageBubble({
           </a>
         ) : null}
         <div
-          className={`mt-1 flex justify-end gap-1 text-[10px] font-bold ${mine && !isDeleted ? "text-white/70" : "text-slate-400"}`}
+          className={`mt-1 flex items-center justify-end gap-1 text-[10px] font-bold ${mine && !isDeleted ? "text-white/70" : "text-slate-400"}`}
         >
           {message.is_edited ? <span>Edited</span> : null}
           <span>{formatMessageTime(message.created_at)}</span>
+          {mine && !isDeleted ? (
+            message.is_seen ? (
+              <CheckCheck size={13} className="text-emerald-200" aria-label="Seen" />
+            ) : (
+              <Check size={13} aria-label="Sent" />
+            )
+          ) : null}
         </div>
       </div>
     </div>

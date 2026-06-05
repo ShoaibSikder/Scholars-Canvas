@@ -1,5 +1,5 @@
 import { request } from "./client";
-import { APP_ENDPOINTS } from "./endpoints";
+import { API_BASE_URL, APP_ENDPOINTS } from "./endpoints";
 
 export const fetchCommunication = () => request(APP_ENDPOINTS.communication);
 export const searchCommunicationUsers = (query) => request(`${APP_ENDPOINTS.communicationSearchUsers}?q=${encodeURIComponent(query)}`);
@@ -39,4 +39,13 @@ export const unsendConversationMessage = (conversationId, messageId) =>
   request(APP_ENDPOINTS.communicationMessage(conversationId, messageId), {
     method: "DELETE",
   });
+
+export function getConversationSocketUrl(conversationId) {
+  const token =
+    localStorage.getItem("studentassistant_token") ||
+    sessionStorage.getItem("studentassistant_token") ||
+    "";
+  const wsBaseUrl = API_BASE_URL.replace(/^http/i, "ws").replace(/\/api\/?$/, "");
+  return `${wsBaseUrl}/ws/communication/conversations/${conversationId}/?token=${encodeURIComponent(token)}`;
+}
 

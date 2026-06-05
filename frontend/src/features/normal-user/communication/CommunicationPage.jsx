@@ -28,6 +28,7 @@ import {
   createGroupConversation,
   fetchCommunication,
   fetchConversationMessages,
+  getConversationSocketUrl,
   fetchPublicProfile,
   respondFriendRequest,
   searchCommunicationUsers,
@@ -71,6 +72,7 @@ export default function CommunicationPage({ user }) {
   const [chatSearch, setChatSearch] = useState("");
   const [messageLoading, setMessageLoading] = useState(false);
   const [messageUploadProgress, setMessageUploadProgress] = useState(0);
+  const [typingUsers, setTypingUsers] = useState([]);
   const [mobileChatOpen, setMobileChatOpen] = useState(false);
   const [profileModal, setProfileModal] = useState({
     open: false,
@@ -87,6 +89,11 @@ export default function CommunicationPage({ user }) {
   const [groupMemberIds, setGroupMemberIds] = useState([]);
   const messagesScrollRef = useRef(null);
   const messagesEndRef = useRef(null);
+  const conversationSocketRef = useRef(null);
+  const reconnectTimerRef = useRef(null);
+  const typingStopTimerRef = useRef(null);
+  const typingActiveRef = useRef(false);
+  const typingUserTimersRef = useRef({});
 
   useAutoClearStatus(status, setStatus);
 
@@ -136,19 +143,20 @@ export default function CommunicationPage({ user }) {
   useEffect(() => {
     if (!activeConversation?.id) {
       setMessages([]);
+      setTypingUsers([]);
       return;
     }
 
     let mounted = true;
-    const loadMessages = async () => {
-      setMessageLoading(true);
+    const loadMessages = async ({ silent = false } = {}) => {
+      if (!silent) setMessageLoading(true);
       try {
         const response = await fetchConversationMessages(activeConversation.id);
         if (mounted) setMessages(response.messages ?? []);
       } catch {
         if (mounted) setMessages([]);
       } finally {
-        if (mounted) setMessageLoading(false);
+        if (mounted && !silent) setMessageLoading(false);
       }
     };
 
@@ -157,6 +165,150 @@ export default function CommunicationPage({ user }) {
       mounted = false;
     };
   }, [activeConversation?.id]);
+
+  useEffect(() => {
+    if (!activeConversation?.id || activeTab !== "chat") {
+      setTypingUsers([]);
+      return undefined;
+    }
+
+    let closedByEffect = false;
+    let reconnectAttempts = 0;
+
+    const clearTypingTimer = (userId) => {
+      if (typingUserTimersRef.current[userId]) {
+        window.clearTimeout(typingUserTimersRef.current[userId]);
+        delete typingUserTimersRef.current[userId];
+      }
+    };
+
+    const updateTypingUser = (typingUser, isTyping) => {
+      if (!typingUser?.id) return;
+      clearTypingTimer(typingUser.id);
+
+      if (!isTyping) {
+        setTypingUsers((current) => current.filter((item) => item.id !== typingUser.id));
+        return;
+      }
+
+      setTypingUsers((current) => {
+        if (current.some((item) => item.id === typingUser.id)) return current;
+        return [...current, typingUser];
+      });
+      typingUserTimersRef.current[typingUser.id] = window.setTimeout(() => {
+        setTypingUsers((current) => current.filter((item) => item.id !== typingUser.id));
+        delete typingUserTimersRef.current[typingUser.id];
+      }, 5000);
+    };
+
+    const connectSocket = () => {
+      const socket = new WebSocket(getConversationSocketUrl(activeConversation.id));
+      conversationSocketRef.current = socket;
+
+      socket.onopen = () => {
+        reconnectAttempts = 0;
+      };
+
+      socket.onmessage = (event) => {
+        const payload = JSON.parse(event.data);
+        if (payload.type === "message.created" && payload.message) {
+          setMessages((current) => {
+            if (current.some((message) => message.id === payload.message.id)) {
+              return current.map((message) => (message.id === payload.message.id ? payload.message : message));
+            }
+            return [...current, payload.message];
+          });
+          if (payload.message.sender?.id !== user?.id && socket.readyState === WebSocket.OPEN) {
+            socket.send(JSON.stringify({ action: "read", message_ids: [payload.message.id] }));
+          }
+        }
+
+        if ((payload.type === "message.updated" || payload.type === "message.deleted") && payload.message) {
+          setMessages((current) =>
+            current.map((message) => (message.id === payload.message.id ? payload.message : message)),
+          );
+        }
+
+        if (payload.type === "messages.read" && payload.reader_id !== user?.id) {
+          setMessages((current) =>
+            current.map((message) =>
+              payload.message_ids?.includes(message.id) && message.sender?.id === user?.id
+                ? { ...message, is_seen: true, read_by_count: Math.max(message.read_by_count || 0, 1) }
+                : message,
+            ),
+          );
+        }
+
+        if (payload.type === "typing") {
+          updateTypingUser(payload.user, payload.is_typing);
+        }
+      };
+
+      socket.onclose = () => {
+        if (closedByEffect) return;
+        reconnectAttempts += 1;
+        reconnectTimerRef.current = window.setTimeout(connectSocket, Math.min(1000 * reconnectAttempts, 5000));
+      };
+    };
+
+    connectSocket();
+
+    return () => {
+      closedByEffect = true;
+      if (reconnectTimerRef.current) {
+        window.clearTimeout(reconnectTimerRef.current);
+        reconnectTimerRef.current = null;
+      }
+      if (conversationSocketRef.current?.readyState === WebSocket.OPEN) {
+        conversationSocketRef.current.send(JSON.stringify({ action: "typing", is_typing: false }));
+      }
+      conversationSocketRef.current?.close();
+      conversationSocketRef.current = null;
+      Object.values(typingUserTimersRef.current).forEach((timerId) => window.clearTimeout(timerId));
+      typingUserTimersRef.current = {};
+      setTypingUsers([]);
+    };
+  }, [activeConversation?.id, activeTab, user?.id]);
+
+  useEffect(() => {
+    typingActiveRef.current = false;
+    if (typingStopTimerRef.current) {
+      window.clearTimeout(typingStopTimerRef.current);
+      typingStopTimerRef.current = null;
+    }
+  }, [activeConversation?.id]);
+
+  useEffect(() => {
+    if (!activeConversation?.id || editingMessageId) return undefined;
+    const socket = conversationSocketRef.current;
+    if (!socket || socket.readyState !== WebSocket.OPEN) return undefined;
+
+    const trimmed = messageText.trim();
+    if (!trimmed) {
+      if (typingActiveRef.current) {
+        typingActiveRef.current = false;
+        socket.send(JSON.stringify({ action: "typing", is_typing: false }));
+      }
+      return undefined;
+    }
+
+    if (!typingActiveRef.current) {
+      typingActiveRef.current = true;
+      socket.send(JSON.stringify({ action: "typing", is_typing: true }));
+    }
+
+    if (typingStopTimerRef.current) {
+      window.clearTimeout(typingStopTimerRef.current);
+    }
+    typingStopTimerRef.current = window.setTimeout(() => {
+      typingActiveRef.current = false;
+      if (socket.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify({ action: "typing", is_typing: false }));
+      }
+    }, 1800);
+
+    return undefined;
+  }, [activeConversation?.id, editingMessageId, messageText]);
 
   const scrollToLatestMessage = (behavior = "smooth") => {
     window.requestAnimationFrame(() => {
@@ -344,6 +496,12 @@ export default function CommunicationPage({ user }) {
 
     const body = messageText.trim();
     setMessageText("");
+    if (typingActiveRef.current) {
+      typingActiveRef.current = false;
+      if (conversationSocketRef.current?.readyState === WebSocket.OPEN) {
+        conversationSocketRef.current.send(JSON.stringify({ action: "typing", is_typing: false }));
+      }
+    }
     const file = messageFile;
     setMessageFile(null);
     setMessageUploadProgress(file ? 1 : 0);
@@ -570,6 +728,7 @@ export default function CommunicationPage({ user }) {
       showScrollDown={showScrollDown}
       startEditMessage={startEditMessage}
       status={status}
+      typingUsers={typingUsers}
       user={user}
       visiblePeople={visiblePeople}
     />
