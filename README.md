@@ -1,5 +1,12 @@
 # StudentAssistant
 
+![License](https://img.shields.io/badge/License-Academic%20Project-blue)
+![Frontend](https://img.shields.io/badge/Frontend-React-61DAFB)
+![Backend](https://img.shields.io/badge/Backend-Django-0C4B33)
+![API](https://img.shields.io/badge/API-Django%20REST%20Framework-red)
+![Database](https://img.shields.io/badge/Database-PostgreSQL-336791)
+![AI](https://img.shields.io/badge/AI-Groq%20%7C%20OpenRouter-purple)
+
 StudentAssistant is a full-stack, role-based academic productivity platform for university students and administrators. It combines course resource management, routine planning, task tracking, AI-powered study tools, communication, notifications, analytics, moderation, and system administration in one web application.
 
 The project uses a Django REST backend and a React + Vite frontend. Normal users get a student workspace, while staff/superusers get a dedicated administration workspace with separate routing, sidebar sections, API controls, audit history, and moderation tools.
@@ -21,89 +28,89 @@ The project uses a Django REST backend and a React + Vite frontend. Normal users
 
 ## Screenshots
 
-All screenshots are stored in `frontend/public/systemimages`.
+All screenshots are stored in `Documentations/SystemImages`.
 
 ### Authentication
 
 <div>
-  <a href="frontend/public/systemimages/login-page.png">
-    <img src="frontend/public/systemimages/login-page.png" width="420" alt="Login page" />
+  <a href="Documentations/SystemImages/Login.png" target="_blank">
+    <img src="Documentations/SystemImages/Login.png" width="420" alt="Login page" style="border-radius:10px;" />
   </a>
-  <a href="frontend/public/systemimages/registration-page.png">
-    <img src="frontend/public/systemimages/registration-page.png" width="420" alt="Registration page" />
+  <a href="Documentations/SystemImages/Registration.png" target="_blank">
+    <img src="Documentations/SystemImages/Registration.png" width="420" alt="Registration page" style="border-radius:10px;" />
   </a>
 </div>
 
 ### Normal User Workspace
 
 <div>
-  <a href="frontend/public/systemimages/user-dashboard.png">
-    <img src="frontend/public/systemimages/user-dashboard.png" width="300" alt="User dashboard" />
+  <a href="Documentations/SystemImages/UserDashboard.png" target="_blank">
+    <img src="Documentations/SystemImages/UserDashboard.png" width="300" alt="User dashboard" style="border-radius:10px;" />
   </a>
-  <a href="frontend/public/systemimages/user-routine.png">
-    <img src="frontend/public/systemimages/user-routine.png" width="300" alt="User routine" />
+  <a href="Documentations/SystemImages/UserRoutine.png" target="_blank">
+    <img src="Documentations/SystemImages/UserRoutine.png" width="300" alt="User routine" style="border-radius:10px;" />
   </a>
-  <a href="frontend/public/systemimages/user-todo-list.png">
-    <img src="frontend/public/systemimages/user-todo-list.png" width="300" alt="User to-do list" />
-  </a>
-</div>
-
-<div>
-  <a href="frontend/public/systemimages/users-resource-vault.png">
-    <img src="frontend/public/systemimages/users-resource-vault.png" width="300" alt="User resource vault" />
-  </a>
-  <a href="frontend/public/systemimages/user-resource-workspace.png">
-    <img src="frontend/public/systemimages/user-resource-workspace.png" width="300" alt="User resource workspace" />
-  </a>
-  <a href="frontend/public/systemimages/user-ai-lab.png">
-    <img src="frontend/public/systemimages/user-ai-lab.png" width="300" alt="User AI Lab" />
+  <a href="Documentations/SystemImages/UserTodoList.png" target="_blank">
+    <img src="Documentations/SystemImages/UserTodoList.png" width="300" alt="User to-do list" style="border-radius:10px;" />
   </a>
 </div>
 
 <div>
-  <a href="frontend/public/systemimages/users-communication-section.png">
-    <img src="frontend/public/systemimages/users-communication-section.png" width="420" alt="User communication section" />
+  <a href="Documentations/SystemImages/UserResourceVault.png" target="_blank">
+    <img src="Documentations/SystemImages/UserResourceVault.png" width="300" alt="User resource vault" style="border-radius:10px;" />
   </a>
-  <a href="frontend/public/systemimages/settings-options-user-admin.png">
-    <img src="frontend/public/systemimages/settings-options-user-admin.png" width="420" alt="Settings options" />
+  <a href="Documentations/SystemImages/UserResourceWorkspace.png" target="_blank">
+    <img src="Documentations/SystemImages/UserResourceWorkspace.png" width="300" alt="User resource workspace" style="border-radius:10px;" />
+  </a>
+  <a href="Documentations/SystemImages/UserAILab.png" target="_blank">
+    <img src="Documentations/SystemImages/UserAILab.png" width="300" alt="User AI Lab" style="border-radius:10px;" />
+  </a>
+</div>
+
+<div>
+  <a href="Documentations/SystemImages/UserCommunication.png" target="_blank">
+    <img src="Documentations/SystemImages/UserCommunication.png" width="420" alt="User communication section" style="border-radius:10px;" />
+  </a>
+  <a href="Documentations/SystemImages/SettingsOptions.png" target="_blank">
+    <img src="Documentations/SystemImages/SettingsOptions.png" width="420" alt="Settings options" style="border-radius:10px;" />
   </a>
 </div>
 
 ### Administration Workspace
 
 <div>
-  <a href="frontend/public/systemimages/admin-dashboard.png">
-    <img src="frontend/public/systemimages/admin-dashboard.png" width="300" alt="Admin dashboard" />
+  <a href="Documentations/SystemImages/AdminDashboard.png" target="_blank">
+    <img src="Documentations/SystemImages/AdminDashboard.png" width="300" alt="Admin dashboard" style="border-radius:10px;" />
   </a>
-  <a href="frontend/public/systemimages/admin-user-management.png">
-    <img src="frontend/public/systemimages/admin-user-management.png" width="300" alt="Admin user management" />
+  <a href="Documentations/SystemImages/AdminUserManagement.png" target="_blank">
+    <img src="Documentations/SystemImages/AdminUserManagement.png" width="300" alt="Admin user management" style="border-radius:10px;" />
   </a>
-  <a href="frontend/public/systemimages/admin-course-resource-management.png">
-    <img src="frontend/public/systemimages/admin-course-resource-management.png" width="300" alt="Admin course and resource management" />
-  </a>
-</div>
-
-<div>
-  <a href="frontend/public/systemimages/admin-ai-usage-management.png">
-    <img src="frontend/public/systemimages/admin-ai-usage-management.png" width="300" alt="Admin AI usage management" />
-  </a>
-  <a href="frontend/public/systemimages/admin-communication-report.png">
-    <img src="frontend/public/systemimages/admin-communication-report.png" width="300" alt="Admin communication report" />
-  </a>
-  <a href="frontend/public/systemimages/admin-task-routine-report.png">
-    <img src="frontend/public/systemimages/admin-task-routine-report.png" width="300" alt="Admin task and routine report" />
+  <a href="Documentations/SystemImages/AdminCourseResourceManagement.png" target="_blank">
+    <img src="Documentations/SystemImages/AdminCourseResourceManagement.png" width="300" alt="Admin course and resource management" style="border-radius:10px;" />
   </a>
 </div>
 
 <div>
-  <a href="frontend/public/systemimages/admin-notification.png">
-    <img src="frontend/public/systemimages/admin-notification.png" width="300" alt="Admin notifications" />
+  <a href="Documentations/SystemImages/AdminAIUsageManagement.png" target="_blank">
+    <img src="Documentations/SystemImages/AdminAIUsageManagement.png" width="300" alt="Admin AI usage management" style="border-radius:10px;" />
   </a>
-  <a href="frontend/public/systemimages/admin-system-control.png">
-    <img src="frontend/public/systemimages/admin-system-control.png" width="300" alt="Admin system control" />
+  <a href="Documentations/SystemImages/AdminCommunicationReport.png" target="_blank">
+    <img src="Documentations/SystemImages/AdminCommunicationReport.png" width="300" alt="Admin communication report" style="border-radius:10px;" />
   </a>
-  <a href="frontend/public/systemimages/admin-audit-log.png">
-    <img src="frontend/public/systemimages/admin-audit-log.png" width="300" alt="Admin audit log" />
+  <a href="Documentations/SystemImages/AdminTaskRoutineReport.png" target="_blank">
+    <img src="Documentations/SystemImages/AdminTaskRoutineReport.png" width="300" alt="Admin task and routine report" style="border-radius:10px;" />
+  </a>
+</div>
+
+<div>
+  <a href="Documentations/SystemImages/AdminNotification.png" target="_blank">
+    <img src="Documentations/SystemImages/AdminNotification.png" width="300" alt="Admin notifications" style="border-radius:10px;" />
+  </a>
+  <a href="Documentations/SystemImages/AdminSystemControl.png" target="_blank">
+    <img src="Documentations/SystemImages/AdminSystemControl.png" width="300" alt="Admin system control" style="border-radius:10px;" />
+  </a>
+  <a href="Documentations/SystemImages/AdminAuditLog.png" target="_blank">
+    <img src="Documentations/SystemImages/AdminAuditLog.png" width="300" alt="Admin audit log" style="border-radius:10px;" />
   </a>
 </div>
 
@@ -396,6 +403,9 @@ Admin users can access admin routes and are redirected away from normal-user pag
 
 ```text
 StudentAssistant/
+  Documentations/
+    SystemImages/
+
   backend/
     apps/
       accounts/
@@ -418,7 +428,6 @@ StudentAssistant/
 
   frontend/
     public/
-      systemimages/
     src/
       api/
         adminApi.js
