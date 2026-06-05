@@ -135,8 +135,8 @@ export function AuthProvider({ children }) {
     navigate("/login", { replace: true });
   }, [navigate]);
 
-  const handleProfileSave = useCallback(async (payload) => {
-    const response = await updateMe(payload);
+  const handleProfileSave = useCallback(async (payload, options = {}) => {
+    const response = await updateMe(payload, options);
     if (response.user) {
       setProfile((current) => ({ ...current, ...response.user }));
     }

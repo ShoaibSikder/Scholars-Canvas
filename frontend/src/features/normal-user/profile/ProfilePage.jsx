@@ -13,6 +13,7 @@ import {
   User,
 } from "lucide-react";
 import InPageStatus from "../../../components/common/InPageStatus";
+import UploadProgressBar from "../../../components/common/UploadProgressBar";
 import useAutoClearStatus from "../../../hooks/useAutoClearStatus";
 import { card, defaultDraft, field, input, primaryBtn, selectInput } from "./profileConstants";
 
@@ -22,6 +23,7 @@ export default function ProfilePage({ user, onSave }) {
   const [avatarPreview, setAvatarPreview] = useState("");
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState("");
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   useAutoClearStatus(status, setStatus);
 
@@ -55,6 +57,7 @@ export default function ProfilePage({ user, onSave }) {
     event.preventDefault();
     setSaving(true);
     setStatus("");
+    setUploadProgress(avatarFile ? 1 : 0);
     try {
       const payload = new FormData();
       payload.append("full_name", draft.full_name.trim());
@@ -69,12 +72,15 @@ export default function ProfilePage({ user, onSave }) {
         payload.append("avatar", avatarFile);
       }
 
-      await onSave?.(payload);
+      await onSave?.(payload, {
+        onUploadProgress: avatarFile ? setUploadProgress : undefined,
+      });
       setStatus("Profile updated successfully.");
     } catch (error) {
       setStatus(error.message || "Unable to update profile.");
     } finally {
       setSaving(false);
+      setUploadProgress(0);
     }
   };
 
@@ -158,6 +164,12 @@ export default function ProfilePage({ user, onSave }) {
               </div>
             </div>
           </div>
+
+          {saving && avatarFile ? (
+            <div className="mb-4">
+              <UploadProgressBar progress={uploadProgress} label="Uploading profile picture" />
+            </div>
+          ) : null}
 
           <form
             id="profile-form"

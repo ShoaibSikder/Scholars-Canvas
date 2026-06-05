@@ -17,6 +17,7 @@ import {
 import { motion } from "framer-motion";
 
 import InPageStatus from "../../../../components/common/InPageStatus";
+import UploadProgressBar from "../../../../components/common/UploadProgressBar";
 import {
   card,
   input,
@@ -55,6 +56,7 @@ export default function CommunicationLayout({
   loading,
   messageFile,
   messageLoading,
+  messageUploadProgress,
   messageText,
   messages,
   messagesEndRef,
@@ -516,6 +518,9 @@ export default function CommunicationLayout({
                   </button>
                 </div>
               ) : null}
+              {messageUploadProgress > 0 ? (
+                <UploadProgressBar progress={messageUploadProgress} label="Uploading attachment" />
+              ) : null}
               <div className="flex min-w-0 gap-2">
                 <label
                   className="grid size-11 cursor-pointer place-items-center rounded-xl border border-slate-200 bg-white text-slate-500 shadow-sm transition-all hover:-translate-y-0.5 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 hover:shadow-md dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300 dark:hover:border-blue-500/40 dark:hover:bg-blue-500/10 dark:hover:text-blue-300"
@@ -553,6 +558,7 @@ export default function CommunicationLayout({
                   className={`${primaryBtn} shrink-0 px-3 sm:px-4`}
                   disabled={
                     !activeConversation ||
+                    messageUploadProgress > 0 ||
                     (editingMessageId
                       ? !editingText.trim()
                       : !messageText.trim() && !messageFile)

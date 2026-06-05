@@ -2,10 +2,11 @@ import { request } from "./client";
 import { APP_ENDPOINTS } from "./endpoints";
 
 export const fetchAILab = () => request(APP_ENDPOINTS.aiLab);
-export const createAILabDocument = (payload) =>
+export const createAILabDocument = (payload, options = {}) =>
   request(APP_ENDPOINTS.aiLabDocuments, {
     method: "POST",
     body: payload,
+    ...options,
   });
 export const createAILabDocumentFromVault = (resourceId) =>
   request(APP_ENDPOINTS.aiLabFromVault, {

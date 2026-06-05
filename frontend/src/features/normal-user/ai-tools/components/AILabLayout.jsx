@@ -17,6 +17,7 @@ import {
 import { motion } from "framer-motion";
 
 import InPageStatus from "../../../../components/common/InPageStatus";
+import UploadProgressBar from "../../../../components/common/UploadProgressBar";
 import {
   field,
   generationBadge,
@@ -29,6 +30,7 @@ import {
 } from "../aiLabConstants";
 import {
   FormattedChatMessage,
+  StructuredAIText,
   isImage,
   isOfficeLike,
   isPdf,
@@ -84,6 +86,7 @@ export default function AILabLayout({
   summaryData,
   summaryStatus,
   toggleCard,
+  uploadProgress,
   vaultLoading,
   vaultPickerOpen,
   vaultSearch,
@@ -113,7 +116,7 @@ export default function AILabLayout({
               </h2>
               <p className="mt-1 truncate text-xs font-bold text-slate-500 dark:text-slate-400">
                 {activeDocument?.course ||
-                  "PDF, DOCX, PPTX, TXT, MD, CSV supported"}
+                  "PDF, DOCX, PPTX, XLSX, TXT, MD, CSV, JSON, XML, HTML supported"}
               </p>
             </div>
 
@@ -198,6 +201,9 @@ export default function AILabLayout({
                   className="hidden"
                   onChange={handleUpload}
                 />
+                {uploadProgress > 0 ? (
+                  <UploadProgressBar progress={uploadProgress} label="Uploading study file" />
+                ) : null}
               </div>
             ) : (
               <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
@@ -440,14 +446,13 @@ export default function AILabLayout({
                   summaryData.map((item, index) => (
                     <article
                       key={`${item.section}-${index}`}
-                      className="rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-950/60"
+                      className="rounded-xl border border-slate-200 bg-slate-50 p-3 shadow-sm dark:border-slate-800 dark:bg-slate-950/60"
                     >
-                      <h3 className="text-sm font-black text-slate-950 dark:text-white">
+                      <h3 className="mb-2 flex items-center gap-2 text-sm font-black text-slate-950 dark:text-white">
+                        <span className="size-2 rounded-full bg-blue-500" />
                         {item.section}
                       </h3>
-                      <p className="mt-2 whitespace-pre-wrap text-xs leading-5 text-slate-600 dark:text-slate-300">
-                        {item.content}
-                      </p>
+                      <StructuredAIText text={item.content} variant="summary" />
                     </article>
                   ))
                 ) : (
@@ -471,10 +476,10 @@ export default function AILabLayout({
                       >
                         <div className="flex flex-col max-w-[88%] gap-1">
                           <div
-                            className={`rounded-xl px-3 py-2 text-xs leading-5 ${
+                            className={`rounded-xl px-3 py-2 text-xs leading-5 shadow-sm ${
                               message.role === "user"
                                 ? "bg-gradient-to-r from-blue-600 to-violet-600 text-white"
-                                : "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                                : "border border-slate-200 bg-slate-50 text-slate-700 dark:border-slate-800 dark:bg-slate-950/70 dark:text-slate-200"
                             }`}
                           >
                             {message.role === "assistant" ? (
@@ -492,9 +497,9 @@ export default function AILabLayout({
                               }`}
                             >
                               {message.is_ai_generated ? (
-                                <span>✓ AI Response</span>
+                                <span>AI Response</span>
                               ) : (
-                                <span>⚠️ Document Excerpt (AI offline)</span>
+                                <span>Document Excerpt (AI offline)</span>
                               )}
                             </div>
                           )}

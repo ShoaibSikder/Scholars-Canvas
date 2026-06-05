@@ -16,15 +16,17 @@ export const deleteVaultCourse = (id) =>
   request(`${APP_ENDPOINTS.resources}${id}/`, {
     method: "DELETE",
   });
-export const createVaultResource = (courseId, payload) =>
+export const createVaultResource = (courseId, payload, options = {}) =>
   request(`${APP_ENDPOINTS.resources}${courseId}/items/`, {
     method: "POST",
     body: payload instanceof FormData ? payload : JSON.stringify(payload),
+    ...options,
   });
-export const updateVaultResource = (courseId, id, payload) =>
+export const updateVaultResource = (courseId, id, payload, options = {}) =>
   request(`${APP_ENDPOINTS.resources}${courseId}/items/${id}/`, {
     method: "PATCH",
     body: payload instanceof FormData ? payload : JSON.stringify(payload),
+    ...options,
   });
 export const deleteVaultResource = (courseId, id) =>
   request(`${APP_ENDPOINTS.resources}${courseId}/items/${id}/`, {

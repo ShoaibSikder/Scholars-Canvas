@@ -15,7 +15,7 @@ export const emptyDocument = {
   text_preview: "",
 };
 
-export const supportedFileTypes = ".pdf,.docx,.pptx,.txt,.md,.csv";
+export const supportedFileTypes = ".pdf,.docx,.pptx,.xlsx,.xlsm,.txt,.md,.csv,.json,.xml,.html,.htm,.rtf,.odt";
 export const panel =
   "rounded-2xl border border-slate-200/80 bg-white/95 shadow-md shadow-slate-900/5 backdrop-blur dark:border-slate-800 dark:bg-slate-900/90";
 export const primaryBtn =

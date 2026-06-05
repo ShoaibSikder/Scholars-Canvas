@@ -55,6 +55,11 @@ async function request(url, options = {}) {
     localStorage.getItem("studentassistant_token") ||
     sessionStorage.getItem("studentassistant_token");
   const isFormData = options.body instanceof FormData;
+  const { onUploadProgress, ...fetchOptions } = options;
+
+  if (typeof onUploadProgress === "function" && isFormData) {
+    return uploadRequest(url, fetchOptions, token, onUploadProgress);
+  }
 
   let response;
   try {
@@ -62,9 +67,9 @@ async function request(url, options = {}) {
       headers: {
         ...(isFormData ? {} : { "Content-Type": "application/json" }),
         ...(token ? { Authorization: `Token ${token}` } : {}),
-        ...(options.headers ?? {}),
+        ...(fetchOptions.headers ?? {}),
       },
-      ...options,
+      ...fetchOptions,
     });
   } catch (error) {
     throw new Error(networkErrorMessage(error));
@@ -78,6 +83,40 @@ async function request(url, options = {}) {
   }
 
   return payload;
+}
+
+function uploadRequest(url, options, token, onUploadProgress) {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open(options.method || "GET", url);
+
+    if (token) {
+      xhr.setRequestHeader("Authorization", `Token ${token}`);
+    }
+    Object.entries(options.headers ?? {}).forEach(([key, value]) => {
+      xhr.setRequestHeader(key, value);
+    });
+
+    xhr.upload.onprogress = (event) => {
+      if (!event.lengthComputable) return;
+      onUploadProgress(Math.round((event.loaded / event.total) * 100));
+    };
+
+    xhr.onload = () => {
+      const payload = xhr.responseText ? JSON.parse(xhr.responseText) : null;
+      if (xhr.status < 200 || xhr.status >= 300) {
+        const message = formatApiError(payload) || `Request failed with status ${xhr.status}. Please try again.`;
+        reject(new Error(message));
+        return;
+      }
+      onUploadProgress(100);
+      resolve(payload);
+    };
+
+    xhr.onerror = () => reject(new Error("Cannot connect to the server. Please make sure the backend is running and try again."));
+    xhr.ontimeout = () => reject(new Error("The request took too long. Please try again."));
+    xhr.send(options.body);
+  });
 }
 
 export { request, formatApiError };

@@ -76,6 +76,7 @@ export default function AILabPage() {
   const [loading, setLoading] = useState(true);
   const [vaultLoading, setVaultLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState("");
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [flippedCards, setFlippedCards] = useState([]);
   const [quizAnswers, setQuizAnswers] = useState({});
   const [revealedQuizAnswers, setRevealedQuizAnswers] = useState({});
@@ -269,6 +270,13 @@ export default function AILabPage() {
     let objectUrl = "";
 
     const loadPreview = async () => {
+      if (isOfficeLike(activeDocument) && externalViewerUrl) {
+        setPreviewObjectUrl("");
+        setPreviewContentType("");
+        setPreviewLoading(false);
+        return;
+      }
+
       if (!activeDocument?.preview_url) {
         setPreviewObjectUrl("");
         setPreviewContentType("");
@@ -313,7 +321,7 @@ export default function AILabPage() {
       cancelled = true;
       if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
-  }, [activeDocument]);
+  }, [activeDocument, externalViewerUrl]);
 
   const addOrReplaceDocument = (document) => {
     const nextDocument = normalizeDocument(document);
@@ -349,15 +357,19 @@ export default function AILabPage() {
 
     setActionLoading("upload");
     setStatus("");
+    setUploadProgress(1);
 
     try {
-      const response = await createAILabDocument(formData);
+      const response = await createAILabDocument(formData, {
+        onUploadProgress: setUploadProgress,
+      });
       addOrReplaceDocument(response.document);
       setStatus("File uploaded successfully.");
     } catch (error) {
       setStatus(error.message || "Upload failed.");
     } finally {
       setActionLoading("");
+      setUploadProgress(0);
     }
   };
 
@@ -501,6 +513,7 @@ export default function AILabPage() {
       activeDocument={activeDocument}
       activeTab={activeTab}
       actionLoading={actionLoading}
+      uploadProgress={uploadProgress}
       chatIndicatorStatus={chatIndicatorStatus}
       chatInput={chatInput}
       chatMessagesRef={chatMessagesRef}

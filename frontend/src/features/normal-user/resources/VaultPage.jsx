@@ -4,6 +4,7 @@ import { ArrowLeft, BookOpen, CheckCircle2, Copy, Download, ExternalLink, File a
 
 import { createAILabDocumentFromVault, createConversation, createVaultCourse, createVaultResource, deleteVaultCourse, deleteVaultResource, fetchCommunication, fetchResources, generateAILabMcqQuiz, sendConversationMessage, summarizeAILabDocument, updateVaultCourse, updateVaultResource } from "../../../api";
 import { useAlert } from "../../../components/common/AlertProvider";
+import UploadProgressBar from "../../../components/common/UploadProgressBar";
 import useAutoClearStatus from "../../../hooks/useAutoClearStatus";
 import {
   card,
@@ -27,6 +28,7 @@ import {
   getAuthToken,
   getGenerationIndicator,
   getResourceTarget,
+  getResourceViewerUrl,
   getResourceVisual,
   getUrlInfo,
   groupCourses,
@@ -57,6 +59,7 @@ export default function VaultPage({ openRequest = null } = {}) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState("");
+  const [resourceUploadProgress, setResourceUploadProgress] = useState(0);
   const [vaultQuizAnswers, setVaultQuizAnswers] = useState({});
   const [vaultRevealedAnswers, setVaultRevealedAnswers] = useState({});
   const [aiDrawer, setAiDrawer] = useState({
@@ -208,6 +211,7 @@ export default function VaultPage({ openRequest = null } = {}) {
 
     setSaving(true);
     setStatus("");
+    setResourceUploadProgress(resourceForm.files?.length ? 1 : 0);
     const payload = new FormData();
     payload.append("category", resourceForm.category);
     payload.append("title", resourceForm.title.trim());
@@ -219,14 +223,18 @@ export default function VaultPage({ openRequest = null } = {}) {
 
     try {
       if (editingResource) {
-        const updated = await updateVaultResource(selectedCourse.id, editingResource.id, payload);
+        const updated = await updateVaultResource(selectedCourse.id, editingResource.id, payload, {
+          onUploadProgress: resourceForm.files?.length ? setResourceUploadProgress : undefined,
+        });
         replaceCourse({
           ...selectedCourse,
           resources: selectedCourse.resources.map((item) => (item.id === updated.id ? updated : item)),
         });
         setStatus("Resource updated.");
       } else {
-        const createdPayload = await createVaultResource(selectedCourse.id, payload);
+        const createdPayload = await createVaultResource(selectedCourse.id, payload, {
+          onUploadProgress: resourceForm.files?.length ? setResourceUploadProgress : undefined,
+        });
         const createdResources = Array.isArray(createdPayload) ? createdPayload : [createdPayload];
         replaceCourse({
           ...selectedCourse,
@@ -241,6 +249,7 @@ export default function VaultPage({ openRequest = null } = {}) {
       setStatus(error.message || "Unable to save resource.");
     } finally {
       setSaving(false);
+      setResourceUploadProgress(0);
     }
   };
 
@@ -502,6 +511,12 @@ export default function VaultPage({ openRequest = null } = {}) {
     event.stopPropagation();
 
     try {
+      const viewerUrl = getResourceViewerUrl(resource);
+      if (viewerUrl) {
+        window.open(viewerUrl, "_blank", "noopener,noreferrer");
+        return;
+      }
+
       const token = getAuthToken();
       const response = await fetch(resource.preview_url, {
         headers: token ? { Authorization: `Token ${token}` } : {},
@@ -802,9 +817,12 @@ export default function VaultPage({ openRequest = null } = {}) {
               <p className="mt-2 text-xs font-semibold text-slate-500 dark:text-slate-400">
                 {editingResource ? "Choose one replacement file." : "Choose one or multiple files. Multiple uploads will create separate resource items using each file name."}
               </p>
+              {resourceUploadProgress > 0 ? (
+                <UploadProgressBar progress={resourceUploadProgress} label={resourceForm.files.length > 1 ? `Uploading ${resourceForm.files.length} files` : "Uploading file"} />
+              ) : null}
             </div>
           </div>
-          <div className="flex justify-end gap-2"><button type="button" className={secondaryBtn} onClick={() => setResourceFormOpen(false)}>Cancel</button><button type="submit" className={primaryBtn} disabled={saving}><Plus size={17} /><span>{saving ? "Saving..." : "Save Resource"}</span></button></div>
+          <div className="flex justify-end gap-2"><button type="button" className={secondaryBtn} onClick={() => setResourceFormOpen(false)}>Cancel</button><button type="submit" className={primaryBtn} disabled={saving || resourceUploadProgress > 0}><Plus size={17} /><span>{saving ? "Saving..." : "Save Resource"}</span></button></div>
         </form>
       </motion.section>
     </motion.div>

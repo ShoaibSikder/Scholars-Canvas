@@ -70,6 +70,7 @@ export default function CommunicationPage({ user }) {
   const [messageFile, setMessageFile] = useState(null);
   const [chatSearch, setChatSearch] = useState("");
   const [messageLoading, setMessageLoading] = useState(false);
+  const [messageUploadProgress, setMessageUploadProgress] = useState(0);
   const [mobileChatOpen, setMobileChatOpen] = useState(false);
   const [profileModal, setProfileModal] = useState({
     open: false,
@@ -345,6 +346,7 @@ export default function CommunicationPage({ user }) {
     setMessageText("");
     const file = messageFile;
     setMessageFile(null);
+    setMessageUploadProgress(file ? 1 : 0);
     try {
       const payload = file ? new FormData() : body;
       if (file) {
@@ -354,12 +356,16 @@ export default function CommunicationPage({ user }) {
       const response = await sendConversationMessage(
         activeConversation.id,
         payload,
+        {
+          onUploadProgress: file ? setMessageUploadProgress : undefined,
+        },
       );
       setMessages((current) => [...current, response.message]);
       loadCommunication();
     } catch (error) {
       setStatus(error.message || "Unable to send message.");
     }
+    setMessageUploadProgress(0);
   };
 
   const startEditMessage = (message) => {
@@ -535,6 +541,7 @@ export default function CommunicationPage({ user }) {
       loading={loading}
       messageFile={messageFile}
       messageLoading={messageLoading}
+      messageUploadProgress={messageUploadProgress}
       messageText={messageText}
       messages={messages}
       messagesEndRef={messagesEndRef}

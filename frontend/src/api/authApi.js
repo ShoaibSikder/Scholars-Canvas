@@ -3,10 +3,11 @@ import { AUTH_ENDPOINTS } from "./endpoints";
 
 export const fetchMe = () => request(AUTH_ENDPOINTS.me);
 export const fetchPublicProfile = (id) => request(AUTH_ENDPOINTS.publicProfile(id));
-export const updateMe = (payload) =>
+export const updateMe = (payload, options = {}) =>
   request(AUTH_ENDPOINTS.me, {
     method: "PATCH",
     body: payload instanceof FormData ? payload : JSON.stringify(payload),
+    ...options,
   });
 
 export const registerUser = (payload) =>

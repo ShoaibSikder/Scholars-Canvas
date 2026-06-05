@@ -55,8 +55,28 @@ export function normalizeExternalUrl(value) {
   return `https://${trimmed.replace(/^\/+/, "")}`;
 }
 
+export function getFileExtensionFromResource(item) {
+  const source = `${item?.file || item?.file_url || item?.title || ""}`.split("?")[0].toLowerCase();
+  return source.includes(".") ? source.split(".").pop() : "";
+}
+
+export function getOfficeViewerUrl(fileUrl, extension) {
+  if (!fileUrl) return "";
+  if (["doc", "docx", "ppt", "pptx", "xls", "xlsx"].includes(extension)) {
+    return `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(fileUrl)}`;
+  }
+  if (["csv", "odt", "ods", "odp", "rtf"].includes(extension)) {
+    return `https://docs.google.com/viewer?url=${encodeURIComponent(fileUrl)}&embedded=true`;
+  }
+  return "";
+}
+
+export function getResourceViewerUrl(item) {
+  return getOfficeViewerUrl(item?.file_url, getFileExtensionFromResource(item));
+}
+
 export function getResourceTarget(item) {
-  return item.preview_url || item.file_url || normalizeExternalUrl(item.url) || "";
+  return getResourceViewerUrl(item) || item.preview_url || item.file_url || normalizeExternalUrl(item.url) || "";
 }
 
 export function getAuthToken() {

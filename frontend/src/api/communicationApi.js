@@ -24,10 +24,11 @@ export const createGroupConversation = (payload) =>
     body: JSON.stringify(payload),
   });
 export const fetchConversationMessages = (conversationId) => request(APP_ENDPOINTS.communicationMessages(conversationId));
-export const sendConversationMessage = (conversationId, body) =>
+export const sendConversationMessage = (conversationId, body, options = {}) =>
   request(APP_ENDPOINTS.communicationMessages(conversationId), {
     method: "POST",
     body: body instanceof FormData ? body : JSON.stringify({ body }),
+    ...options,
   });
 export const updateConversationMessage = (conversationId, messageId, body) =>
   request(APP_ENDPOINTS.communicationMessage(conversationId, messageId), {
