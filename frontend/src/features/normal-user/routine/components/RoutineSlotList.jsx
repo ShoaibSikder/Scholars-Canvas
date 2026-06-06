@@ -1,5 +1,4 @@
 import { CalendarDays, Clock, Edit3, MapPin, Trash2, UserRound } from "lucide-react";
-import { motion } from "framer-motion";
 
 import { classColors, fullDays } from "../routineConstants";
 import { formatTime, isSlotLiveAt } from "../routineUtils";
@@ -19,10 +18,8 @@ export default function RoutineSlotList({
         const isLive = isSlotLiveAt(slot, clockNow);
 
         return (
-          <motion.article
+          <article
             key={slot.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
             className={`rounded-lg border p-3 shadow-md ${classColors[slot.color] ?? classColors.blue}`}
           >
             <div className="flex items-start justify-between gap-3">
@@ -76,7 +73,7 @@ export default function RoutineSlotList({
                 </button>
               </div>
             ) : null}
-          </motion.article>
+          </article>
         );
       })}
     </div>

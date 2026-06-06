@@ -1,5 +1,4 @@
 import { Edit3 } from "lucide-react";
-import { motion } from "framer-motion";
 
 import { input, primaryBtn, routineDayOptions, secondaryBtn } from "../routineConstants";
 
@@ -14,11 +13,7 @@ export default function RoutineHeader({
   view,
 }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="flex flex-wrap items-center justify-between gap-3"
-    >
+    <div className="flex flex-wrap items-center justify-between gap-3">
       <div>
         <h1 className="text-xl font-black tracking-tight text-slate-950 dark:text-white md:text-2xl">
           Class Routine
@@ -69,7 +64,7 @@ export default function RoutineHeader({
           <span>{isEditingRoutine ? "Done Editing" : "Edit Routine"}</span>
         </button>
       </div>
-    </motion.div>
+    </div>
   );
 }
 

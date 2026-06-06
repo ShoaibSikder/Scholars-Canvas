@@ -14,7 +14,6 @@ import {
   Users,
   X,
 } from "lucide-react";
-import { motion } from "framer-motion";
 
 import InPageStatus from "../../../../components/common/InPageStatus";
 import UploadProgressBar from "../../../../components/common/UploadProgressBar";
@@ -90,9 +89,7 @@ export default function CommunicationLayout({
   visiblePeople,
 }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
+    <div
       className={`grid h-[calc(100dvh-5.5rem)] min-h-0 gap-4 overflow-hidden lg:h-[calc(100dvh-5rem)] ${status ? "grid-rows-[auto_auto_auto_minmax(0,1fr)]" : "grid-rows-[auto_auto_minmax(0,1fr)]"}`}
     >
       <div>
@@ -621,7 +618,7 @@ export default function CommunicationLayout({
           }
         />
       ) : null}
-    </motion.div>
+    </div>
   );
 }
 

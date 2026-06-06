@@ -59,15 +59,24 @@ export default function Sidebar({ activePage, navMode = "app", onNavigate, user 
     ? [...navItems, { icon: Shield, label: "Admin", path: "admin" }]
     : navItems;
 
+  const saveAdminMobileScroll = () => {
+    if (!isAdminMode || !mobileNavRef.current) return;
+    const scrollLeft = mobileNavRef.current.scrollLeft;
+    mobileNavScrollRef.current = scrollLeft;
+    sessionStorage.setItem(ADMIN_MOBILE_NAV_SCROLL_KEY, String(scrollLeft));
+  };
+
   useLayoutEffect(() => {
     if (!isAdminMode || !mobileNavRef.current) return undefined;
     const nav = mobileNavRef.current;
     const restore = () => {
       nav.scrollLeft = mobileNavScrollRef.current;
     };
+
     restore();
     const frame = window.requestAnimationFrame(restore);
     const timer = window.setTimeout(restore, 120);
+
     return () => {
       window.cancelAnimationFrame(frame);
       window.clearTimeout(timer);
@@ -80,7 +89,7 @@ export default function Sidebar({ activePage, navMode = "app", onNavigate, user 
         <button
           type="button"
           onClick={() => window.location.reload()}
-          className="mt-4 grid size-9 place-items-center rounded-xl bg-gradient-to-br from-blue-600 to-violet-600 text-white shadow-lg shadow-blue-500/25 transition hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-500/20"
+          className="mt-4 grid size-9 place-items-center rounded-xl bg-gradient-to-br from-blue-600 to-violet-600 text-white shadow-lg shadow-blue-500/25 focus:outline-none focus:ring-4 focus:ring-blue-500/20"
           aria-label="Refresh Scholars Canvas"
           title="Refresh"
         >
@@ -103,7 +112,7 @@ export default function Sidebar({ activePage, navMode = "app", onNavigate, user 
                 <button
                   type="button"
                   onClick={() => onNavigate(item.path)}
-                  className={`grid size-8 place-items-center rounded-xl transition ${
+                  className={`grid size-8 place-items-center rounded-xl ${
                     isActive
                       ? "bg-blue-600 text-white shadow-lg shadow-blue-500/25"
                       : "text-slate-500 hover:bg-blue-50 hover:text-blue-700 dark:text-slate-400 dark:hover:bg-blue-500/10 dark:hover:text-blue-300"
@@ -129,11 +138,7 @@ export default function Sidebar({ activePage, navMode = "app", onNavigate, user 
         className={`fixed inset-x-2 bottom-2 z-40 gap-1 rounded-2xl border border-slate-200/80 bg-white/92 p-1.5 shadow-xl shadow-slate-900/12 backdrop-blur-xl dark:border-slate-800 dark:bg-slate-950/90 lg:hidden ${
           isAdminMode ? "flex overflow-x-auto" : "grid"
         }`}
-        onScroll={(event) => {
-          if (!isAdminMode) return;
-          mobileNavScrollRef.current = event.currentTarget.scrollLeft;
-          sessionStorage.setItem(ADMIN_MOBILE_NAV_SCROLL_KEY, String(event.currentTarget.scrollLeft));
-        }}
+        onScroll={saveAdminMobileScroll}
         style={isAdminMode ? undefined : { gridTemplateColumns: `repeat(${visibleNavItems.length}, minmax(0, 1fr))` }}
       >
         {visibleNavItems.map((item) => {
@@ -144,19 +149,12 @@ export default function Sidebar({ activePage, navMode = "app", onNavigate, user 
             <button
               key={item.path}
               type="button"
-              onPointerDown={() => {
-                if (!isAdminMode || !mobileNavRef.current) return;
-                mobileNavScrollRef.current = mobileNavRef.current.scrollLeft;
-                sessionStorage.setItem(ADMIN_MOBILE_NAV_SCROLL_KEY, String(mobileNavRef.current.scrollLeft));
-              }}
+              onPointerDown={saveAdminMobileScroll}
               onClick={() => {
-                if (isAdminMode && mobileNavRef.current) {
-                  mobileNavScrollRef.current = mobileNavRef.current.scrollLeft;
-                  sessionStorage.setItem(ADMIN_MOBILE_NAV_SCROLL_KEY, String(mobileNavRef.current.scrollLeft));
-                }
+                saveAdminMobileScroll();
                 onNavigate(item.path);
               }}
-              className={`grid min-h-12 place-items-center rounded-xl px-1 py-1 text-[10px] font-black transition active:scale-95 ${
+              className={`grid min-h-12 place-items-center rounded-xl px-1 py-1 text-[10px] font-black ${
                 isAdminMode ? "min-w-16 shrink-0" : ""
               } ${
                 isActive

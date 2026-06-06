@@ -1,6 +1,6 @@
 # StudentAssistant
 
-![License](https://img.shields.io/badge/License-Academic%20Project-blue)
+![License](https://img.shields.io/badge/License-AGPL--3.0-blue)
 ![Frontend](https://img.shields.io/badge/Frontend-React-61DAFB)
 ![Backend](https://img.shields.io/badge/Backend-Django-0C4B33)
 ![API](https://img.shields.io/badge/API-Django%20REST%20Framework-red)
@@ -769,5 +769,4 @@ Common route smoke checks:
 
 ## License
 
-This project is currently provided for academic/project use. Add a license file if you plan to publish or distribute it publicly.
-
+This project is licensed under the GNU Affero General Public License v3.0. See `LICENSE` for the full license text.

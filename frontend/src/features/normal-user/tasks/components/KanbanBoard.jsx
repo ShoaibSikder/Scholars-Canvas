@@ -1,5 +1,4 @@
 import { CheckSquare } from "lucide-react";
-import { motion } from "framer-motion";
 
 import { card } from "../taskConstants";
 import TaskCard from "./TaskCard";
@@ -14,10 +13,8 @@ export default function KanbanBoard({
   return (
     <div className="grid gap-2.5 md:grid-cols-2 xl:grid-cols-3">
       {columns.map((column) => (
-        <motion.section
+        <section
           key={column.id}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
           className={`flex max-h-[calc(100vh-13rem)] min-h-0 flex-col overflow-hidden ${card}`}
         >
           <div
@@ -51,7 +48,7 @@ export default function KanbanBoard({
               </div>
             ) : null}
           </div>
-        </motion.section>
+        </section>
       ))}
     </div>
   );

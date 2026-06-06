@@ -21,6 +21,10 @@ import {
   isUserPath,
 } from "../routes/routeConfig";
 
+function ContentFallback() {
+  return <PageFallback />;
+}
+
 export default function AppLayout() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -217,7 +221,7 @@ export default function AppLayout() {
       onLoadMoreNotifications={onLoadMoreNotifications}
       onNotificationSelect={handleNotificationSelect}
     >
-      <Suspense fallback={<PageFallback />}>
+      <Suspense fallback={<ContentFallback />}>
         <Outlet context={outletContext} />
       </Suspense>
     </MainLayout>

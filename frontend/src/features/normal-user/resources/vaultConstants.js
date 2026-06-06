@@ -18,10 +18,6 @@ export const input = "min-h-8 rounded-lg border border-slate-200 bg-slate-50 px-
 export const field = "grid gap-2";
 export const label = "text-xs font-bold text-slate-700 dark:text-slate-200";
 export const generationBadge = "inline-flex h-5 shrink-0 items-center rounded-full px-2 text-[0.56rem] font-black uppercase leading-none tracking-[0.14em] whitespace-nowrap";
-export const pageReveal = {
-  initial: { opacity: 0, y: 20 },
-  animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.45, ease: [0.22, 1, 0.36, 1] },
-};
+export const pageReveal = {};
 
 

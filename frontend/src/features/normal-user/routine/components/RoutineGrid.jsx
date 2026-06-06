@@ -1,5 +1,4 @@
 import { Edit3, Plus, Trash2, X } from "lucide-react";
-import { motion } from "framer-motion";
 
 import {
   days,
@@ -209,9 +208,7 @@ export default function RoutineGrid({
   };
 
   return (
-    <motion.section
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
+    <section
       className="overflow-hidden rounded-2xl border border-blue-100/80 bg-gradient-to-br from-white via-slate-50 to-blue-50/70 p-3 shadow-2xl shadow-blue-500/10 backdrop-blur-xl dark:border-slate-800 dark:from-slate-900 dark:via-slate-950 dark:to-blue-950/25"
     >
       {loading ? (
@@ -291,7 +288,7 @@ export default function RoutineGrid({
           ) : null}
         </div>
       )}
-    </motion.section>
+    </section>
   );
 }
 

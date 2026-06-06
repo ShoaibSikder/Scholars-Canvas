@@ -67,11 +67,7 @@ export default function AdminPanelPage({ user, initialTab = "dashboard", showTab
   const [announcement, setAnnouncement] = useState({ title: "", message: "", university: "", department: "", semester: "" });
   const [settingDrafts, setSettingDrafts] = useState({});
   const tabNavRef = useRef(null);
-  const tabButtonRefs = useRef({});
   const tabScrollLeftRef = useRef(0);
-  const restoringTabScrollRef = useRef(false);
-  const pendingCenteredTabRef = useRef(null);
-  const tabRestoreStopRef = useRef(null);
   const initialTabRef = useRef(initialTab);
 
   const isAdmin = canUseAdmin(user);
@@ -238,63 +234,22 @@ export default function AdminPanelPage({ user, initialTab = "dashboard", showTab
   const loading = Boolean(loadingTabs[activeTab]);
   const showSectionSkeleton = loading && !loadedTabs[activeTab];
 
-  const scrollTabIntoView = useCallback((tabId) => {
+  useLayoutEffect(() => {
+    if (!showTabs || !tabNavRef.current) return undefined;
     const nav = tabNavRef.current;
-    const button = tabButtonRefs.current[tabId];
-    if (!nav || !button) return;
-    const nextLeft = Math.max(0, button.offsetLeft - (nav.clientWidth - button.offsetWidth) / 2);
-    tabScrollLeftRef.current = nextLeft;
-    nav.scrollLeft = nextLeft;
-  }, []);
-
-  const restoreTabScroll = useCallback((left = tabScrollLeftRef.current, tabId = pendingCenteredTabRef.current) => {
-    const nav = tabNavRef.current;
-    if (!nav) return () => {};
-    tabScrollLeftRef.current = left;
-    restoringTabScrollRef.current = true;
-    if (tabRestoreStopRef.current) tabRestoreStopRef.current();
-
     const restore = () => {
-      if (tabId) {
-        scrollTabIntoView(tabId);
-      } else if (tabNavRef.current) {
-        tabNavRef.current.scrollLeft = tabScrollLeftRef.current;
-      }
+      nav.scrollLeft = tabScrollLeftRef.current;
     };
 
     restore();
     const frame = window.requestAnimationFrame(restore);
-    const secondFrame = window.requestAnimationFrame(() => window.requestAnimationFrame(restore));
-    const shortTimer = window.setTimeout(restore, 40);
-    const middleTimer = window.setTimeout(restore, 250);
-    const lateTimer = window.setTimeout(restore, 600);
-    const interval = window.setInterval(restore, 100);
-    const longTimer = window.setTimeout(() => {
-      restore();
-      window.clearInterval(interval);
-      restoringTabScrollRef.current = false;
-      pendingCenteredTabRef.current = null;
-      tabRestoreStopRef.current = null;
-    }, 1200);
+    const timer = window.setTimeout(restore, 120);
 
-    const stop = () => {
+    return () => {
       window.cancelAnimationFrame(frame);
-      window.cancelAnimationFrame(secondFrame);
-      window.clearTimeout(shortTimer);
-      window.clearTimeout(middleTimer);
-      window.clearTimeout(lateTimer);
-      window.clearTimeout(longTimer);
-      window.clearInterval(interval);
-      restoringTabScrollRef.current = false;
+      window.clearTimeout(timer);
     };
-
-    tabRestoreStopRef.current = stop;
-    return stop;
-  }, [scrollTabIntoView]);
-
-  useLayoutEffect(() => {
-    return restoreTabScroll(tabScrollLeftRef.current, pendingCenteredTabRef.current || activeTab);
-  }, [activeTab, restoreTabScroll]);
+  }, [activeTab, showTabs]);
 
   if (!isAdmin) {
     return (
@@ -334,7 +289,6 @@ export default function AdminPanelPage({ user, initialTab = "dashboard", showTab
           ref={tabNavRef}
           className="thin-scrollbar flex max-w-full gap-2 overflow-x-auto rounded-2xl border border-slate-200/80 bg-white/90 p-2 shadow-md shadow-slate-900/5 backdrop-blur [overflow-anchor:none] dark:border-slate-800 dark:bg-slate-900/88"
           onScroll={(event) => {
-            if (restoringTabScrollRef.current) return;
             tabScrollLeftRef.current = event.currentTarget.scrollLeft;
           }}
         >
@@ -344,21 +298,13 @@ export default function AdminPanelPage({ user, initialTab = "dashboard", showTab
             return (
               <button
                 key={tab.id}
-                ref={(element) => {
-                  if (element) tabButtonRefs.current[tab.id] = element;
-                  else delete tabButtonRefs.current[tab.id];
-                }}
                 type="button"
-                onPointerDown={(event) => {
-                  event.preventDefault();
-                  tabScrollLeftRef.current = tabNavRef.current?.scrollLeft ?? 0;
+                onPointerDown={() => {
+                  tabScrollLeftRef.current = tabNavRef.current?.scrollLeft ?? tabScrollLeftRef.current;
                 }}
                 onClick={() => {
-                  const savedScrollLeft = tabNavRef.current?.scrollLeft ?? tabScrollLeftRef.current;
-                  tabScrollLeftRef.current = savedScrollLeft;
-                  pendingCenteredTabRef.current = tab.id;
+                  tabScrollLeftRef.current = tabNavRef.current?.scrollLeft ?? tabScrollLeftRef.current;
                   setActiveTab(tab.id);
-                  restoreTabScroll(savedScrollLeft, tab.id);
                 }}
                 className={`inline-flex min-h-9 shrink-0 items-center gap-2 rounded-lg px-3 text-sm font-black transition-all ${active ? "bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 text-white shadow-md shadow-blue-500/25" : "text-slate-600 hover:-translate-y-0.5 hover:bg-blue-50 hover:text-blue-700 dark:text-slate-300 dark:hover:bg-blue-500/10 dark:hover:text-blue-300"}`}
               >
@@ -389,7 +335,7 @@ export default function AdminPanelPage({ user, initialTab = "dashboard", showTab
               {activeTab === "tasks" ? <AdminTasksRoutineSection tasks={data.tasks} /> : null}
               {activeTab === "notifications" ? <AdminNotificationsSection notifications={data.notifications} announcement={announcement} onAnnouncementChange={setAnnouncement} onRunAction={runAction} actions={actions} /> : null}
               {activeTab === "system-controls" ? <AdminSystemSettingsSection settings={data.settings} settingDrafts={settingDrafts} onSettingDraftsChange={setSettingDrafts} onRunAction={runAction} actions={actions} /> : null}
-              {activeTab === "audit" ? <AdminAuditLogsSection moderation={data.moderation} audit={data.audit} auditQuery={auditQuery} onAuditQueryChange={setAuditQuery} onRunAction={runAction} actions={actions} /> : null}
+              {activeTab === "audit" ? <AdminAuditLogsSection moderation={data.moderation} audit={data.audit} auditQuery={auditQuery} onAuditQueryChange={setAuditQuery} actions={actions} onRunAction={runAction} /> : null}
             </Suspense>
           )}
         </motion.div>

@@ -1,15 +1,13 @@
-import { lazy, Suspense, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import PageFallback from "../components/common/PageFallback";
 import AuthLayout from "../features/auth/AuthLayout";
+import ForgotPasswordForm from "../features/auth/ForgotPasswordForm";
+import LoginForm from "../features/auth/LoginForm";
+import RegisterForm from "../features/auth/RegisterForm";
+import ResetPasswordForm from "../features/auth/ResetPasswordForm";
 import { useAuth } from "../context/AuthContext";
 import { getAuthModeFromPath } from "./routeConfig";
-
-const ForgotPasswordForm = lazy(() => import("../features/auth/ForgotPasswordForm"));
-const LoginForm = lazy(() => import("../features/auth/LoginForm"));
-const RegisterForm = lazy(() => import("../features/auth/RegisterForm"));
-const ResetPasswordForm = lazy(() => import("../features/auth/ResetPasswordForm"));
 
 export default function AuthRoutes() {
   const location = useLocation();
@@ -38,41 +36,39 @@ export default function AuthRoutes() {
 
   return (
     <AuthLayout>
-      <Suspense fallback={<PageFallback />}>
-        {authMode === "reset" ? (
-          <ResetPasswordForm
-            uid={resetParams.get("uid") || ""}
-            token={resetParams.get("token") || ""}
-            onBackToLogin={backToLogin}
-          />
-        ) : authMode === "forgot" ? (
-          <ForgotPasswordForm onBackToLogin={backToLogin} />
-        ) : authMode === "login" ? (
-          <LoginForm
-            onSwitchToRegister={() => {
-              setAuthMode("register");
-              navigate("/register");
-            }}
-            onForgotPassword={() => {
-              setAuthMode("forgot");
-              navigate("/forgot-password");
-            }}
-            onLoginSuccess={(user) => {
-              authActionInProgressRef.current = true;
-              handleAuthSuccess(user);
-            }}
-            authNotice={authNotice}
-          />
-        ) : (
-          <RegisterForm
-            onSwitchToLogin={backToLogin}
-            onRegisterSuccess={(user) => {
-              authActionInProgressRef.current = true;
-              handleRegisterSuccess(user);
-            }}
-          />
-        )}
-      </Suspense>
+      {authMode === "reset" ? (
+        <ResetPasswordForm
+          uid={resetParams.get("uid") || ""}
+          token={resetParams.get("token") || ""}
+          onBackToLogin={backToLogin}
+        />
+      ) : authMode === "forgot" ? (
+        <ForgotPasswordForm onBackToLogin={backToLogin} />
+      ) : authMode === "login" ? (
+        <LoginForm
+          onSwitchToRegister={() => {
+            setAuthMode("register");
+            navigate("/register");
+          }}
+          onForgotPassword={() => {
+            setAuthMode("forgot");
+            navigate("/forgot-password");
+          }}
+          onLoginSuccess={(user) => {
+            authActionInProgressRef.current = true;
+            handleAuthSuccess(user);
+          }}
+          authNotice={authNotice}
+        />
+      ) : (
+        <RegisterForm
+          onSwitchToLogin={backToLogin}
+          onRegisterSuccess={(user) => {
+            authActionInProgressRef.current = true;
+            handleRegisterSuccess(user);
+          }}
+        />
+      )}
     </AuthLayout>
   );
 }

@@ -82,7 +82,7 @@ export default function CommandBar({
               window.setTimeout(() => setSearchFocused(false), 120);
             }}
             placeholder="Search..."
-            className="min-h-9 w-full rounded-xl border border-slate-200 bg-slate-50/90 pl-8 pr-8 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-500/10 dark:border-slate-700 dark:bg-slate-900/80 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:bg-slate-900 sm:pl-9 sm:pr-14 lg:min-h-8 lg:rounded-lg"
+            className="min-h-9 w-full rounded-xl border border-slate-200 bg-slate-50/90 pl-8 pr-8 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-500/10 dark:border-slate-700 dark:bg-slate-900/80 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:bg-slate-900 sm:pl-9 sm:pr-14 lg:min-h-8 lg:rounded-lg"
             onKeyDown={(event) => {
               if (event.key === "Enter" && searchResults.length > 0) {
                 event.preventDefault();
@@ -113,7 +113,7 @@ export default function CommandBar({
                   <button
                     key={`${item.page}-${item.label}`}
                     type="button"
-                    className="flex w-full items-center justify-between gap-3 px-3 py-2 text-left transition active:bg-blue-50 dark:active:bg-blue-500/10 lg:py-1.5 lg:hover:bg-blue-50 lg:dark:hover:bg-blue-500/10"
+                    className="flex w-full items-center justify-between gap-3 px-3 py-2 text-left active:bg-blue-50 dark:active:bg-blue-500/10 lg:py-1.5 lg:hover:bg-blue-50 lg:dark:hover:bg-blue-500/10"
                     onMouseDown={(event) => event.preventDefault()}
                     onClick={() => {
                       onSearchSelect(item);
@@ -138,7 +138,7 @@ export default function CommandBar({
       <div className="ml-auto flex items-center gap-1.5 sm:gap-2 lg:gap-3">
         <button
           type="button"
-          className="relative grid size-9 place-items-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-sm transition-all hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 active:scale-95 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-blue-500/40 dark:hover:bg-blue-500/10 dark:hover:text-blue-300 lg:size-8 lg:rounded-lg"
+          className="relative grid size-9 place-items-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-sm hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-blue-500/40 dark:hover:bg-blue-500/10 dark:hover:text-blue-300 lg:size-8 lg:rounded-lg"
           onClick={() => {
             setShowProfileMenu(false);
             onToggleNotifications?.();
@@ -153,7 +153,7 @@ export default function CommandBar({
           <button
             type="button"
             onClick={() => setShowProfileMenu((current) => !current)}
-            className="grid size-9 place-items-center rounded-xl bg-gradient-to-br from-blue-600 to-violet-600 text-white shadow-md shadow-blue-500/25 transition active:scale-95 lg:size-8 lg:rounded-lg"
+            className="grid size-9 place-items-center rounded-xl bg-gradient-to-br from-blue-600 to-violet-600 text-white shadow-md shadow-blue-500/25 lg:size-8 lg:rounded-lg"
             aria-label="Profile menu"
           >
             <User className="size-4" />
@@ -181,7 +181,7 @@ export default function CommandBar({
                   <button
                     key={item.page}
                     type="button"
-                    className="flex w-full items-center gap-3 px-3 py-2 text-sm font-bold text-slate-700 transition active:bg-blue-50 dark:text-slate-200 dark:active:bg-blue-500/10 lg:py-1.5 lg:hover:bg-blue-50 lg:dark:hover:bg-blue-500/10"
+                    className="flex w-full items-center gap-3 px-3 py-2 text-sm font-bold text-slate-700 active:bg-blue-50 dark:text-slate-200 dark:active:bg-blue-500/10 lg:py-1.5 lg:hover:bg-blue-50 lg:dark:hover:bg-blue-500/10"
                     onClick={() => {
                       onNavigate?.(item.page);
                       setShowProfileMenu(false);
@@ -195,7 +195,7 @@ export default function CommandBar({
 
               <button
                 type="button"
-                className="flex w-full items-center gap-3 px-3 py-2 text-sm font-bold text-rose-600 transition active:bg-rose-50 dark:text-rose-400 dark:active:bg-rose-950/40 lg:py-1.5 lg:hover:bg-rose-50 lg:dark:hover:bg-rose-950/40"
+                className="flex w-full items-center gap-3 px-3 py-2 text-sm font-bold text-rose-600 active:bg-rose-50 dark:text-rose-400 dark:active:bg-rose-950/40 lg:py-1.5 lg:hover:bg-rose-50 lg:dark:hover:bg-rose-950/40"
                 onClick={() => {
                   setShowProfileMenu(false);
                   onLogout?.();

@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
 import {
   Calendar,
   Camera,
@@ -110,11 +109,7 @@ export default function ProfilePage({ user, onSave }) {
       <InPageStatus message={status} />
 
       <div className="grid gap-3 xl:grid-cols-[minmax(0,1.6fr)_minmax(320px,0.7fr)]">
-        <motion.section
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className={card}
-        >
+        <section className={card}>
           <div className="mb-4 flex flex-col gap-4 rounded-xl bg-gradient-to-r from-blue-600 to-violet-600 p-4 text-white sm:flex-row sm:items-center">
             <div className="relative size-24 shrink-0 overflow-hidden rounded-2xl bg-white/20 ring-4 ring-white/20">
               {avatarPreview ? (
@@ -270,14 +265,10 @@ export default function ProfilePage({ user, onSave }) {
               semester, and email.
             </p>
           </div>
-        </motion.section>
+        </section>
 
         <div className="grid gap-3 content-start">
-          <motion.section
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className={card}
-          >
+          <section className={card}>
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-base font-black text-slate-950 dark:text-white">
                 Progress Snapshot
@@ -299,13 +290,9 @@ export default function ProfilePage({ user, onSave }) {
                 </div>
               ))}
             </div>
-          </motion.section>
+          </section>
 
-          <motion.section
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className={card}
-          >
+          <section className={card}>
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-base font-black text-slate-950 dark:text-white">
                 Highlights
@@ -322,7 +309,7 @@ export default function ProfilePage({ user, onSave }) {
                 </li>
               ))}
             </ul>
-          </motion.section>
+          </section>
         </div>
       </div>
     </div>

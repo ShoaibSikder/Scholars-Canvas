@@ -14,7 +14,6 @@ import {
   ZoomIn,
   ZoomOut,
 } from "lucide-react";
-import { motion } from "framer-motion";
 
 import InPageStatus from "../../../../components/common/InPageStatus";
 import UploadProgressBar from "../../../../components/common/UploadProgressBar";
@@ -92,9 +91,7 @@ export default function AILabLayout({
   vaultSearch,
 }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
+    <div
       className={`grid gap-3 xl:h-[calc(100dvh-5rem)] xl:min-h-0 xl:overflow-hidden ${status ? "xl:grid-rows-[auto_auto_minmax(0,1fr)]" : "xl:grid-rows-[auto_minmax(0,1fr)]"}`}
     >
       <div>
@@ -750,7 +747,7 @@ export default function AILabLayout({
           </div>
         </section>
       </div>
-    </motion.div>
+    </div>
   );
 }
 

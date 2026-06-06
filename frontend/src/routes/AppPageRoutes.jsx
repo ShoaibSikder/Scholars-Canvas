@@ -1,6 +1,7 @@
 import { lazy } from "react";
 import { useLocation, useOutletContext } from "react-router-dom";
 
+import AdminPanelPage from "../features/administration/admin-panel/AdminPanelPage";
 import { getAdminTabFromPath } from "./routeConfig";
 
 const DashboardPage = lazy(() => import("../features/normal-user/dashboard/DashboardPage"));
@@ -11,7 +12,6 @@ const AILabPage = lazy(() => import("../features/normal-user/ai-tools/AILabPage"
 const CommunicationPage = lazy(() => import("../features/normal-user/communication/CommunicationPage"));
 const ProfilePage = lazy(() => import("../features/normal-user/profile/ProfilePage"));
 const SettingsPage = lazy(() => import("../features/normal-user/settings/SettingsPage"));
-const AdminPanelPage = lazy(() => import("../features/administration/admin-panel/AdminPanelPage"));
 
 export function DashboardRoute() {
   const { handleNavigate } = useOutletContext();

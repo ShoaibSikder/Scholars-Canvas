@@ -41,7 +41,7 @@ export default function MainLayout({
         notificationCount={notificationCount}
       />
 
-      <main className="min-h-screen overflow-x-hidden px-3 pb-24 pt-16 transition sm:pt-14 lg:ml-14 lg:px-4 lg:pb-6">{children}</main>
+      <main className="min-h-screen overflow-x-hidden px-3 pb-24 pt-16 sm:pt-14 lg:ml-14 lg:px-4 lg:pb-6">{children}</main>
 
       <NotificationsPanel
         open={notificationsOpen}

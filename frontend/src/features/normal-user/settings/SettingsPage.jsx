@@ -19,7 +19,6 @@ import InPageStatus from "../../../components/common/InPageStatus";
 import useAutoClearStatus from "../../../hooks/useAutoClearStatus";
 import { card, defaultPreferences, primaryBtn } from "./settingsConstants";
 import { SectionTitle, SelectRow, ToggleRow } from "./components/SettingsRows";
-import { motion } from "framer-motion";
 
 const developerProfile = {
   name: "Md. Shoaib Sikder",
@@ -102,11 +101,7 @@ export default function SettingsPage({ preferences, onSave }) {
       <InPageStatus message={status} />
 
       <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_minmax(340px,0.8fr)]">
-        <motion.section
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className={card}
-        >
+        <section className={card}>
           <SectionTitle icon={Palette} title="App Experience" />
           <div className="grid gap-3">
             <ToggleRow
@@ -134,14 +129,10 @@ export default function SettingsPage({ preferences, onSave }) {
               onChange={(value) => persistChange("reduce_motion", value)}
             />
           </div>
-        </motion.section>
+        </section>
 
         <div className="grid gap-3 content-start">
-          <motion.section
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className={card}
-          >
+          <section className={card}>
             <SectionTitle icon={Bell} title="Notifications" />
             <div className="grid gap-3">
               <ToggleRow
@@ -161,13 +152,9 @@ export default function SettingsPage({ preferences, onSave }) {
                 onChange={(value) => persistChange("study_reminders", value)}
               />
             </div>
-          </motion.section>
+          </section>
 
-          <motion.section
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className={card}
-          >
+          <section className={card}>
             <SectionTitle icon={Eye} title="Privacy & Locale" />
             <div className="grid gap-3">
               <SelectRow
@@ -209,13 +196,9 @@ export default function SettingsPage({ preferences, onSave }) {
                 onChange={(value) => persistChange("timezone", value)}
               />
             </div>
-          </motion.section>
+          </section>
 
-          <motion.section
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className={`${card} overflow-hidden`}
-          >
+          <section className={`${card} overflow-hidden`}>
             <p className="mb-4 text-xs font-black uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
               Developer
             </p>
@@ -252,7 +235,7 @@ export default function SettingsPage({ preferences, onSave }) {
                 </a>
               ))}
             </div>
-          </motion.section>
+          </section>
         </div>
       </div>
     </div>

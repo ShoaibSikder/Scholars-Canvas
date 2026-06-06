@@ -1,6 +1,5 @@
 import { Navigate, useLocation } from "react-router-dom";
 
-import PageFallback from "../components/common/PageFallback";
 import { useAuth } from "../context/AuthContext";
 
 function canAccessRole(allowedRole, canUseAdmin) {
@@ -23,11 +22,7 @@ export default function ProtectedRoute({ children, allowedRole, adminOnly = fals
   }
 
   if (!profileLoaded) {
-    return (
-      <div className="min-h-screen bg-slate-50 p-4 dark:bg-slate-950 sm:p-6">
-        <PageFallback />
-      </div>
-    );
+    return <div className="min-h-screen bg-slate-50 dark:bg-slate-950" aria-busy="true" />;
   }
 
   const requiresAdmin = adminOnly || allowedRole === "admin";

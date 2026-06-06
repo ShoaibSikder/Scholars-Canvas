@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { fetchMe, updateMe } from "../api";
@@ -48,6 +48,7 @@ export function AuthProvider({ children }) {
   const [profile, setProfile] = useState(defaultProfile);
   const [preferences, setPreferences] = useState(() => getStoredPreferences());
   const [authNotice, setAuthNotice] = useState("");
+  const loadedProfileRef = useRef(false);
 
   useEffect(() => {
     const savedPrefs = getStoredPreferences();
@@ -58,8 +59,13 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     if (!isAuthenticated) {
+      loadedProfileRef.current = false;
       setProfile(defaultProfile);
       setProfileLoaded(true);
+      return undefined;
+    }
+
+    if (loadedProfileRef.current) {
       return undefined;
     }
 
@@ -72,6 +78,7 @@ export function AuthProvider({ children }) {
         if (!isMounted) return;
 
         setProfile({ ...defaultProfile, ...response.user });
+        loadedProfileRef.current = true;
         const savedThemePrefs = getStoredPreferences();
         setPreferences({
           ...defaultPreferences,
@@ -84,6 +91,7 @@ export function AuthProvider({ children }) {
       } catch {
         if (!isMounted) return;
         clearStoredToken();
+        loadedProfileRef.current = false;
         setIsAuthenticated(false);
         setProfileLoaded(true);
         navigate("/login", { replace: true });
@@ -94,7 +102,7 @@ export function AuthProvider({ children }) {
     return () => {
       isMounted = false;
     };
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated]);
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", Boolean(preferences.dark_mode));

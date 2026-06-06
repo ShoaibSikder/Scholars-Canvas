@@ -1,5 +1,4 @@
 import { Calendar, CheckCircle2, Edit3, Trash2 } from "lucide-react";
-import { motion } from "framer-motion";
 
 import { priorityCard, priorityPill } from "../taskConstants";
 
@@ -13,11 +12,8 @@ export default function TaskCard({
   task,
 }) {
   return (
-    <motion.article
+    <article
       key={task.id}
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.05 }}
       className={`rounded-lg border-l-4 p-2.5 ${priorityCard[task.priority] ?? priorityCard.medium}`}
     >
       <div className="flex items-start justify-between gap-2">
@@ -97,7 +93,7 @@ export default function TaskCard({
           <Trash2 size={15} />
         </button>
       </div>
-    </motion.article>
+    </article>
   );
 }
 
