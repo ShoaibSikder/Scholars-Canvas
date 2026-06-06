@@ -1,4 +1,4 @@
-# StudentAssistant
+# Scholars Canvas
 
 ![License](https://img.shields.io/badge/License-AGPL--3.0-blue)
 ![Frontend](https://img.shields.io/badge/Frontend-React-61DAFB)
