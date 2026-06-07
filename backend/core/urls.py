@@ -2,11 +2,16 @@
 URL configuration for core project.
 """
 from django.contrib import admin
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.urls import include, path
 
+def service_status(request):
+    return JsonResponse({"service": "Scholars Canvas API", "status": "ok"})
+
 urlpatterns = [
+    path('', service_status),
     path('health/', lambda request: JsonResponse({"status": "ok"})),
+    path('favicon.ico', lambda request: HttpResponse(status=204)),
     path('admin/', admin.site.urls),
     path('api/auth/', include('apps.accounts.urls')),
     path('api/app/', include('apps.courses.urls')),
