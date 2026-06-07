@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { BookOpen, CheckCircle2, FolderOpen, TrendingUp } from "lucide-react";
 
+import PageFallback from "../../../components/common/PageFallback";
+import SectionTransition from "../../../components/common/SectionTransition";
+import { useSectionCache } from "../../../context/SectionCacheContext";
 import { fetchDashboard, updateTask } from "../../../api";
-import { useApiData } from "../../../hooks/useApiData";
 import DashboardHeader from "./components/DashboardHeader";
 import DeadlineTimeline from "./components/DeadlineTimeline";
 import RecentResourcesCard from "./components/RecentResourcesCard";
@@ -24,19 +26,44 @@ import {
 } from "./dashboardUtils";
 
 export default function DashboardPage({ onNavigate }) {
-  const { data: fetchedDashboard } = useApiData(
-    fetchDashboard,
-    fallbackDashboard,
-  );
-  const [data, setData] = useState(fallbackDashboard);
+  const { cached, setCached } = useSectionCache("user.dashboard");
+  const [data, setData] = useState(() => cached?.data ?? fallbackDashboard);
+  const [loading, setLoading] = useState(() => !cached?.loaded);
   const [completedTaskIds, setCompletedTaskIds] = useState([]);
   const [analyticsMode, setAnalyticsMode] = useState("line");
   const [hoveredDeadlineId, setHoveredDeadlineId] = useState(null);
   const [hoveredBarIndex, setHoveredBarIndex] = useState(null);
 
   useEffect(() => {
-    setData(fetchedDashboard ?? fallbackDashboard);
-  }, [fetchedDashboard]);
+    let mounted = true;
+
+    if (cached?.loaded) {
+      return undefined;
+    }
+
+    const loadDashboard = async () => {
+      setLoading(true);
+      try {
+        const payload = await fetchDashboard();
+        const nextData = payload ?? fallbackDashboard;
+        if (!mounted) return;
+        setData(nextData);
+        setCached({ loaded: true, data: nextData });
+      } catch {
+        if (!mounted) return;
+        setData(fallbackDashboard);
+        setCached({ loaded: true, data: fallbackDashboard });
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+
+    loadDashboard();
+
+    return () => {
+      mounted = false;
+    };
+  }, [cached?.loaded, setCached]);
 
   const studyData = data.studyData ?? fallbackDashboard.studyData;
   const visibleTasks = (data.topTasks ?? []).filter(
@@ -162,56 +189,64 @@ export default function DashboardPage({ onNavigate }) {
     try {
       await updateTask(task.id, { status: "done" });
       const freshDashboard = await fetchDashboard();
-      setData(freshDashboard ?? fallbackDashboard);
+      const nextData = freshDashboard ?? fallbackDashboard;
+      setData(nextData);
+      setCached({ loaded: true, data: nextData });
     } catch {
       setCompletedTaskIds((current) => current.filter((id) => id !== task.id));
     }
   };
 
+  if (loading) {
+    return <PageFallback />;
+  }
+
   return (
     <div className="grid gap-4">
       <DashboardHeader onNavigate={onNavigate} />
-      <StatCards statCards={statCards} />
+      <SectionTransition sectionKey="dashboard">
+        <StatCards statCards={statCards} />
 
-      <section className="grid gap-4 xl:grid-cols-[minmax(0,1.45fr)_minmax(310px,0.9fr)]">
-        <StudyAnalytics
-          analyticsMode={analyticsMode}
-          areaPath={areaPath}
-          chartPoints={chartPoints}
-          data={data}
-          distributionTotal={distributionTotal}
-          hoveredBarIndex={hoveredBarIndex}
-          linePath={linePath}
-          maxStudyHours={maxStudyHours}
-          setAnalyticsMode={setAnalyticsMode}
-          setHoveredBarIndex={setHoveredBarIndex}
-          studyData={studyData}
-          studyDistribution={studyDistribution}
-          weeklyHours={weeklyHours}
-        />
-        <TaskStatusCard
-          donutGradient={donutGradient}
-          taskStatus={taskStatus}
-          taskStatusTotal={taskStatusTotal}
-        />
-      </section>
+        <section className="grid gap-4 xl:grid-cols-[minmax(0,1.45fr)_minmax(310px,0.9fr)]">
+          <StudyAnalytics
+            analyticsMode={analyticsMode}
+            areaPath={areaPath}
+            chartPoints={chartPoints}
+            data={data}
+            distributionTotal={distributionTotal}
+            hoveredBarIndex={hoveredBarIndex}
+            linePath={linePath}
+            maxStudyHours={maxStudyHours}
+            setAnalyticsMode={setAnalyticsMode}
+            setHoveredBarIndex={setHoveredBarIndex}
+            studyData={studyData}
+            studyDistribution={studyDistribution}
+            weeklyHours={weeklyHours}
+          />
+          <TaskStatusCard
+            donutGradient={donutGradient}
+            taskStatus={taskStatus}
+            taskStatusTotal={taskStatusTotal}
+          />
+        </section>
 
-      <DeadlineTimeline
-        deadlineTimeline={deadlineTimeline}
-        hoveredDeadlineId={hoveredDeadlineId}
-        onNavigate={onNavigate}
-        setHoveredDeadlineId={setHoveredDeadlineId}
-      />
-
-      <section className="grid gap-4 xl:grid-cols-2">
-        <TaskLoadCard
-          handleTaskDone={handleTaskDone}
-          maxPriority={maxPriority}
-          priorityCounts={priorityCounts}
-          visibleTasks={visibleTasks}
+        <DeadlineTimeline
+          deadlineTimeline={deadlineTimeline}
+          hoveredDeadlineId={hoveredDeadlineId}
+          onNavigate={onNavigate}
+          setHoveredDeadlineId={setHoveredDeadlineId}
         />
-        <RecentResourcesCard onNavigate={onNavigate} recentFiles={recentFiles} />
-      </section>
+
+        <section className="grid gap-4 xl:grid-cols-2">
+          <TaskLoadCard
+            handleTaskDone={handleTaskDone}
+            maxPriority={maxPriority}
+            priorityCounts={priorityCounts}
+            visibleTasks={visibleTasks}
+          />
+          <RecentResourcesCard onNavigate={onNavigate} recentFiles={recentFiles} />
+        </section>
+      </SectionTransition>
     </div>
   );
 }

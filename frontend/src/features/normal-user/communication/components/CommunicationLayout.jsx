@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 
 import InPageStatus from "../../../../components/common/InPageStatus";
+import SectionTransition from "../../../../components/common/SectionTransition";
 import UploadProgressBar from "../../../../components/common/UploadProgressBar";
 import {
   card,
@@ -127,10 +128,11 @@ export default function CommunicationLayout({
         </div>
       </div>
 
-      {loading ? (
-        <div className={card}>Loading communication...</div>
-      ) : activeTab === "connect" ? (
-        <div className="grid h-full min-h-0 gap-4 lg:grid-cols-[minmax(260px,340px)_minmax(0,1fr)] xl:grid-cols-[360px_minmax(0,1fr)]">
+      <SectionTransition sectionKey={`communication-${activeTab}`}>
+        {loading ? (
+          <div className={card}>Loading communication...</div>
+        ) : activeTab === "connect" ? (
+          <div className="grid h-full min-h-0 gap-4 lg:grid-cols-[minmax(260px,340px)_minmax(0,1fr)] xl:grid-cols-[360px_minmax(0,1fr)]">
           <section
             className={`${card} grid h-full min-h-0 grid-rows-[auto_auto_1fr] overflow-hidden`}
           >
@@ -291,9 +293,9 @@ export default function CommunicationLayout({
               ) : null}
             </div>
           </section>
-        </div>
-      ) : (
-        <div className="grid h-full min-h-0 min-w-0 gap-4 overflow-hidden xl:grid-cols-[minmax(0,320px)_minmax(0,1fr)]">
+          </div>
+        ) : (
+          <div className="grid h-full min-h-0 min-w-0 gap-4 overflow-hidden xl:grid-cols-[minmax(0,320px)_minmax(0,1fr)]">
           <section
             className={`${card} min-w-0 ${mobileChatOpen ? "hidden xl:grid" : "grid"} h-full min-h-0 grid-rows-[auto_auto_auto_1fr] gap-2 overflow-hidden`}
           >
@@ -586,8 +588,9 @@ export default function CommunicationLayout({
               </div>
             </form>
           </section>
-        </div>
-      )}
+          </div>
+        )}
+      </SectionTransition>
       {groupModalOpen ? (
         <GroupModal
           friends={friendUsers}

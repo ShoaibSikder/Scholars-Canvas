@@ -1,11 +1,10 @@
 import { FileText } from "lucide-react";
-import { motion } from "framer-motion";
 
-import { fixedPanel, muted, revealMotion, title } from "../dashboardConstants";
+import { fixedPanel, muted, title } from "../dashboardConstants";
 
 export default function RecentResourcesCard({ onNavigate, recentFiles }) {
   return (
-    <motion.article {...revealMotion} className={fixedPanel}>
+    <article className={fixedPanel}>
       <div className="mb-4 flex shrink-0 items-start justify-between gap-3">
         <div>
           <h2 className={title}>Recent Resources</h2>
@@ -53,7 +52,7 @@ export default function RecentResourcesCard({ onNavigate, recentFiles }) {
       >
         Open Vault
       </button>
-    </motion.article>
+    </article>
   );
 }
 

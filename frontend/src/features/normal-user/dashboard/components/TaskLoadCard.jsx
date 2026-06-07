@@ -1,5 +1,4 @@
 import { AlertCircle, Target } from "lucide-react";
-import { motion } from "framer-motion";
 
 import {
   fixedPanel,
@@ -7,7 +6,6 @@ import {
   muted,
   priorityMeta,
   priorityStyles,
-  revealMotion,
   title,
 } from "../dashboardConstants";
 
@@ -18,7 +16,7 @@ export default function TaskLoadCard({
   visibleTasks,
 }) {
   return (
-    <motion.article {...revealMotion} className={fixedPanel}>
+    <article className={fixedPanel}>
       <div className="mb-4 flex shrink-0 items-start justify-between gap-3">
         <div>
           <h2 className={title}>Task Load</h2>
@@ -33,12 +31,9 @@ export default function TaskLoadCard({
           const count = priorityCounts[item.key] ?? 0;
           const width = `${Math.max(6, (count / maxPriority) * 100)}%`;
           return (
-            <motion.div
+            <div
               key={item.key}
               className={`rounded-lg border border-transparent p-2 ${dashboardListHoverSurface}`}
-              initial={{ opacity: 0, x: -8 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.12 + priorityMeta.findIndex((meta) => meta.key === item.key) * 0.05, duration: 0.28 }}
             >
               <div className="mb-1 flex items-center justify-between text-xs font-black text-slate-600 dark:text-slate-300">
                 <span className="inline-flex items-center gap-2">
@@ -53,7 +48,7 @@ export default function TaskLoadCard({
                   style={{ width, backgroundColor: item.color }}
                 />
               </div>
-            </motion.div>
+            </div>
           );
         })}
       </div>
@@ -88,7 +83,7 @@ export default function TaskLoadCard({
           ))
         )}
       </div>
-    </motion.article>
+    </article>
   );
 }
 

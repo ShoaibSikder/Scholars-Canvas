@@ -5,7 +5,6 @@ import {
   distributionColors,
   muted,
   panel,
-  revealMotion,
   subtlePanel,
   title,
 } from "../dashboardConstants";
@@ -65,10 +64,7 @@ export default function StudyAnalytics({
   const yTicks = [maxStudyHours, maxStudyHours / 2, 0];
 
   return (
-    <motion.article
-      {...revealMotion}
-      className={`${panel} flex h-[calc(100vh-245px)] min-h-[520px] flex-col overflow-hidden xl:h-[calc(100vh-250px)]`}
-    >
+    <article className={`${panel} flex h-[calc(100vh-245px)] min-h-[520px] flex-col overflow-hidden xl:h-[calc(100vh-250px)]`}>
       <div className="mb-3 flex items-start justify-between gap-3">
         <div>
           <h2 className={title}>Study Analytics</h2>
@@ -389,7 +385,7 @@ export default function StudyAnalytics({
           ))}
         </div>
       </div>
-    </motion.article>
+    </article>
   );
 }
 

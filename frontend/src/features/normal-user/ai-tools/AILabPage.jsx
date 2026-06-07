@@ -16,7 +16,6 @@ import {
   ZoomIn,
   ZoomOut,
 } from "lucide-react";
-import { motion } from "framer-motion";
 
 import {
   chatAILabDocument,
@@ -28,6 +27,8 @@ import {
   generateAILabQuiz,
   summarizeAILabDocument,
 } from "../../../api";
+import PageFallback from "../../../components/common/PageFallback";
+import { useSectionCache } from "../../../context/SectionCacheContext";
 import useAutoClearStatus from "../../../hooks/useAutoClearStatus";
 import {
   emptyDocument,
@@ -55,14 +56,15 @@ import {
 import AILabLayout from "./components/AILabLayout";
 
 export default function AILabPage() {
+  const { cached, setCached } = useSectionCache("user.ai-lab");
   const fileInputRef = useRef(null);
   const chatMessagesRef = useRef(null);
   const shouldStickToChatBottomRef = useRef(true);
   const forceChatScrollRef = useRef(false);
-  const [documents, setDocuments] = useState([]);
-  const [vaultResources, setVaultResources] = useState([]);
-  const [activeDocumentId, setActiveDocumentId] = useState(null);
-  const [activeTab, setActiveTab] = useState("summary");
+  const [documents, setDocuments] = useState(() => cached?.documents ?? []);
+  const [vaultResources, setVaultResources] = useState(() => cached?.vaultResources ?? []);
+  const [activeDocumentId, setActiveDocumentId] = useState(() => cached?.activeDocumentId ?? null);
+  const [activeTab, setActiveTab] = useState(() => cached?.activeTab ?? "summary");
   const [sourceMode, setSourceMode] = useState("device");
   const [selectedVaultResourceId, setSelectedVaultResourceId] = useState("");
   const [vaultSearch, setVaultSearch] = useState("");
@@ -73,8 +75,8 @@ export default function AILabPage() {
   const [previewScale, setPreviewScale] = useState(1);
   const [chatInput, setChatInput] = useState("");
   const [status, setStatus] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [vaultLoading, setVaultLoading] = useState(true);
+  const [loading, setLoading] = useState(() => !cached?.loaded);
+  const [vaultLoading, setVaultLoading] = useState(() => !cached?.vaultLoaded);
   const [actionLoading, setActionLoading] = useState("");
   const [uploadProgress, setUploadProgress] = useState(0);
   const [flippedCards, setFlippedCards] = useState([]);
@@ -160,6 +162,7 @@ export default function AILabPage() {
     let mounted = true;
 
     const loadLab = async () => {
+      if (cached?.loaded) return;
       setLoading(true);
       setStatus("");
 
@@ -169,28 +172,41 @@ export default function AILabPage() {
 
         const nextDocuments = (response.documents ?? []).map(normalizeDocument);
         setDocuments(nextDocuments);
-        setActiveDocumentId(
-          response.active_document?.id ?? nextDocuments[0]?.id ?? null,
-        );
+        const nextActiveDocumentId =
+          response.active_document?.id ?? nextDocuments[0]?.id ?? null;
+        setActiveDocumentId(nextActiveDocumentId);
+        setCached((current) => ({
+          ...current,
+          loaded: true,
+          documents: nextDocuments,
+          activeDocumentId: nextActiveDocumentId,
+        }));
       } catch (error) {
         if (!mounted) return;
         setStatus(error.message || "Unable to load AI Lab documents.");
         setDocuments([]);
         setActiveDocumentId(null);
+        setCached((current) => ({ ...current, loaded: true, documents: [], activeDocumentId: null }));
       } finally {
         if (mounted) setLoading(false);
       }
     };
 
     const loadVault = async () => {
+      if (cached?.vaultLoaded) return;
       setVaultLoading(true);
       try {
         const response = await fetchResources();
         if (!mounted) return;
 
-        setVaultResources(flattenVaultResources(response.courses ?? []));
+        const nextVaultResources = flattenVaultResources(response.courses ?? []);
+        setVaultResources(nextVaultResources);
+        setCached((current) => ({ ...current, vaultLoaded: true, vaultResources: nextVaultResources }));
       } catch {
-        if (mounted) setVaultResources([]);
+        if (mounted) {
+          setVaultResources([]);
+          setCached((current) => ({ ...current, vaultLoaded: true, vaultResources: [] }));
+        }
       } finally {
         if (mounted) setVaultLoading(false);
       }
@@ -203,6 +219,28 @@ export default function AILabPage() {
       mounted = false;
     };
   }, []);
+
+  useEffect(() => {
+    if (!loading) {
+      setCached((current) => ({
+        ...current,
+        loaded: true,
+        documents,
+        activeDocumentId,
+        activeTab,
+      }));
+    }
+  }, [activeDocumentId, activeTab, documents, loading, setCached]);
+
+  useEffect(() => {
+    if (!vaultLoading) {
+      setCached((current) => ({
+        ...current,
+        vaultLoaded: true,
+        vaultResources,
+      }));
+    }
+  }, [setCached, vaultLoading, vaultResources]);
 
   useEffect(() => {
     if (!activeDocument) {
@@ -509,6 +547,10 @@ export default function AILabPage() {
         : [...current, cardId],
     );
   };
+
+  if (loading) {
+    return <PageFallback />;
+  }
 
   return (
     <AILabLayout

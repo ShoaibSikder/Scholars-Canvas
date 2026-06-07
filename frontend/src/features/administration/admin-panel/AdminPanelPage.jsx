@@ -1,10 +1,11 @@
 import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { RefreshCw, Save, Shield } from "lucide-react";
-import { AnimatePresence, motion } from "framer-motion";
+import { Save, Shield } from "lucide-react";
 
 import Button from "../../../components/common/Button";
 import InPageStatus from "../../../components/common/InPageStatus";
 import PageFallback from "../../../components/common/PageFallback";
+import SectionTransition from "../../../components/common/SectionTransition";
+import { useSectionCache } from "../../../context/SectionCacheContext";
 import { canUseAdmin, emptyData, tabs } from "./adminPanelConfig";
 import { adminPanel } from "./components/AdminPrimitives";
 import {
@@ -57,15 +58,16 @@ function settingValueForSave(setting, value) {
 }
 
 export default function AdminPanelPage({ user, initialTab = "dashboard", showTabs = true }) {
+  const { cached, setCached } = useSectionCache("admin.panel");
   const [activeTab, setActiveTab] = useState(initialTab);
-  const [data, setData] = useState(emptyData);
-  const [loadedTabs, setLoadedTabs] = useState({});
+  const [data, setData] = useState(() => cached?.data ?? emptyData);
+  const [loadedTabs, setLoadedTabs] = useState(() => cached?.loadedTabs ?? {});
   const [loadingTabs, setLoadingTabs] = useState({});
   const [status, setStatus] = useState("");
-  const [userQuery, setUserQuery] = useState("");
-  const [auditQuery, setAuditQuery] = useState("");
-  const [announcement, setAnnouncement] = useState({ title: "", message: "", university: "", department: "", semester: "" });
-  const [settingDrafts, setSettingDrafts] = useState({});
+  const [userQuery, setUserQuery] = useState(() => cached?.userQuery ?? "");
+  const [auditQuery, setAuditQuery] = useState(() => cached?.auditQuery ?? "");
+  const [announcement, setAnnouncement] = useState(() => cached?.announcement ?? { title: "", message: "", university: "", department: "", semester: "" });
+  const [settingDrafts, setSettingDrafts] = useState(() => cached?.settingDrafts ?? {});
   const tabNavRef = useRef(null);
   const tabScrollLeftRef = useRef(0);
   const initialTabRef = useRef(initialTab);
@@ -170,7 +172,7 @@ export default function AdminPanelPage({ user, initialTab = "dashboard", showTab
     loadTab(activeTab);
   }, [activeTab, loadTab]);
 
-  const refreshUsers = useCallback(async (query = userQuery) => {
+  const searchUsers = useCallback(async (query = userQuery) => {
     setLoadingTabs((current) => ({ ...current, users: true }));
     setStatus("");
     try {
@@ -187,10 +189,10 @@ export default function AdminPanelPage({ user, initialTab = "dashboard", showTab
   useEffect(() => {
     if (!isAdmin || activeTab !== "users" || !loadedTabs.users) return undefined;
     const timer = window.setTimeout(() => {
-      refreshUsers(userQuery);
+      searchUsers(userQuery);
     }, 350);
     return () => window.clearTimeout(timer);
-  }, [activeTab, isAdmin, loadedTabs.users, refreshUsers, userQuery]);
+  }, [activeTab, isAdmin, loadedTabs.users, searchUsers, userQuery]);
 
   useEffect(() => {
     if (!isAdmin || activeTab !== "audit" || !loadedTabs.audit) return undefined;
@@ -234,6 +236,17 @@ export default function AdminPanelPage({ user, initialTab = "dashboard", showTab
   const loading = Boolean(loadingTabs[activeTab]);
   const showSectionSkeleton = loading && !loadedTabs[activeTab];
 
+  useEffect(() => {
+    setCached({
+      data,
+      loadedTabs,
+      userQuery,
+      auditQuery,
+      announcement,
+      settingDrafts,
+    });
+  }, [announcement, auditQuery, data, loadedTabs, setCached, settingDrafts, userQuery]);
+
   useLayoutEffect(() => {
     if (!showTabs || !tabNavRef.current) return undefined;
     const nav = tabNavRef.current;
@@ -269,10 +282,6 @@ export default function AdminPanelPage({ user, initialTab = "dashboard", showTab
           <h1 className="break-words text-xl font-black text-slate-950 dark:text-white sm:text-2xl">{activeTabMeta.title}</h1>
         </div>
         <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
-          <Button className="px-2.5 text-xs sm:px-3 sm:text-sm xl:text-base" variant="ghost" onClick={() => loadTab(activeTab, { force: true })} disabled={loading}>
-            <RefreshCw className={`size-4 ${loading ? "animate-spin" : ""}`} />
-            <span className="hidden min-[420px]:inline">Refresh</span>
-          </Button>
           {activeTab === "system-controls" ? (
             <Button className="px-2.5 text-xs sm:px-3 sm:text-sm xl:text-base" onClick={saveSystemControls} disabled={loading}>
               <Save className="size-4" />
@@ -316,30 +325,21 @@ export default function AdminPanelPage({ user, initialTab = "dashboard", showTab
         </nav>
       ) : null}
 
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={showSectionSkeleton ? `${activeTab}-loading` : activeTab}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -12 }}
-          transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-          className="grid gap-4"
-        >
-          {showSectionSkeleton ? <PageFallback /> : (
-            <Suspense fallback={<PageFallback />}>
-              {activeTab === "dashboard" ? <AdminDashboardSection overview={data.overview} /> : null}
-              {activeTab === "users" ? <AdminUsersSection users={data.users} currentUser={user} userQuery={userQuery} onUserQueryChange={setUserQuery} onRefreshUsers={refreshUsers} onRunAction={runAction} actions={actions} /> : null}
-              {activeTab === "resources" ? <AdminResourcesSection resources={data.resources} onRunAction={runAction} actions={actions} /> : null}
-              {activeTab === "ai" ? <AdminAIUsageSection ai={data.ai} onRunAction={runAction} actions={actions} /> : null}
-              {activeTab === "communication" ? <AdminCommunicationReportsSection communication={data.communication} onRunAction={runAction} actions={actions} /> : null}
-              {activeTab === "tasks" ? <AdminTasksRoutineSection tasks={data.tasks} /> : null}
-              {activeTab === "notifications" ? <AdminNotificationsSection notifications={data.notifications} announcement={announcement} onAnnouncementChange={setAnnouncement} onRunAction={runAction} actions={actions} /> : null}
-              {activeTab === "system-controls" ? <AdminSystemSettingsSection settings={data.settings} settingDrafts={settingDrafts} onSettingDraftsChange={setSettingDrafts} onRunAction={runAction} actions={actions} /> : null}
-              {activeTab === "audit" ? <AdminAuditLogsSection moderation={data.moderation} audit={data.audit} auditQuery={auditQuery} onAuditQueryChange={setAuditQuery} actions={actions} onRunAction={runAction} /> : null}
-            </Suspense>
-          )}
-        </motion.div>
-      </AnimatePresence>
+      <SectionTransition sectionKey={showSectionSkeleton ? `${activeTab}-loading` : activeTab}>
+        {showSectionSkeleton ? <PageFallback /> : (
+          <Suspense fallback={<PageFallback />}>
+            {activeTab === "dashboard" ? <AdminDashboardSection overview={data.overview} /> : null}
+            {activeTab === "users" ? <AdminUsersSection users={data.users} currentUser={user} userQuery={userQuery} onUserQueryChange={setUserQuery} onSearchUsers={searchUsers} onRunAction={runAction} actions={actions} /> : null}
+            {activeTab === "resources" ? <AdminResourcesSection resources={data.resources} onRunAction={runAction} actions={actions} /> : null}
+            {activeTab === "ai" ? <AdminAIUsageSection ai={data.ai} onRunAction={runAction} actions={actions} /> : null}
+            {activeTab === "communication" ? <AdminCommunicationReportsSection communication={data.communication} onRunAction={runAction} actions={actions} /> : null}
+            {activeTab === "tasks" ? <AdminTasksRoutineSection tasks={data.tasks} /> : null}
+            {activeTab === "notifications" ? <AdminNotificationsSection notifications={data.notifications} announcement={announcement} onAnnouncementChange={setAnnouncement} onRunAction={runAction} actions={actions} /> : null}
+            {activeTab === "system-controls" ? <AdminSystemSettingsSection settings={data.settings} settingDrafts={settingDrafts} onSettingDraftsChange={setSettingDrafts} onRunAction={runAction} actions={actions} /> : null}
+            {activeTab === "audit" ? <AdminAuditLogsSection moderation={data.moderation} audit={data.audit} auditQuery={auditQuery} onAuditQueryChange={setAuditQuery} actions={actions} onRunAction={runAction} /> : null}
+          </Suspense>
+        )}
+      </SectionTransition>
     </div>
   );
 }

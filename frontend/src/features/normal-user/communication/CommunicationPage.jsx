@@ -22,7 +22,6 @@ import {
   Users,
   X,
 } from "lucide-react";
-import { motion } from "framer-motion";
 import {
   createConversation,
   createGroupConversation,
@@ -37,6 +36,8 @@ import {
   unsendConversationMessage,
   updateConversationMessage,
 } from "../../../api";
+import PageFallback from "../../../components/common/PageFallback";
+import { useSectionCache } from "../../../context/SectionCacheContext";
 import useAutoClearStatus from "../../../hooks/useAutoClearStatus";
 import {
   card,
@@ -52,20 +53,22 @@ import { conversationTitle, userLabel } from "./communicationUtils";
 import CommunicationLayout from "./components/CommunicationLayout";
 
 export default function CommunicationPage({ user }) {
-  const [activeTab, setActiveTab] = useState("connect");
-  const [data, setData] = useState({
+  const { cached, setCached } = useSectionCache("user.communication");
+  const emptyCommunicationData = {
     friends: [],
     incoming_requests: [],
     outgoing_requests: [],
     suggestions: [],
     conversations: [],
-  });
-  const [loading, setLoading] = useState(true);
+  };
+  const [activeTab, setActiveTab] = useState(() => cached?.activeTab ?? "connect");
+  const [data, setData] = useState(() => cached?.data ?? emptyCommunicationData);
+  const [loading, setLoading] = useState(() => !cached?.loaded);
   const [status, setStatus] = useState("");
   const [connectPanel, setConnectPanel] = useState("friends");
   const [query, setQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
-  const [activeConversation, setActiveConversation] = useState(null);
+  const [activeConversation, setActiveConversation] = useState(() => cached?.activeConversation ?? null);
   const [messages, setMessages] = useState([]);
   const [messageText, setMessageText] = useState("");
   const [messageFile, setMessageFile] = useState(null);
@@ -99,15 +102,21 @@ export default function CommunicationPage({ user }) {
 
   useAutoClearStatus(status, setStatus);
 
-  const loadCommunication = async () => {
+  const loadCommunication = async ({ force = false } = {}) => {
+    if (!force && cached?.loaded) return;
     setLoading(true);
     setStatus("");
     try {
       const response = await fetchCommunication();
+      const nextActiveConversation = activeConversation ?? response.conversations?.[0] ?? null;
       setData(response);
-      setActiveConversation(
-        (current) => current ?? response.conversations?.[0] ?? null,
-      );
+      setActiveConversation((current) => current ?? nextActiveConversation);
+      setCached({
+        loaded: true,
+        data: response,
+        activeConversation: nextActiveConversation,
+        activeTab,
+      });
     } catch (error) {
       setStatus(error.message || "Unable to load communication.");
     } finally {
@@ -118,6 +127,12 @@ export default function CommunicationPage({ user }) {
   useEffect(() => {
     loadCommunication();
   }, []);
+
+  useEffect(() => {
+    if (!loading) {
+      setCached({ loaded: true, data, activeConversation, activeTab });
+    }
+  }, [activeConversation, activeTab, data, loading, setCached]);
 
   useEffect(() => {
     const trimmed = query.trim();
@@ -471,7 +486,7 @@ export default function CommunicationPage({ user }) {
       setStatus("Friend request sent.");
       setQuery("");
       setSearchResults([]);
-      loadCommunication();
+      loadCommunication({ force: true });
     } catch (error) {
       setStatus(error.message || "Unable to send request.");
     }
@@ -487,7 +502,7 @@ export default function CommunicationPage({ user }) {
             ? "Friend request cancelled."
             : "Friend request rejected.",
       );
-      loadCommunication();
+      loadCommunication({ force: true });
     } catch (error) {
       setStatus(error.message || "Unable to update request.");
     }
@@ -499,7 +514,7 @@ export default function CommunicationPage({ user }) {
       setActiveConversation(response.conversation);
       setActiveTab("chat");
       setMobileChatOpen(true);
-      loadCommunication();
+      loadCommunication({ force: true });
     } catch (error) {
       setStatus(error.message || "Unable to open chat.");
     }
@@ -550,7 +565,7 @@ export default function CommunicationPage({ user }) {
         }
         return [...current, response.message];
       });
-      loadCommunication();
+      loadCommunication({ force: true });
     } catch (error) {
       setStatus(error.message || "Unable to send message.");
     }
@@ -585,7 +600,7 @@ export default function CommunicationPage({ user }) {
         ),
       );
       cancelEditMessage();
-      loadCommunication();
+      loadCommunication({ force: true });
     } catch (error) {
       setStatus(error.message || "Unable to edit message.");
     }
@@ -605,7 +620,7 @@ export default function CommunicationPage({ user }) {
         ),
       );
       setOpenMessageMenuId(null);
-      loadCommunication();
+      loadCommunication({ force: true });
     } catch (error) {
       setStatus(error.message || "Unable to unsend message.");
     }
@@ -629,7 +644,7 @@ export default function CommunicationPage({ user }) {
       setGroupModalOpen(false);
       setGroupTitle("");
       setGroupMemberIds([]);
-      loadCommunication();
+      loadCommunication({ force: true });
     } catch (error) {
       setStatus(error.message || "Unable to create group.");
     }
@@ -703,6 +718,10 @@ export default function CommunicationPage({ user }) {
       </button>
     );
   };
+
+  if (loading) {
+    return <PageFallback />;
+  }
 
   return (
     <CommunicationLayout

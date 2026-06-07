@@ -3,9 +3,7 @@ from rest_framework import serializers
 from apps.accounts.models import User
 from apps.ai_lab.models import AIStudyDocument
 from apps.communication.models import Conversation, Message
-from apps.notification.models import Notification
 from apps.resources.models import VaultCourse, VaultResource
-from apps.tasks.models import StudySession, Task
 
 from .models import AIUsageLog, AdminAuditLog, NotificationTemplate, Report, SystemAnnouncement, SystemSetting
 

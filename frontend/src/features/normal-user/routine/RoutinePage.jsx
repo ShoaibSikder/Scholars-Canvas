@@ -2,6 +2,9 @@ import { useEffect, useMemo, useState } from "react";
 
 import { useAlert } from "../../../components/common/AlertProvider";
 import InPageStatus from "../../../components/common/InPageStatus";
+import PageFallback from "../../../components/common/PageFallback";
+import SectionTransition from "../../../components/common/SectionTransition";
+import { useSectionCache } from "../../../context/SectionCacheContext";
 import useAutoClearStatus from "../../../hooks/useAutoClearStatus";
 import {
   createRoutineSlot,
@@ -34,9 +37,10 @@ import {
 
 export default function RoutinePage() {
   const { confirm } = useAlert();
-  const [slots, setSlots] = useState([]);
-  const [timeRows, setTimeRows] = useState(defaultTimeRows);
-  const [loading, setLoading] = useState(true);
+  const { cached, setCached } = useSectionCache("user.routine");
+  const [slots, setSlots] = useState(() => cached?.slots ?? []);
+  const [timeRows, setTimeRows] = useState(() => cached?.timeRows ?? defaultTimeRows);
+  const [loading, setLoading] = useState(() => !cached?.loaded);
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState("");
   const [view, setView] = useState("week");
@@ -82,25 +86,27 @@ export default function RoutinePage() {
     ((scheduleEnd - scheduleStart) / 60) * rowHeight,
   );
 
-  const loadRoutine = async () => {
+  const loadRoutine = async ({ force = false } = {}) => {
+    if (!force && cached?.loaded) return;
     setLoading(true);
     setStatus("");
     try {
       const payload = await fetchRoutine();
       const loadedSlots = payload?.slots ?? [];
-      setSlots(loadedSlots);
-      setTimeRows((current) =>
-        normalizeRows([
-          ...current,
-          ...loadedSlots.flatMap((slot) => [
-            toInputTime(slot.start_time),
-            toInputTime(slot.end_time),
-          ]),
+      const nextRows = normalizeRows([
+        ...timeRows,
+        ...loadedSlots.flatMap((slot) => [
+          toInputTime(slot.start_time),
+          toInputTime(slot.end_time),
         ]),
-      );
+      ]);
+      setSlots(loadedSlots);
+      setTimeRows(nextRows);
+      setCached({ loaded: true, slots: loadedSlots, timeRows: nextRows });
     } catch (error) {
       setStatus(error.message || "Unable to load routine.");
       setSlots([]);
+      setCached({ loaded: true, slots: [], timeRows: defaultTimeRows });
     } finally {
       setLoading(false);
     }
@@ -109,6 +115,12 @@ export default function RoutinePage() {
   useEffect(() => {
     loadRoutine();
   }, []);
+
+  useEffect(() => {
+    if (!loading) {
+      setCached({ loaded: true, slots, timeRows });
+    }
+  }, [loading, setCached, slots, timeRows]);
 
   useEffect(() => {
     const tick = () => setClockNow(new Date());
@@ -243,6 +255,10 @@ export default function RoutinePage() {
     setStatus("");
   };
 
+  if (loading) {
+    return <PageFallback />;
+  }
+
   return (
     <div className="grid gap-4">
       <RoutineHeader
@@ -258,46 +274,48 @@ export default function RoutinePage() {
 
       <InPageStatus message={status} />
 
-      <CurrentClassBanner currentSlot={currentSlot} />
+      <SectionTransition sectionKey={`routine-${view}`}>
+        <CurrentClassBanner currentSlot={currentSlot} />
 
-      {formOpen ? (
-        <RoutineFormModal
-          editingSlot={editingSlot}
-          form={form}
-          onClose={() => setFormOpen(false)}
-          onSubmit={handleSubmit}
-          saving={saving}
-          setForm={setForm}
+        {formOpen ? (
+          <RoutineFormModal
+            editingSlot={editingSlot}
+            form={form}
+            onClose={() => setFormOpen(false)}
+            onSubmit={handleSubmit}
+            saving={saving}
+            setForm={setForm}
+          />
+        ) : null}
+
+        <RoutineGrid
+          addTimeRow={addTimeRow}
+          clockNow={clockNow}
+          handleDelete={handleDelete}
+          handleTimeChange={handleTimeChange}
+          isEditingRoutine={isEditingRoutine}
+          leadingOffset={leadingOffset}
+          loading={loading}
+          openCreateForm={openCreateForm}
+          openEditForm={openEditForm}
+          removeTimeRow={removeTimeRow}
+          scheduleHeight={scheduleHeight}
+          scheduleStart={scheduleStart}
+          slots={slots}
+          timeIntervals={timeIntervals}
+          todayIndex={todayIndex}
+          view={view}
+          visibleDays={visibleDays}
         />
-      ) : null}
 
-      <RoutineGrid
-        addTimeRow={addTimeRow}
-        clockNow={clockNow}
-        handleDelete={handleDelete}
-        handleTimeChange={handleTimeChange}
-        isEditingRoutine={isEditingRoutine}
-        leadingOffset={leadingOffset}
-        loading={loading}
-        openCreateForm={openCreateForm}
-        openEditForm={openEditForm}
-        removeTimeRow={removeTimeRow}
-        scheduleHeight={scheduleHeight}
-        scheduleStart={scheduleStart}
-        slots={slots}
-        timeIntervals={timeIntervals}
-        todayIndex={todayIndex}
-        view={view}
-        visibleDays={visibleDays}
-      />
-
-      <RoutineSlotList
-        clockNow={clockNow}
-        isEditingRoutine={isEditingRoutine}
-        listedSlots={listedSlots}
-        onDelete={handleDelete}
-        onEdit={openEditForm}
-      />
+        <RoutineSlotList
+          clockNow={clockNow}
+          isEditingRoutine={isEditingRoutine}
+          listedSlots={listedSlots}
+          onDelete={handleDelete}
+          onEdit={openEditForm}
+        />
+      </SectionTransition>
     </div>
   );
 }

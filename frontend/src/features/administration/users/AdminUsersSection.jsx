@@ -16,7 +16,7 @@ const emptyCreateDraft = {
   role: "student",
 };
 
-export default function AdminUsersSection({ users, currentUser, userQuery, onUserQueryChange, onRefreshUsers, onRunAction, actions }) {
+export default function AdminUsersSection({ users, currentUser, userQuery, onUserQueryChange, onSearchUsers, onRunAction, actions }) {
   const currentUserId = currentUser?.id ? String(currentUser.id) : null;
   const rows = users?.results ?? [];
   const [roleDrafts, setRoleDrafts] = useState({});
@@ -58,7 +58,7 @@ export default function AdminUsersSection({ users, currentUser, userQuery, onUse
       title="User management"
       className="flex h-[calc(100dvh-12rem)] min-h-[24rem] max-h-[46rem] flex-col overflow-hidden xl:overflow-hidden"
       action={
-        <form className="grid w-full gap-2 sm:flex sm:w-auto sm:flex-wrap" onSubmit={(event) => { event.preventDefault(); onRefreshUsers(userQuery); }}>
+        <form className="grid w-full gap-2 sm:flex sm:w-auto sm:flex-wrap" onSubmit={(event) => { event.preventDefault(); onSearchUsers(userQuery); }}>
           <div className="relative min-w-0">
             <Search className="pointer-events-none absolute left-2 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
             <input className={`${adminInput} h-9 w-full pl-8 sm:w-72`} value={userQuery} onChange={(event) => onUserQueryChange(event.target.value)} placeholder="Search users" />

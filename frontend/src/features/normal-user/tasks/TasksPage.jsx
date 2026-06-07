@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import InPageStatus from "../../../components/common/InPageStatus";
+import PageFallback from "../../../components/common/PageFallback";
+import SectionTransition from "../../../components/common/SectionTransition";
+import { useSectionCache } from "../../../context/SectionCacheContext";
 import useAutoClearStatus from "../../../hooks/useAutoClearStatus";
 import {
   createTask,
@@ -23,9 +26,10 @@ import {
 
 export default function TasksPage() {
   const dueAtInputRef = useRef(null);
+  const { cached, setCached } = useSectionCache("user.tasks");
   const [view, setView] = useState("kanban");
-  const [tasks, setTasks] = useState(emptyTasks);
-  const [loading, setLoading] = useState(true);
+  const [tasks, setTasks] = useState(() => cached?.tasks ?? emptyTasks);
+  const [loading, setLoading] = useState(() => !cached?.loaded);
   const [status, setStatus] = useState("");
   const [saving, setSaving] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -34,13 +38,17 @@ export default function TasksPage() {
 
   useAutoClearStatus(status, setStatus);
 
-  const loadTasks = async () => {
+  const loadTasks = async ({ force = false } = {}) => {
+    if (!force && cached?.loaded) return;
     setLoading(true);
     setStatus("");
     try {
-      setTasks(normalizeTasks(await fetchTasks()));
+      const nextTasks = normalizeTasks(await fetchTasks());
+      setTasks(nextTasks);
+      setCached({ loaded: true, tasks: nextTasks });
     } catch (err) {
       setTasks(emptyTasks);
+      setCached({ loaded: true, tasks: emptyTasks });
       setStatus(err.message || "Could not load tasks.");
     } finally {
       setLoading(false);
@@ -134,7 +142,7 @@ export default function TasksPage() {
       if (wasEditing) await updateTask(editingTask.id, payload);
       else await createTask(payload);
       closeForm();
-      await loadTasks();
+      await loadTasks({ force: true });
       setStatus(wasEditing ? "Task updated." : "Task added.");
     } catch (err) {
       setStatus(err.message || "Could not save task.");
@@ -149,7 +157,7 @@ export default function TasksPage() {
     setStatus("");
     try {
       await updateTask(task.id, { status });
-      await loadTasks();
+      await loadTasks({ force: true });
       setStatus("Task status updated.");
     } catch (err) {
       setStatus(err.message || "Could not update task.");
@@ -163,7 +171,7 @@ export default function TasksPage() {
     setStatus("");
     try {
       await deleteTask(task.id);
-      await loadTasks();
+      await loadTasks({ force: true });
       setStatus("Task deleted.");
     } catch (err) {
       setStatus(err.message || "Could not delete task.");
@@ -172,39 +180,39 @@ export default function TasksPage() {
     }
   };
 
+  if (loading) {
+    return <PageFallback />;
+  }
+
   return (
     <div className="grid gap-3">
       <TasksHeader onCreate={openCreate} setView={setView} view={view} />
 
       <InPageStatus message={status} />
 
-      {loading ? (
-        <div className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 font-bold text-slate-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300">
-          Loading tasks...
-        </div>
-      ) : null}
+      <SectionTransition sectionKey={`tasks-${view}`}>
+        {view === "kanban" ? (
+          <KanbanBoard
+            columns={columns}
+            onDelete={handleDelete}
+            onEdit={openEdit}
+            onStatusChange={handleStatusChange}
+            saving={saving}
+          />
+        ) : null}
 
-      {!loading && view === "kanban" ? (
-        <KanbanBoard
-          columns={columns}
-          onDelete={handleDelete}
-          onEdit={openEdit}
-          onStatusChange={handleStatusChange}
-          saving={saving}
-        />
-      ) : null}
+        {view === "list" ? (
+          <TaskListTable
+            allTasks={allTasks}
+            onDelete={handleDelete}
+            onEdit={openEdit}
+            onStatusChange={handleStatusChange}
+            saving={saving}
+          />
+        ) : null}
 
-      {!loading && view === "list" ? (
-        <TaskListTable
-          allTasks={allTasks}
-          onDelete={handleDelete}
-          onEdit={openEdit}
-          onStatusChange={handleStatusChange}
-          saving={saving}
-        />
-      ) : null}
-
-      <TaskStats allTasks={allTasks} tasks={tasks} />
+        <TaskStats allTasks={allTasks} tasks={tasks} />
+      </SectionTransition>
 
       {isFormOpen ? (
         <TaskFormModal

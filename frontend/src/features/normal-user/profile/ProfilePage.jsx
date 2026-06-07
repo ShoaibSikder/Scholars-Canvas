@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import {
   Calendar,
   Camera,
@@ -12,6 +12,7 @@ import {
   User,
 } from "lucide-react";
 import InPageStatus from "../../../components/common/InPageStatus";
+import SectionTransition from "../../../components/common/SectionTransition";
 import UploadProgressBar from "../../../components/common/UploadProgressBar";
 import useAutoClearStatus from "../../../hooks/useAutoClearStatus";
 import { card, defaultDraft, field, input, primaryBtn, selectInput } from "./profileConstants";
@@ -108,8 +109,9 @@ export default function ProfilePage({ user, onSave }) {
 
       <InPageStatus message={status} />
 
-      <div className="grid gap-3 xl:grid-cols-[minmax(0,1.6fr)_minmax(320px,0.7fr)]">
-        <section className={card}>
+      <SectionTransition sectionKey="profile">
+        <div className="grid gap-3 xl:grid-cols-[minmax(0,1.6fr)_minmax(320px,0.7fr)]">
+          <section className={card}>
           <div className="mb-4 flex flex-col gap-4 rounded-xl bg-gradient-to-r from-blue-600 to-violet-600 p-4 text-white sm:flex-row sm:items-center">
             <div className="relative size-24 shrink-0 overflow-hidden rounded-2xl bg-white/20 ring-4 ring-white/20">
               {avatarPreview ? (
@@ -147,7 +149,7 @@ export default function ProfilePage({ user, onSave }) {
                 {draft.full_name || "Scholar"}
               </h2>
               <p className="mt-1 text-sm font-semibold text-white/80">
-                Student � {draft.major || "Major not set"}
+                Student • {draft.major || "Major not set"}
               </p>
               <div className="mt-3 flex flex-wrap gap-2">
                 <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-black">
@@ -311,7 +313,8 @@ export default function ProfilePage({ user, onSave }) {
             </ul>
           </section>
         </div>
-      </div>
+        </div>
+      </SectionTransition>
     </div>
   );
 }

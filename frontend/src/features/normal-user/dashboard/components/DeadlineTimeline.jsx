@@ -1,7 +1,6 @@
 import { AlertCircle } from "lucide-react";
-import { motion } from "framer-motion";
 
-import { muted, panel, revealMotion, title } from "../dashboardConstants";
+import { muted, panel, title } from "../dashboardConstants";
 
 export default function DeadlineTimeline({
   deadlineTimeline,
@@ -10,7 +9,7 @@ export default function DeadlineTimeline({
   setHoveredDeadlineId,
 }) {
   return (
-    <motion.section {...revealMotion} className={`${panel} overflow-hidden`}>
+    <section className={`${panel} overflow-hidden`}>
       <div className="mb-4 flex items-start justify-between gap-3">
         <div>
           <h2 className={title}>Deadline Timeline</h2>
@@ -29,7 +28,7 @@ export default function DeadlineTimeline({
             <div className="absolute left-5 right-5 top-1/2 h-1 -translate-y-1/2 rounded-full bg-slate-200 dark:bg-slate-800" />
             <div className="relative h-28">
               {deadlineTimeline.map((item, index) => (
-                <motion.button
+                <button
                   key={item.id}
                   type="button"
                   className={`absolute top-1/2 w-44 -translate-x-1/2 -translate-y-1/2 rounded-xl border bg-white p-3 text-left transition-colors duration-150 dark:bg-slate-900 ${
@@ -40,13 +39,6 @@ export default function DeadlineTimeline({
                   style={{
                     left: `${Math.max(5, Math.min(95, item.offset))}%`,
                     zIndex: hoveredDeadlineId === item.id ? 50 : index + 1,
-                  }}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{
-                    delay: index * 0.06,
-                    duration: 0.45,
-                    ease: [0.22, 1, 0.36, 1],
                   }}
                   onMouseEnter={() => setHoveredDeadlineId(item.id)}
                   onMouseLeave={() => setHoveredDeadlineId(null)}
@@ -72,7 +64,7 @@ export default function DeadlineTimeline({
                     {item.course} &middot; {item.daysUntil}d left
                   </p>
                   <span className="absolute left-1/2 top-[calc(100%+8px)] size-3 -translate-x-1/2 rounded-full border-2 border-white bg-blue-600 shadow dark:border-slate-950" />
-                </motion.button>
+                </button>
               ))}
             </div>
             <div className="mt-2 flex justify-between text-[11px] font-black text-slate-400 dark:text-slate-500">
@@ -86,7 +78,7 @@ export default function DeadlineTimeline({
           No upcoming unfinished deadlines in the next 30 days.
         </div>
       )}
-    </motion.section>
+    </section>
   );
 }
 

@@ -16,6 +16,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import InPageStatus from "../../../components/common/InPageStatus";
+import SectionTransition from "../../../components/common/SectionTransition";
 import useAutoClearStatus from "../../../hooks/useAutoClearStatus";
 import { card, defaultPreferences, primaryBtn } from "./settingsConstants";
 import { SectionTitle, SelectRow, ToggleRow } from "./components/SettingsRows";
@@ -100,7 +101,8 @@ export default function SettingsPage({ preferences, onSave }) {
 
       <InPageStatus message={status} />
 
-      <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_minmax(340px,0.8fr)]">
+      <SectionTransition sectionKey="settings">
+        <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_minmax(340px,0.8fr)]">
         <section className={card}>
           <SectionTitle icon={Palette} title="App Experience" />
           <div className="grid gap-3">
@@ -237,7 +239,8 @@ export default function SettingsPage({ preferences, onSave }) {
             </div>
           </section>
         </div>
-      </div>
+        </div>
+      </SectionTransition>
     </div>
   );
 }

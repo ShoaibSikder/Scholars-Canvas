@@ -1,7 +1,12 @@
+Django>=6.0.5
+djangorestframework>=3.17.1
+django-cors-headers>=4.9.0
+whitenoise>=6.8.0
 pypdf>=5.0.0
-psycopg2>=2.9.12
+psycopg2-binary>=2.9.12
 requests>=2.32.0
 channels>=4.3.2
+channels-redis>=4.2.1
 daphne>=4.2.1
 django-supabase-storage>=1.0.1
 python-docx>=1.1.2

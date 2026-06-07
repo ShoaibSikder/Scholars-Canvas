@@ -1,14 +1,10 @@
 import { Brain, Clock, FolderOpen, Target } from "lucide-react";
-import { motion } from "framer-motion";
 
-import { ghostBtn, primaryBtn, revealMotion } from "../dashboardConstants";
+import { ghostBtn, primaryBtn } from "../dashboardConstants";
 
 export default function DashboardHeader({ onNavigate }) {
   return (
-    <motion.section
-      {...revealMotion}
-      className="flex flex-wrap items-center justify-between gap-3"
-    >
+    <section className="flex flex-wrap items-center justify-between gap-3">
       <div>
         <h1 className="text-xl font-black tracking-tight text-slate-950 dark:text-white md:text-2xl">
           Dashboard Overview
@@ -48,7 +44,7 @@ export default function DashboardHeader({ onNavigate }) {
           AI Lab
         </button>
       </div>
-    </motion.section>
+    </section>
   );
 }
 

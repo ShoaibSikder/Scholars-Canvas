@@ -1,7 +1,6 @@
-import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 
-import PageFallback from "../components/common/PageFallback";
 import MainLayout from "../components/layout/MainLayout";
 import { useAuth } from "../context/AuthContext";
 import { useNotifications } from "../context/NotificationsContext";
@@ -20,10 +19,6 @@ import {
   isAdminPath,
   isUserPath,
 } from "../routes/routeConfig";
-
-function ContentFallback() {
-  return <PageFallback />;
-}
 
 export default function AppLayout() {
   const navigate = useNavigate();
@@ -221,9 +216,7 @@ export default function AppLayout() {
       onLoadMoreNotifications={onLoadMoreNotifications}
       onNotificationSelect={handleNotificationSelect}
     >
-      <Suspense fallback={<ContentFallback />}>
-        <Outlet context={outletContext} />
-      </Suspense>
+      <Outlet context={outletContext} />
     </MainLayout>
   );
 }

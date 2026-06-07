@@ -1,14 +1,11 @@
 import { PieChart } from "lucide-react";
 import { motion } from "framer-motion";
 
-import { dashboardListHoverSurface, muted, panel, revealMotion, statusMeta, title } from "../dashboardConstants";
+import { dashboardListHoverSurface, muted, panel, statusMeta, title } from "../dashboardConstants";
 
 export default function TaskStatusCard({ donutGradient, taskStatus, taskStatusTotal }) {
   return (
-    <motion.aside
-      {...revealMotion}
-      className={`${panel} flex h-[calc(100vh-245px)] min-h-[520px] flex-col overflow-hidden xl:h-[calc(100vh-250px)]`}
-    >
+    <aside className={`${panel} flex h-[calc(100vh-245px)] min-h-[520px] flex-col overflow-hidden xl:h-[calc(100vh-250px)]`}>
       <div className="mb-4 flex items-start justify-between gap-3">
         <div>
           <h2 className={title}>Task Status</h2>
@@ -46,16 +43,9 @@ export default function TaskStatusCard({ donutGradient, taskStatus, taskStatusTo
               ? Math.round((count / taskStatusTotal) * 100)
               : 0;
             return (
-              <motion.div
+              <div
                 key={item.key}
                 className={`rounded-lg border border-transparent bg-slate-50/80 p-3 dark:bg-slate-950/45 ${dashboardListHoverSurface}`}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{
-                  delay:
-                    0.12 +
-                    statusMeta.findIndex((meta) => meta.key === item.key) * 0.07,
-                }}
               >
                 <div className="mb-2 flex items-center justify-between gap-3">
                   <span className="inline-flex items-center gap-2 text-xs font-black text-slate-700 dark:text-slate-200">
@@ -82,12 +72,12 @@ export default function TaskStatusCard({ donutGradient, taskStatus, taskStatusTo
                     }}
                   />
                 </div>
-              </motion.div>
+              </div>
             );
           })}
         </div>
       </div>
-    </motion.aside>
+    </aside>
   );
 }
 

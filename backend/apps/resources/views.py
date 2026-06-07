@@ -1,7 +1,7 @@
 import mimetypes
 
 from django.db.models import Count, Prefetch, Q
-from django.http import FileResponse, HttpResponse
+from django.http import FileResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.utils.decorators import method_decorator

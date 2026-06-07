@@ -23,7 +23,6 @@ from apps.administration.utils import bool_setting, setting_value
 
 from .services import (
     answer_question,
-    extract_document_text,
     extract_document_text_from_bytes,
     generate_flashcards_with_source,
     generate_multiple_choice_quiz_with_source,

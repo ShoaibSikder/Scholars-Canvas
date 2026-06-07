@@ -62,7 +62,3 @@ export const statusMeta = [
   { key: "done", label: "Completed", color: "#f59e0b" },
 ];
 
-export const revealMotion = {
-};
-
-

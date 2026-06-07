@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 
 import InPageStatus from "../../../../components/common/InPageStatus";
+import SectionTransition from "../../../../components/common/SectionTransition";
 import UploadProgressBar from "../../../../components/common/UploadProgressBar";
 import {
   field,
@@ -102,7 +103,8 @@ export default function AILabLayout({
 
       <InPageStatus message={status} />
 
-      <div className="grid gap-3 xl:h-full xl:min-h-0 xl:grid-cols-[minmax(0,1.08fr)_minmax(300px,0.92fr)] 2xl:grid-cols-[minmax(0,1.2fr)_minmax(360px,0.8fr)]">
+      <SectionTransition sectionKey="ai-lab">
+        <div className="grid gap-3 xl:h-full xl:min-h-0 xl:grid-cols-[minmax(0,1.08fr)_minmax(300px,0.92fr)] 2xl:grid-cols-[minmax(0,1.2fr)_minmax(360px,0.8fr)]">
         <section
           className={`${panel} grid h-[calc(100dvh-7rem)] min-h-[520px] min-w-0 grid-rows-[auto_auto_minmax(0,1fr)] gap-3 overflow-hidden p-3 xl:h-full xl:min-h-0 xl:self-start`}
         >
@@ -746,7 +748,8 @@ export default function AILabLayout({
             ) : null}
           </div>
         </section>
-      </div>
+        </div>
+      </SectionTransition>
     </div>
   );
 }

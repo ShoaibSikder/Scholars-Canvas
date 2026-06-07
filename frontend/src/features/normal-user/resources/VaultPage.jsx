@@ -4,7 +4,9 @@ import { ArrowLeft, BookOpen, CheckCircle2, Copy, Download, ExternalLink, File a
 
 import { createAILabDocumentFromVault, createConversation, createVaultCourse, createVaultResource, deleteVaultCourse, deleteVaultResource, fetchCommunication, fetchResources, generateAILabMcqQuiz, sendConversationMessage, summarizeAILabDocument, updateVaultCourse, updateVaultResource } from "../../../api";
 import { useAlert } from "../../../components/common/AlertProvider";
+import PageFallback from "../../../components/common/PageFallback";
 import UploadProgressBar from "../../../components/common/UploadProgressBar";
+import { useSectionCache } from "../../../context/SectionCacheContext";
 import useAutoClearStatus from "../../../hooks/useAutoClearStatus";
 import {
   card,
@@ -16,7 +18,6 @@ import {
   iconBtn,
   input,
   label,
-  pageReveal,
   primaryBtn,
   secondaryBtn,
   sections,
@@ -40,7 +41,8 @@ import { LinkPreviewCard, ShareTile } from "./components/VaultShared";
 
 export default function VaultPage({ openRequest = null } = {}) {
   const { confirm } = useAlert();
-  const [semesterGroups, setSemesterGroups] = useState([]);
+  const { cached, setCached } = useSectionCache("user.vault");
+  const [semesterGroups, setSemesterGroups] = useState(() => cached?.semesterGroups ?? []);
   const [selectedCourseId, setSelectedCourseId] = useState(() => {
     const stored = localStorage.getItem(SELECTED_COURSE_KEY);
     return stored ? Number(stored) : null;
@@ -56,7 +58,7 @@ export default function VaultPage({ openRequest = null } = {}) {
   const [resourceForm, setResourceForm] = useState(emptyResource);
   const [resourceFileInputKey, setResourceFileInputKey] = useState(0);
   const [linkForm, setLinkForm] = useState(emptyLink);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => !cached?.loaded);
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState("");
   const [resourceUploadProgress, setResourceUploadProgress] = useState(0);
@@ -79,15 +81,19 @@ export default function VaultPage({ openRequest = null } = {}) {
   const courses = useMemo(() => flattenCourses(semesterGroups), [semesterGroups]);
   const selectedCourse = courses.find((course) => course.id === selectedCourseId) ?? null;
 
-  const loadVault = async () => {
+  const loadVault = async ({ force = false } = {}) => {
+    if (!force && cached?.loaded) return;
     setLoading(true);
     setStatus("");
     try {
       const payload = await fetchResources();
-      setSemesterGroups(payload?.courses ?? []);
+      const nextGroups = payload?.courses ?? [];
+      setSemesterGroups(nextGroups);
+      setCached({ loaded: true, semesterGroups: nextGroups });
     } catch (error) {
       setStatus(error.message || "Unable to load vault.");
       setSemesterGroups([]);
+      setCached({ loaded: true, semesterGroups: [] });
     } finally {
       setLoading(false);
     }
@@ -96,6 +102,12 @@ export default function VaultPage({ openRequest = null } = {}) {
   useEffect(() => {
     loadVault();
   }, []);
+
+  useEffect(() => {
+    if (!loading) {
+      setCached({ loaded: true, semesterGroups });
+    }
+  }, [loading, semesterGroups, setCached]);
 
   useEffect(() => {
     if (openRequest?.courseId) {
@@ -854,6 +866,9 @@ export default function VaultPage({ openRequest = null } = {}) {
     </motion.div>
   ) : null;
 
+  if (loading) {
+    return <PageFallback />;
+  }
 
   if (selectedCourse) {
     return (

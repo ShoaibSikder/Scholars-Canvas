@@ -11,13 +11,12 @@ import {
   Sparkles,
   Trash2,
 } from "lucide-react";
-import { motion } from "framer-motion";
 
 import InPageStatus from "../../../../components/common/InPageStatus";
+import SectionTransition from "../../../../components/common/SectionTransition";
 import {
   card,
   iconBtn,
-  pageReveal,
   primaryBtn,
   secondaryBtn,
   sections,
@@ -50,10 +49,7 @@ export default function VaultCourseWorkspace({
   status,
 }) {
   return (
-    <motion.div
-      {...pageReveal}
-      className="grid h-[calc(100dvh-4.75rem)] min-h-0 grid-rows-[auto_minmax(0,1fr)] gap-3 overflow-hidden lg:h-[calc(100dvh-4.5rem)]"
-    >
+    <div className="grid h-[calc(100dvh-4.75rem)] min-h-0 grid-rows-[auto_minmax(0,1fr)] gap-3 overflow-hidden lg:h-[calc(100dvh-4.5rem)]">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
           <button
@@ -123,9 +119,10 @@ export default function VaultCourseWorkspace({
           </div>
         </div>
 
-        <div
-          className={`grid h-full min-h-0 items-stretch gap-3 ${aiDrawerOpen ? "lg:grid-cols-[minmax(0,1fr)_minmax(340px,420px)]" : ""}`}
-        >
+        <SectionTransition sectionKey={`vault-${activeSection}`}>
+          <div
+            className={`grid h-full min-h-0 items-stretch gap-3 ${aiDrawerOpen ? "lg:grid-cols-[minmax(0,1fr)_minmax(340px,420px)]" : ""}`}
+          >
           <div className="h-full min-h-0 min-w-0">
             {sections.map((section) => {
               if (activeSection !== section.key) return null;
@@ -135,10 +132,8 @@ export default function VaultCourseWorkspace({
                 (item) => item.category === section.key,
               );
               return (
-                <motion.section
+                <section
                   key={section.key}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
                   className={`${card} flex h-full min-h-0 flex-col overflow-hidden`}
                 >
                   <div className="mb-4 flex shrink-0 items-center justify-between gap-3">
@@ -363,19 +358,20 @@ export default function VaultCourseWorkspace({
                       )}
                     </div>
                   )}
-                </motion.section>
+                </section>
               );
             })}
           </div>
           {renderAiDrawer()}
-        </div>
+          </div>
+        </SectionTransition>
         {renderSharePanel()}
       </div>
 
       {renderCourseForm()}
       {renderResourceForm()}
       {renderLinkForm()}
-    </motion.div>
+    </div>
   );
 }
 
