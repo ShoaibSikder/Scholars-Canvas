@@ -152,6 +152,7 @@ class LoginView(APIView):
             return Response({"message": "Scholars Canvas is currently in maintenance mode."}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
         token, _ = Token.objects.get_or_create(user=user)
         record_login(user, request)
+        preferences, _ = UserPreferences.objects.get_or_create(user=user)
 
         return Response(
             {
@@ -167,6 +168,7 @@ class LoginView(APIView):
                     "is_staff": user.is_staff,
                     "is_superuser": user.is_superuser,
                 },
+                "preferences": UserPreferencesSerializer(preferences).data,
                 "token": token.key,
             }
         )

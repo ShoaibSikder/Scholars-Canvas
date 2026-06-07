@@ -110,9 +110,24 @@ export function AuthProvider({ children }) {
     document.documentElement.classList.toggle("sa-reduce-motion", Boolean(preferences.reduce_motion));
   }, [preferences.compact_mode, preferences.dark_mode, preferences.reduce_motion]);
 
-  const handleAuthSuccess = useCallback((user) => {
+  const handleAuthSuccess = useCallback((authPayload) => {
+    const user = authPayload?.user ?? authPayload;
+    const nextPreferences = authPayload?.preferences;
     if (user) {
       setProfile((current) => ({ ...current, ...user }));
+      loadedProfileRef.current = true;
+    } else {
+      loadedProfileRef.current = false;
+    }
+    if (nextPreferences) {
+      const savedThemePrefs = getStoredPreferences();
+      setPreferences({
+        ...defaultPreferences,
+        ...nextPreferences,
+        dark_mode: savedThemePrefs.dark_mode,
+        compact_mode: savedThemePrefs.compact_mode,
+        reduce_motion: savedThemePrefs.reduce_motion,
+      });
     }
     setProfileLoaded(true);
     setAuthNotice("");

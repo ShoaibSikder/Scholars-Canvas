@@ -54,9 +54,9 @@ export default function AuthRoutes() {
             setAuthMode("forgot");
             navigate("/forgot-password");
           }}
-          onLoginSuccess={(user) => {
+          onLoginSuccess={(response) => {
             authActionInProgressRef.current = true;
-            handleAuthSuccess(user);
+            handleAuthSuccess(response);
           }}
           authNotice={authNotice}
         />

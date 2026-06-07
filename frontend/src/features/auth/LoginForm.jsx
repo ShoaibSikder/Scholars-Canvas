@@ -44,7 +44,7 @@ export default function LoginForm({
         sessionStorage.setItem("scholars_canvas_token", response.token);
       }
 
-      onLoginSuccess?.(response.user);
+      onLoginSuccess?.(response);
     } catch (error) {
       setStatus(error.message || "Unable to sign in. Please check your email and password.");
     } finally {
