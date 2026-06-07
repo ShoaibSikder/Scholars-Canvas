@@ -102,15 +102,21 @@ export default function CommunicationPage({ user }) {
 
   useAutoClearStatus(status, setStatus);
 
-  const loadCommunication = async ({ force = false } = {}) => {
+  const loadCommunication = async ({ force = false, silent = false } = {}) => {
     if (!force && cached?.loaded) return;
-    setLoading(true);
+    if (!silent) setLoading(true);
     setStatus("");
     try {
       const response = await fetchCommunication();
-      const nextActiveConversation = activeConversation ?? response.conversations?.[0] ?? null;
+      const refreshedActiveConversation = activeConversation?.id
+        ? response.conversations?.find((conversation) => conversation.id === activeConversation.id)
+        : null;
+      const nextActiveConversation = refreshedActiveConversation ?? activeConversation ?? response.conversations?.[0] ?? null;
       setData(response);
-      setActiveConversation((current) => current ?? nextActiveConversation);
+      setActiveConversation((current) => {
+        if (!current) return nextActiveConversation;
+        return response.conversations?.find((conversation) => conversation.id === current.id) ?? current;
+      });
       setCached({
         loaded: true,
         data: response,
@@ -120,7 +126,7 @@ export default function CommunicationPage({ user }) {
     } catch (error) {
       setStatus(error.message || "Unable to load communication.");
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
@@ -486,7 +492,7 @@ export default function CommunicationPage({ user }) {
       setStatus("Friend request sent.");
       setQuery("");
       setSearchResults([]);
-      loadCommunication({ force: true });
+      loadCommunication({ force: true, silent: true });
     } catch (error) {
       setStatus(error.message || "Unable to send request.");
     }
@@ -502,7 +508,7 @@ export default function CommunicationPage({ user }) {
             ? "Friend request cancelled."
             : "Friend request rejected.",
       );
-      loadCommunication({ force: true });
+      loadCommunication({ force: true, silent: true });
     } catch (error) {
       setStatus(error.message || "Unable to update request.");
     }
@@ -514,7 +520,7 @@ export default function CommunicationPage({ user }) {
       setActiveConversation(response.conversation);
       setActiveTab("chat");
       setMobileChatOpen(true);
-      loadCommunication({ force: true });
+      loadCommunication({ force: true, silent: true });
     } catch (error) {
       setStatus(error.message || "Unable to open chat.");
     }
@@ -565,7 +571,7 @@ export default function CommunicationPage({ user }) {
         }
         return [...current, response.message];
       });
-      loadCommunication({ force: true });
+      loadCommunication({ force: true, silent: true });
     } catch (error) {
       setStatus(error.message || "Unable to send message.");
     }
@@ -600,7 +606,7 @@ export default function CommunicationPage({ user }) {
         ),
       );
       cancelEditMessage();
-      loadCommunication({ force: true });
+      loadCommunication({ force: true, silent: true });
     } catch (error) {
       setStatus(error.message || "Unable to edit message.");
     }
@@ -620,7 +626,7 @@ export default function CommunicationPage({ user }) {
         ),
       );
       setOpenMessageMenuId(null);
-      loadCommunication({ force: true });
+      loadCommunication({ force: true, silent: true });
     } catch (error) {
       setStatus(error.message || "Unable to unsend message.");
     }
