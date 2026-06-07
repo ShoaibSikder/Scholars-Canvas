@@ -54,7 +54,7 @@ services:
       - key: OPENROUTER_API_KEY
         sync: false
       - key: GROQ_MODEL
-        value: llama-3.3-70b-versatile
+        sync: false
       - key: OPENROUTER_MODELS
         sync: false
       - key: OPENROUTER_SITE_URL
