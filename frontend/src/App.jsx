@@ -4,7 +4,7 @@ import { BrowserRouter, Navigate, Route, Routes, useLocation, useOutletContext }
 import AppLayout from "./layouts/AppLayout";
 import AuthRoutes from "./routes/AuthRoutes";
 import ProtectedRoute from "./routes/ProtectedRoute";
-import { AuthProvider } from "./context/AuthContext";
+import { AuthProvider, useAuth } from "./context/AuthContext";
 import { NotificationsProvider } from "./context/NotificationsContext";
 import { SectionCacheProvider } from "./context/SectionCacheContext";
 import { getAdminTabFromPath } from "./routes/routeConfig";
@@ -199,15 +199,29 @@ function AppRoutes() {
   );
 }
 
+function SessionScopedProviders({ children }) {
+  const { isAuthenticated, profile, profileLoaded } = useAuth();
+  const sessionScope =
+    isAuthenticated && profileLoaded && profile?.id
+      ? `user-${profile.id}`
+      : "signed-out";
+
+  return (
+    <NotificationsProvider key={`notifications-${sessionScope}`}>
+      <SectionCacheProvider key={`sections-${sessionScope}`}>
+        {children}
+      </SectionCacheProvider>
+    </NotificationsProvider>
+  );
+}
+
 export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <NotificationsProvider>
-          <SectionCacheProvider>
-            <AppRoutes />
-          </SectionCacheProvider>
-        </NotificationsProvider>
+        <SessionScopedProviders>
+          <AppRoutes />
+        </SessionScopedProviders>
       </AuthProvider>
     </BrowserRouter>
   );
