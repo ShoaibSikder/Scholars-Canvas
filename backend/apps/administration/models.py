@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
+from django.core.cache import cache
 from django.db import models
 
 
@@ -25,6 +26,16 @@ class SystemSetting(models.Model):
 
     def __str__(self):
         return self.label or self.key
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        cache.delete(f"system-setting:{self.key}")
+
+    def delete(self, *args, **kwargs):
+        cache_key = f"system-setting:{self.key}"
+        result = super().delete(*args, **kwargs)
+        cache.delete(cache_key)
+        return result
 
 
 class Report(models.Model):
@@ -131,6 +142,9 @@ class AdminAuditLog(models.Model):
 
     class Meta:
         ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["actor", "-created_at"], name="audit_actor_created_idx"),
+        ]
 
     def __str__(self):
         return f"{self.actor} {self.action}"

@@ -71,6 +71,7 @@ def database_from_url(url):
         "HOST": parsed.hostname or "",
         "PORT": str(parsed.port or 5432),
         "OPTIONS": options,
+        "CONN_MAX_AGE": env_int("DB_CONN_MAX_AGE", 300),
     }
 
 
@@ -202,6 +203,7 @@ else:
             'PASSWORD': os.environ.get("POSTGRES_PASSWORD", "12345678"),
             'HOST': os.environ.get("POSTGRES_HOST", "localhost"),
             'PORT': os.environ.get("POSTGRES_PORT", "5432"),
+            'CONN_MAX_AGE': env_int("DB_CONN_MAX_AGE", 300),
         }
     }
 

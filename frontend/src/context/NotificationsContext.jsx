@@ -38,10 +38,11 @@ export function NotificationsProvider({ children }) {
       }
     };
 
-    loadNotifications();
+    const initialTimeoutId = window.setTimeout(loadNotifications, 1500);
     const intervalId = window.setInterval(loadNotifications, 60000);
     return () => {
       isMounted = false;
+      window.clearTimeout(initialTimeoutId);
       window.clearInterval(intervalId);
     };
   }, [isAuthenticated]);

@@ -2,6 +2,8 @@ services:
   - type: web
     name: scholars-canvas-backend
     runtime: python
+    region: singapore
+    plan: starter
     rootDir: backend
     autoDeployTrigger: commit
     buildCommand: bash build.sh
@@ -18,6 +20,8 @@ services:
         fromDatabase:
           name: scholars-canvas-db
           property: connectionString
+      - key: DB_CONN_MAX_AGE
+        value: "300"
       - key: REDIS_URL
         fromService:
           type: keyvalue
@@ -68,8 +72,11 @@ services:
 
   - type: keyvalue
     name: scholars-canvas-redis
+    region: singapore
+    plan: starter
     ipAllowList: []
 
 databases:
   - name: scholars-canvas-db
-    plan: free
+    region: singapore
+    plan: basic-256mb

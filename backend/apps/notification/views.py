@@ -1,3 +1,5 @@
+from django.db.models import Q
+from django.core.cache import cache
 from django.utils import timezone
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -70,7 +72,12 @@ def sync_generated_notifications(request):
     today = now.weekday()
     current_time = now.time()
 
-    overdue_tasks = Task.objects.filter(user=user, due_at__lt=now).exclude(status=Task.Status.DONE).order_by("due_at")[:8]
+    overdue_tasks = (
+        Task.objects.filter(user=user, due_at__lt=now)
+        .exclude(status=Task.Status.DONE)
+        .only("id", "title", "due_at")
+        .order_by("due_at")[:8]
+    )
     for task in overdue_tasks:
         upsert_notification(
             user,
@@ -84,7 +91,12 @@ def sync_generated_notifications(request):
         )
 
     due_soon_limit = now + timezone.timedelta(hours=24)
-    due_tasks = Task.objects.filter(user=user, due_at__gte=now, due_at__lte=due_soon_limit).exclude(status=Task.Status.DONE).order_by("due_at")[:8]
+    due_tasks = (
+        Task.objects.filter(user=user, due_at__gte=now, due_at__lte=due_soon_limit)
+        .exclude(status=Task.Status.DONE)
+        .only("id", "title", "due_at")
+        .order_by("due_at")[:8]
+    )
     for task in due_tasks:
         upsert_notification(
             user,
@@ -97,7 +109,11 @@ def sync_generated_notifications(request):
             },
         )
 
-    today_slots = RoutineSlot.objects.filter(user=user, day=today).order_by("start_time")
+    today_slots = (
+        RoutineSlot.objects.filter(user=user, day=today)
+        .only("id", "course_code", "room_number", "start_time", "end_time")
+        .order_by("start_time")
+    )
     current_class = today_slots.filter(start_time__lte=current_time, end_time__gt=current_time).first()
     if current_class:
         upsert_notification(
@@ -135,22 +151,48 @@ def is_important_notification(notification):
     return bool(source_key) and source_key.startswith(important_prefixes)
 
 
+def important_notification_query():
+    query = Q()
+    for prefix in IMPORTANT_GENERATED_PREFIXES + IMPORTANT_COMMUNICATION_PREFIXES + IMPORTANT_ADMIN_PREFIXES:
+        query |= Q(source_key__startswith=prefix)
+    return query
+
+
 class NotificationsView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        sync_generated_notifications(request)
+        sync_cache_key = f"notifications-sync:{request.user.pk}"
+        if not cache.get(sync_cache_key):
+            sync_generated_notifications(request)
+            cache.set(sync_cache_key, True, 60)
         limit, offset = parse_page_window(request.query_params, default_limit=PAGE_SIZE, max_limit=30)
 
-        notifications = Notification.objects.filter(owner=request.user).exclude(source_key="").order_by("-created_at", "-id")
-        important_notifications = [item for item in notifications if is_important_notification(item)]
-        total = len(important_notifications)
+        important_notifications = (
+            Notification.objects.filter(owner=request.user)
+            .filter(important_notification_query())
+            .only(
+                "id",
+                "title",
+                "message",
+                "type",
+                "page",
+                "url",
+                "course_id",
+                "resource_id",
+                "is_read",
+                "created_at",
+            )
+            .order_by("-created_at", "-id")
+        )
+        total = important_notifications.count()
+        unread_count = important_notifications.filter(is_read=False).count()
         items = important_notifications[offset : offset + limit]
 
         return Response(
             {
                 "notifications": [serialize_notification(item) for item in items],
-                "unread_count": sum(1 for item in important_notifications if not item.is_read),
+                "unread_count": unread_count,
                 "has_more": offset + limit < total,
                 "next_offset": offset + len(items),
             }

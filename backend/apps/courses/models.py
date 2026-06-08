@@ -32,6 +32,9 @@ class RoutineSlot(models.Model):
 
     class Meta:
         ordering = ["day", "start_time", "course_code"]
+        indexes = [
+            models.Index(fields=["user", "day", "start_time"], name="routine_user_day_start_idx"),
+        ]
 
     def __str__(self):
         return f"{self.course_code} - {self.course_title}"

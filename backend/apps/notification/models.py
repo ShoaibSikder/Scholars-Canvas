@@ -29,6 +29,11 @@ class Notification(models.Model):
 
     class Meta:
         ordering = ["-created_at", "-id"]
+        indexes = [
+            models.Index(fields=["owner", "-created_at"], name="notif_owner_created_idx"),
+            models.Index(fields=["owner", "source_key"], name="notif_owner_source_idx"),
+            models.Index(fields=["owner", "is_read"], name="notif_owner_read_idx"),
+        ]
         constraints = [
             models.UniqueConstraint(
                 fields=["owner", "source_key"],
