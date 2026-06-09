@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Mail, Lock, Eye, EyeOff, LogIn } from "lucide-react";
 
 import Button from "../../components/common/Button";
 import InPageStatus from "../../components/common/InPageStatus";
 import Input from "../../components/common/Input";
+import { WARMUP_ENDPOINT } from "../../api/endpoints";
 import { loginUser } from "./authService";
 
 export default function LoginForm({
@@ -21,6 +22,19 @@ export default function LoginForm({
   });
   const [status, setStatus] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    fetch(WARMUP_ENDPOINT, {
+      cache: "no-store",
+      signal: controller.signal,
+    }).catch(() => {
+      // The login request will still handle any remaining wake-up delay.
+    });
+
+    return () => controller.abort();
+  }, []);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
