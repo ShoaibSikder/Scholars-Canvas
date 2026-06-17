@@ -21,4 +21,3 @@ export const updateRoutineTimeRows = (payload) =>
     method: "PATCH",
     body: JSON.stringify(payload),
   });
-

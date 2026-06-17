@@ -104,11 +104,12 @@ export default function RoutinePage() {
         : [];
       const timeRowsAreDefault =
         JSON.stringify(timeRows) === JSON.stringify(defaultTimeRows);
-      const nextRows = storedTimeRows.length > 0
-        ? normalizeRows(storedTimeRows)
-        : timeRowsAreDefault
-        ? normalizeRows([...timeRows, ...slotTimes])
-        : normalizeRows(timeRows);
+      const nextRows =
+        storedTimeRows.length > 0
+          ? normalizeRows(storedTimeRows)
+          : timeRowsAreDefault
+            ? normalizeRows([...timeRows, ...slotTimes])
+            : normalizeRows(timeRows);
       setSlots(loadedSlots);
       setTimeRows(nextRows);
       setCached({ loaded: true, slots: loadedSlots, timeRows: nextRows });
