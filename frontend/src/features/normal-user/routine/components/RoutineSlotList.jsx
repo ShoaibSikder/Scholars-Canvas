@@ -1,4 +1,11 @@
-import { CalendarDays, Clock, Edit3, MapPin, Trash2, UserRound } from "lucide-react";
+import {
+  CalendarDays,
+  Clock,
+  Edit3,
+  MapPin,
+  Trash2,
+  UserRound,
+} from "lucide-react";
 
 import { classColors, fullDays } from "../routineConstants";
 import { formatTime, isSlotLiveAt } from "../routineUtils";
@@ -12,10 +19,35 @@ export default function RoutineSlotList({
 }) {
   if (!listedSlots.length) return null;
 
+  // Deduplicate courses by course_code - show only the first instance of each course
+  const uniqueCourses = [];
+  const courseCodeMap = new Map();
+
+  listedSlots.forEach((slot) => {
+    const courseCode = slot.course_code?.toUpperCase();
+    if (!courseCodeMap.has(courseCode)) {
+      courseCodeMap.set(courseCode, slot);
+      uniqueCourses.push(slot);
+    }
+  });
+
+  // Count occurrences of each course
+  const courseOccurrences = new Map();
+  listedSlots.forEach((slot) => {
+    const courseCode = slot.course_code?.toUpperCase();
+    courseOccurrences.set(
+      courseCode,
+      (courseOccurrences.get(courseCode) || 0) + 1,
+    );
+  });
+
   return (
     <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-      {listedSlots.map((slot) => {
+      {uniqueCourses.map((slot) => {
         const isLive = isSlotLiveAt(slot, clockNow);
+        const occurrences = courseOccurrences.get(
+          slot.course_code?.toUpperCase(),
+        );
 
         return (
           <article
@@ -27,11 +59,18 @@ export default function RoutineSlotList({
                 <h3 className="font-black">{slot.course_code}</h3>
                 <p className="text-sm font-bold">{slot.course_title}</p>
               </div>
-              {isLive ? (
-                <span className="rounded-full bg-emerald-500 px-2 py-1 text-xs font-black text-white">
-                  Live Now
-                </span>
-              ) : null}
+              <div className="flex flex-col items-end gap-2">
+                {isLive ? (
+                  <span className="rounded-full bg-emerald-500 px-2 py-1 text-xs font-black text-white">
+                    Live Now
+                  </span>
+                ) : null}
+                {occurrences > 1 ? (
+                  <span className="rounded-full bg-slate-300 px-2 py-1 text-xs font-black dark:bg-slate-600">
+                    {occurrences}x/week
+                  </span>
+                ) : null}
+              </div>
             </div>
             <div className="mt-4 grid gap-2 text-sm font-semibold">
               <span className="inline-flex items-center gap-2">
@@ -79,5 +118,3 @@ export default function RoutineSlotList({
     </div>
   );
 }
-
-

@@ -110,6 +110,7 @@ INSTALLED_APPS = [
     # Local Apps (Notice the 'apps.' prefix)
     'apps.accounts',
     'apps.courses',
+    'apps.routine',
     'apps.tasks',
     'apps.resources',
     'apps.notification',

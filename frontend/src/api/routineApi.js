@@ -16,4 +16,9 @@ export const deleteRoutineSlot = (id) =>
   request(`${APP_ENDPOINTS.routine}${id}/`, {
     method: "DELETE",
   });
+export const updateRoutineTimeRows = (payload) =>
+  request(APP_ENDPOINTS.routine, {
+    method: "PATCH",
+    body: JSON.stringify(payload),
+  });
 

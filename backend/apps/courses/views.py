@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.media_urls import request_media_url
+from apps.accounts.models import UserPreferences
 from apps.resources.models import VaultCourse, VaultResource
 from apps.tasks.models import StudySession, Task
 
@@ -221,35 +222,3 @@ class DashboardView(APIView):
         )
 
 
-class RoutineView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        slots = RoutineSlot.objects.filter(user=request.user)
-        serializer = RoutineSlotSerializer(slots, many=True)
-        return Response({"slots": serializer.data})
-
-    def post(self, request):
-        serializer = RoutineSlotSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save(user=request.user)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-
-class RoutineDetailView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get_object(self, user, pk):
-        return get_object_or_404(RoutineSlot, user=user, pk=pk)
-
-    def patch(self, request, pk):
-        slot = self.get_object(request.user, pk)
-        serializer = RoutineSlotSerializer(slot, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data)
-
-    def delete(self, request, pk):
-        slot = self.get_object(request.user, pk)
-        slot.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)

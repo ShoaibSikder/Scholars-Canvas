@@ -106,6 +106,7 @@ class UserPreferencesSerializer(serializers.ModelSerializer):
             "study_reminders",
             "compact_mode",
             "reduce_motion",
+            "routine_time_rows",
             "profile_visibility",
             "language",
             "timezone",

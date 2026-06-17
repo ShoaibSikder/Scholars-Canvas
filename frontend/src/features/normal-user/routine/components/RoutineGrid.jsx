@@ -1,10 +1,6 @@
 import { Edit3, Plus, Trash2, X } from "lucide-react";
 
-import {
-  days,
-  rowHeight,
-  slotColors,
-} from "../routineConstants";
+import { days, rowHeight, slotColors } from "../routineConstants";
 import {
   findSlotForCell,
   formatTime,
@@ -56,7 +52,8 @@ export default function RoutineGrid({
   const dayRowHeight = oldTimeRowHeight;
   const dayAxisWidth = 110;
   const timeAxisMinWidth = Math.max(520, timeIntervals.length * 86);
-  const widthPercent = (width) => `${Math.max(0, (width / scheduleHeight) * 100)}%`;
+  const widthPercent = (width) =>
+    `${Math.max(0, (width / scheduleHeight) * 100)}%`;
 
   const renderEmptyCell = (dayIndex, interval, rowIndex) => {
     const { time, height } = interval;
@@ -98,10 +95,11 @@ export default function RoutineGrid({
   const renderSlotBlock = (slot) => {
     const isLive = isSlotLiveAt(slot, clockNow);
     const slotDetails = getSlotDetails(slot);
-    const left = ((toMinutes(slot.start_time) - scheduleStart) / 60) * rowHeight;
+    const left =
+      ((toMinutes(slot.start_time) - scheduleStart) / 60) * rowHeight;
     const width =
       ((toMinutes(slot.end_time) - toMinutes(slot.start_time)) / 60) *
-        rowHeight;
+      rowHeight;
 
     return (
       <div
@@ -177,10 +175,7 @@ export default function RoutineGrid({
     const daySlots = slots.filter((slot) => Number(slot.day) === dayIndex);
 
     return (
-      <div
-        key={dayIndex}
-        className="contents"
-      >
+      <div key={dayIndex} className="contents">
         <div className="grid place-items-center border-t border-slate-200 bg-gradient-to-br from-slate-100 via-white to-blue-50 p-2 dark:border-slate-800 dark:from-slate-900 dark:via-slate-950 dark:to-blue-950/30">
           <span
             className={`inline-flex min-h-8 min-w-16 items-center justify-center rounded-lg px-3 text-sm font-black ${dayIndex === todayIndex ? "scale-105 bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/30" : "text-slate-700 dark:text-slate-200"}`}
@@ -208,9 +203,7 @@ export default function RoutineGrid({
   };
 
   return (
-    <section
-      className="overflow-hidden rounded-2xl border border-blue-100/80 bg-gradient-to-br from-white via-slate-50 to-blue-50/70 p-3 shadow-2xl shadow-blue-500/10 backdrop-blur-xl dark:border-slate-800 dark:from-slate-900 dark:via-slate-950 dark:to-blue-950/25"
-    >
+    <section className="overflow-hidden rounded-2xl border border-blue-100/80 bg-gradient-to-br from-white via-slate-50 to-blue-50/70 p-3 shadow-2xl shadow-blue-500/10 backdrop-blur-xl dark:border-slate-800 dark:from-slate-900 dark:via-slate-950 dark:to-blue-950/25">
       {loading ? (
         <div className="py-12 text-center text-sm font-bold text-slate-500">
           Loading routine...
@@ -218,63 +211,65 @@ export default function RoutineGrid({
       ) : (
         <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_auto]">
           <div className="overflow-x-auto">
-          <div className="min-w-[640px]">
-            <div
-              className="grid overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-br from-white to-blue-50/50 shadow-inner shadow-blue-500/5 dark:border-slate-800 dark:bg-gradient-to-br dark:from-slate-950 dark:to-blue-950/30"
-              style={{ gridTemplateColumns: `${dayAxisWidth}px minmax(${timeAxisMinWidth}px,1fr)` }}
-            >
-              <div className="border-b border-slate-200 bg-gradient-to-br from-slate-100 via-white to-blue-50 p-2.5 text-center text-xs font-black uppercase tracking-wide text-slate-500 dark:border-slate-800 dark:from-slate-900 dark:via-slate-950 dark:to-blue-950/30 dark:text-slate-300">
-                DAY / TIME
-              </div>
+            <div className="min-w-[640px]">
               <div
-                className="flex border-b border-l border-slate-200 bg-[linear-gradient(180deg,rgba(255,255,255,0.75),rgba(239,246,255,0.55))] dark:border-slate-800 dark:bg-slate-950/55"
-                style={{ minWidth: timeAxisMinWidth }}
+                className="grid overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-br from-white to-blue-50/50 shadow-inner shadow-blue-500/5 dark:border-slate-800 dark:bg-gradient-to-br dark:from-slate-950 dark:to-blue-950/30"
+                style={{
+                  gridTemplateColumns: `${dayAxisWidth}px minmax(${timeAxisMinWidth}px,1fr)`,
+                }}
               >
-                {leadingOffset > 0 ? (
-                  <div
-                    className="min-h-16 shrink-0 border-l border-slate-200/80 dark:border-slate-800/80"
-                    style={{ width: widthPercent(leadingOffset) }}
-                  />
-                ) : null}
-                {timeIntervals.map((interval, rowIndex) => (
-                  <div
-                    key={`${interval.time}-${rowIndex}`}
-                    className="grid min-h-16 shrink-0 place-items-center border-l border-slate-200/80 bg-gradient-to-br from-slate-100 via-white to-blue-50 p-2 dark:border-slate-800/80 dark:from-slate-900 dark:via-slate-950 dark:to-blue-950/30"
-                    style={{ width: widthPercent(interval.height) }}
-                  >
-                    <div className="relative grid w-full gap-1">
-                      <input
-                        type="time"
-                        value={interval.time}
-                        onChange={(event) =>
-                          handleTimeChange(rowIndex, event.target.value)
-                        }
-                        disabled={!isEditingRoutine}
-                        className={`min-w-0 rounded-lg border border-transparent bg-transparent px-1 text-center text-sm font-black text-slate-700 outline-none dark:text-slate-200 ${isEditingRoutine ? "focus:border-blue-400 focus:bg-white dark:focus:bg-slate-950" : "cursor-default"}`}
-                        aria-label={`Edit time row ${rowIndex + 1}`}
-                      />
-                      {isEditingRoutine ? (
-                        <button
-                          type="button"
-                          className="relative z-20 mx-auto grid size-7 shrink-0 place-items-center rounded-lg bg-white text-rose-500 shadow-sm transition hover:bg-rose-50 dark:bg-slate-950/80 dark:hover:bg-rose-500/10"
-                          onMouseDown={(event) => event.preventDefault()}
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            removeTimeRow(interval.time);
-                          }}
-                          aria-label={`Remove ${formatTime(interval.time)} time slot`}
-                        >
-                          <X size={14} />
-                        </button>
-                      ) : null}
+                <div className="border-b border-slate-200 bg-gradient-to-br from-slate-100 via-white to-blue-50 p-2.5 text-center text-xs font-black uppercase tracking-wide text-slate-500 dark:border-slate-800 dark:from-slate-900 dark:via-slate-950 dark:to-blue-950/30 dark:text-slate-300">
+                  DAY / TIME
+                </div>
+                <div
+                  className="flex border-b border-l border-slate-200 bg-[linear-gradient(180deg,rgba(255,255,255,0.75),rgba(239,246,255,0.55))] dark:border-slate-800 dark:bg-slate-950/55"
+                  style={{ minWidth: timeAxisMinWidth }}
+                >
+                  {leadingOffset > 0 ? (
+                    <div
+                      className="min-h-16 shrink-0 border-l border-slate-200/80 dark:border-slate-800/80"
+                      style={{ width: widthPercent(leadingOffset) }}
+                    />
+                  ) : null}
+                  {timeIntervals.map((interval, rowIndex) => (
+                    <div
+                      key={`${interval.time}-${rowIndex}`}
+                      className="grid min-h-16 shrink-0 place-items-center border-l border-slate-200/80 bg-gradient-to-br from-slate-100 via-white to-blue-50 p-2 dark:border-slate-800/80 dark:from-slate-900 dark:via-slate-950 dark:to-blue-950/30"
+                      style={{ width: widthPercent(interval.height) }}
+                    >
+                      <div className="relative grid w-full gap-1">
+                        <input
+                          type="time"
+                          value={interval.time}
+                          onChange={(event) =>
+                            handleTimeChange(rowIndex, event.target.value)
+                          }
+                          disabled={!isEditingRoutine}
+                          className={`min-w-0 rounded-lg border border-transparent bg-transparent px-1 text-center text-sm font-black text-slate-700 outline-none dark:text-slate-200 ${isEditingRoutine ? "focus:border-blue-400 focus:bg-white dark:focus:bg-slate-950" : "cursor-default"}`}
+                          aria-label={`Edit time row ${rowIndex + 1}`}
+                        />
+                        {isEditingRoutine ? (
+                          <button
+                            type="button"
+                            className="relative z-20 mx-auto grid size-7 shrink-0 place-items-center rounded-lg bg-white text-rose-500 shadow-sm transition hover:bg-rose-50 dark:bg-slate-950/80 dark:hover:bg-rose-500/10"
+                            onMouseDown={(event) => event.preventDefault()}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              removeTimeRow(interval.time);
+                            }}
+                            aria-label={`Remove ${formatTime(interval.time)} time slot`}
+                          >
+                            <X size={14} />
+                          </button>
+                        ) : null}
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
 
-              {visibleDays.map(renderDayRow)}
+                {visibleDays.map(renderDayRow)}
+              </div>
             </div>
-          </div>
           </div>
           {isEditingRoutine ? (
             <button
@@ -291,5 +286,3 @@ export default function RoutineGrid({
     </section>
   );
 }
-
-

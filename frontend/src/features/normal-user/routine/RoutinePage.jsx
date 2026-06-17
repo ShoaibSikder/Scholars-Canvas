@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { useAlert } from "../../../components/common/AlertProvider";
 import InPageStatus from "../../../components/common/InPageStatus";
@@ -11,6 +11,7 @@ import {
   deleteRoutineSlot,
   fetchRoutine,
   updateRoutineSlot,
+  updateRoutineTimeRows,
 } from "../../../api";
 import CurrentClassBanner from "./components/CurrentClassBanner";
 import RoutineFormModal from "./components/RoutineFormModal";
@@ -39,7 +40,9 @@ export default function RoutinePage() {
   const { confirm } = useAlert();
   const { cached, setCached } = useSectionCache("user.routine");
   const [slots, setSlots] = useState(() => cached?.slots ?? []);
-  const [timeRows, setTimeRows] = useState(() => cached?.timeRows ?? defaultTimeRows);
+  const [timeRows, setTimeRows] = useState(
+    () => cached?.timeRows ?? defaultTimeRows,
+  );
   const [loading, setLoading] = useState(() => !cached?.loaded);
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState("");
@@ -54,8 +57,7 @@ export default function RoutinePage() {
   useAutoClearStatus(status, setStatus);
 
   const todayIndex = getTodayIndex(clockNow);
-  const visibleDays =
-    view === "week" ? routineDayOrder : [selectedDay];
+  const visibleDays = view === "week" ? routineDayOrder : [selectedDay];
   const visibleSlots = useMemo(
     () => slots.filter((slot) => visibleDays.includes(Number(slot.day))),
     [slots, visibleDays],
@@ -93,13 +95,20 @@ export default function RoutinePage() {
     try {
       const payload = await fetchRoutine();
       const loadedSlots = payload?.slots ?? [];
-      const nextRows = normalizeRows([
-        ...timeRows,
-        ...loadedSlots.flatMap((slot) => [
-          toInputTime(slot.start_time),
-          toInputTime(slot.end_time),
-        ]),
+      const slotTimes = loadedSlots.flatMap((slot) => [
+        toInputTime(slot.start_time),
+        toInputTime(slot.end_time),
       ]);
+      const storedTimeRows = Array.isArray(payload?.time_rows)
+        ? payload.time_rows
+        : [];
+      const timeRowsAreDefault =
+        JSON.stringify(timeRows) === JSON.stringify(defaultTimeRows);
+      const nextRows = storedTimeRows.length > 0
+        ? normalizeRows(storedTimeRows)
+        : timeRowsAreDefault
+        ? normalizeRows([...timeRows, ...slotTimes])
+        : normalizeRows(timeRows);
       setSlots(loadedSlots);
       setTimeRows(nextRows);
       setCached({ loaded: true, slots: loadedSlots, timeRows: nextRows });
@@ -146,6 +155,26 @@ export default function RoutinePage() {
     setFormOpen(true);
     setStatus("");
   };
+
+  const autoFillCourseDetails = useCallback(
+    (courseCode) => {
+      const existingCourse = slots.find(
+        (slot) =>
+          slot.course_code?.trim().toUpperCase() ===
+          courseCode.trim().toUpperCase(),
+      );
+      if (existingCourse) {
+        return {
+          course_title: existingCourse.course_title || "",
+          room_number: existingCourse.room_number || "",
+          faculty_initial: existingCourse.faculty_initial || "",
+          color: existingCourse.color || "blue",
+        };
+      }
+      return null;
+    },
+    [slots],
+  );
 
   const openEditForm = (slot) => {
     if (!isEditingRoutine) return;
@@ -197,9 +226,13 @@ export default function RoutinePage() {
         );
         setStatus("Course added to routine.");
       }
-      setTimeRows((current) =>
-        normalizeRows([...current, payload.start_time, payload.end_time]),
-      );
+      const updatedRows = normalizeRows([
+        ...timeRows,
+        payload.start_time,
+        payload.end_time,
+      ]);
+      setTimeRows(updatedRows);
+      persistTimeRows(updatedRows);
       setFormOpen(false);
       setEditingSlot(null);
     } catch (error) {
@@ -231,28 +264,43 @@ export default function RoutinePage() {
     }
   };
 
+  const persistTimeRows = async (rows) => {
+    try {
+      await updateRoutineTimeRows({ time_rows: rows });
+    } catch (error) {
+      setStatus(error.message || "Unable to save routine layout.");
+    }
+  };
+
   const handleTimeChange = (index, value) => {
     if (!isEditingRoutine) return;
 
     const nextRows = [...timeRows];
     nextRows[index] = value;
-    setTimeRows(normalizeRows(nextRows));
+    const normalizedRows = normalizeRows(nextRows);
+    setTimeRows(normalizedRows);
+    persistTimeRows(normalizedRows);
   };
 
   const addTimeRow = () => {
     if (!isEditingRoutine) return;
 
     const last = timeRows[timeRows.length - 1] ?? "07:00";
-    setTimeRows((current) =>
-      normalizeRows([...current, fromMinutes(toMinutes(last) + 60)]),
-    );
+    const nextRows = normalizeRows([
+      ...timeRows,
+      fromMinutes(toMinutes(last) + 60),
+    ]);
+    setTimeRows(nextRows);
+    persistTimeRows(nextRows);
   };
 
   const removeTimeRow = (time) => {
     if (!isEditingRoutine || timeRows.length <= 1) return;
 
-    setTimeRows((current) => current.filter((row) => row !== time));
+    const nextRows = timeRows.filter((row) => row !== time);
+    setTimeRows(nextRows);
     setStatus("");
+    persistTimeRows(nextRows);
   };
 
   if (loading) {
@@ -285,6 +333,7 @@ export default function RoutinePage() {
             onSubmit={handleSubmit}
             saving={saving}
             setForm={setForm}
+            autoFillCourseDetails={autoFillCourseDetails}
           />
         ) : null}
 
@@ -319,5 +368,3 @@ export default function RoutinePage() {
     </div>
   );
 }
-
-

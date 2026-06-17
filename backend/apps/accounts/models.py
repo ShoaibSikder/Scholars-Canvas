@@ -95,6 +95,7 @@ class UserPreferences(models.Model):
     study_reminders = models.BooleanField(default=True)
     compact_mode = models.BooleanField(default=False)
     reduce_motion = models.BooleanField(default=False)
+    routine_time_rows = models.JSONField(default=list, blank=True)
     profile_visibility = models.CharField(
         max_length=16,
         choices=[("friends", "Friends only"), ("campus", "Same university"), ("private", "Private")],

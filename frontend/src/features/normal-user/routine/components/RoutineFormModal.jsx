@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import { CalendarDays, X } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -21,7 +22,34 @@ export default function RoutineFormModal({
   onSubmit,
   saving,
   setForm,
+  autoFillCourseDetails,
 }) {
+  const handleCourseCodeChange = useCallback(
+    (event) => {
+      const courseCode = event.target.value;
+
+      // Auto-fill course details if this course already exists
+      if (autoFillCourseDetails && courseCode.trim()) {
+        const filledDetails = autoFillCourseDetails(courseCode);
+        if (filledDetails) {
+          setForm({
+            ...form,
+            course_code: courseCode,
+            course_title: filledDetails.course_title,
+            room_number: filledDetails.room_number,
+            faculty_initial: filledDetails.faculty_initial,
+            color: filledDetails.color,
+          });
+          return;
+        }
+      }
+
+      // If no auto-fill, just update the course code
+      setForm({ ...form, course_code: courseCode });
+    },
+    [form, setForm, autoFillCourseDetails],
+  );
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -55,7 +83,9 @@ export default function RoutineFormModal({
               <span className={label}>Day</span>
               <select
                 value={form.day}
-                onChange={(event) => setForm({ ...form, day: event.target.value })}
+                onChange={(event) =>
+                  setForm({ ...form, day: event.target.value })
+                }
                 className={input}
               >
                 {routineDayOptions.map((day) => (
@@ -95,9 +125,7 @@ export default function RoutineFormModal({
               <span className={label}>Course Code</span>
               <input
                 value={form.course_code}
-                onChange={(event) =>
-                  setForm({ ...form, course_code: event.target.value })
-                }
+                onChange={handleCourseCodeChange}
                 className={input}
                 placeholder="CSE-221"
                 required
@@ -162,7 +190,11 @@ export default function RoutineFormModal({
             <button type="submit" className={primaryBtn} disabled={saving}>
               <CalendarDays size={18} />
               <span>
-                {saving ? "Saving..." : editingSlot ? "Save Changes" : "Add Course"}
+                {saving
+                  ? "Saving..."
+                  : editingSlot
+                    ? "Save Changes"
+                    : "Add Course"}
               </span>
             </button>
             <button type="button" className={secondaryBtn} onClick={onClose}>
@@ -174,5 +206,3 @@ export default function RoutineFormModal({
     </motion.div>
   );
 }
-
-
