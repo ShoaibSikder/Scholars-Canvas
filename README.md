@@ -14,7 +14,6 @@ The project uses a Django REST backend and a React + Vite frontend. Normal users
 ## Table Of Contents
 
 - [Screenshots](#screenshots)
-- [How Codex and GPT-5.6 Helped Throughout the Project](#how-codex-and-gpt-56-helped-throughout-the-project)
 - [Core Features](#core-features)
 - [Role-Based Access](#role-based-access)
 - [Tech Stack](#tech-stack)
@@ -26,32 +25,6 @@ The project uses a Django REST backend and a React + Vite frontend. Normal users
 - [Installation And Setup](#installation-and-setup)
 - [Testing And Verification](#testing-and-verification)
 - [Development Notes](#development-notes)
-
-## How Codex and GPT-5.6 Helped Throughout the Project
-
-Codex and GPT-5.6 were used as practical development companions throughout the lifecycle of this project. They helped turn ideas into working features faster by supporting planning, implementation, debugging, and documentation in a structured way.
-
-### How Codex was used
-
-- Helped structure the backend and frontend architecture for the student and admin workspaces.
-- Generated reusable code patterns for Django REST APIs, React components, routing, and state handling.
-- Assisted with implementing major modules such as authentication, role-based access, task management, routines, AI lab features, communication tools, and admin controls.
-- Speeded up debugging by explaining errors, suggesting fixes, and helping refine logic when bugs appeared during development.
-- Improved code readability and maintainability by proposing cleaner organization, better naming, and more consistent implementation patterns.
-- Supported documentation efforts by helping draft clear project explanations, setup steps, and technical summaries.
-
-### How GPT-5.6 was used
-
-- Assisted with feature planning and breaking down complex requirements into smaller development steps.
-- Helped brainstorm UI/UX flows for dashboards, workflows, and user interactions across different roles.
-- Suggested better approaches for handling business logic, data flow, and system behavior in a scalable way.
-- Helped review and improve written content, including README sections, technical notes, and explanations of project features.
-- Used as a thinking partner for refining ideas, comparing alternative solutions, and making implementation decisions more efficiently.
-- Supported the overall development process by reducing time spent on repetitive tasks and allowing focus to remain on building the application thoughtfully.
-
-### Overall impact
-
-Together, Codex and GPT-5.6 helped accelerate the build of Scholars Canvas while improving consistency, problem-solving speed, and the quality of the final product. They were especially valuable in managing a large full-stack project with many interconnected features, roles, and modules.
 
 ## Screenshots
 
