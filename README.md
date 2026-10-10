@@ -771,4 +771,4 @@ Common route smoke checks:
 
 ## License
 
-This project is licensed under the GNU Affero General Public License v3.0. See `LICENSE` for the full license text.
+This project is licensed under the MIT LICENSE. See `LICENSE` for the full license text.
