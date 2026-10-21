@@ -1,6 +1,6 @@
 # Scholars Canvas
 
-![License](https://img.shields.io/badge/License-AGPL--3.0-blue)
+![License](https://img.shields.io/badge/License-MIT-blue)
 ![Frontend](https://img.shields.io/badge/Frontend-React-61DAFB)
 ![Backend](https://img.shields.io/badge/Backend-Django-0C4B33)
 ![API](https://img.shields.io/badge/API-Django%20REST%20Framework-red)
@@ -771,4 +771,4 @@ Common route smoke checks:
 
 ## License
 
-This project is licensed under the GNU Affero General Public License v3.0. See `LICENSE` for the full license text.
+This project is licensed under the MIT LICENSE. See `LICENSE` for the full license text.
