@@ -670,9 +670,9 @@ VITE_API_BASE_URL=http://localhost:8000/api
 
 - Python 3.11+
 - Node.js 20+
-- PostgreSQL
+- Supabase project and PostgreSQL connection string
 - Tesseract OCR installed locally if OCR features are needed
-- Supabase project/bucket if using Supabase media storage
+- Supabase storage bucket if using Supabase media storage
 - AI provider keys for AI Lab features
 
 ### Backend Setup
@@ -687,6 +687,8 @@ python manage.py migrate
 python manage.py createsuperuser
 python manage.py runserver
 ```
+
+Set `DATABASE_URL` in `backend/.env` to the Supabase PostgreSQL connection string from your Supabase dashboard before running migrations. The backend requires this setting in development and production and does not connect to a local PostgreSQL server.
 
 Backend default URL:
 
