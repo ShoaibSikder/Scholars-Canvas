@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /login
+Allow: /register
+Disallow: /user/
+Disallow: /admin/
+Disallow: /forgot-password
+Disallow: /reset-password
+
+Sitemap: https://scholarscanvas.vercel.app/sitemap.xml
