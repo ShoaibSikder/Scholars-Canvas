@@ -1,4 +1,4 @@
-<p align="center"> <img src="frontend/public/favicon.svg" alt="Fotabo Hashi logo" width="112" /> </p>
+<p align="center"> <img src="frontend/public/favicon.svg" alt="logo" width="112" /> </p>
 <h1 align="center">Scholars Canvas</h1>
 
 <p align="center"><strong>Plan your studies. Organize your resources. Keep learning.</strong><br />A student workspace for academic planning, study tools, and collaboration.</p>
