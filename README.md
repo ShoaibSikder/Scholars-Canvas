@@ -1,22 +1,27 @@
-# Scholars Canvas
+<h1 align="center">Scholars Canvas</h1>
 
-![License](https://img.shields.io/badge/License-MIT-blue)
-![Frontend](https://img.shields.io/badge/Frontend-React-61DAFB)
-![Backend](https://img.shields.io/badge/Backend-Django-0C4B33)
-![API](https://img.shields.io/badge/API-Django%20REST%20Framework-red)
-![Database](https://img.shields.io/badge/Database-PostgreSQL-336791)
-![AI](https://img.shields.io/badge/AI-Groq%20%7C%20OpenRouter-purple)
+<p align="center"><strong>Plan your studies. Organize your resources. Keep learning.</strong><br />A student workspace for academic planning, study tools, and collaboration.</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white" alt="React 19" />
+  <img src="https://img.shields.io/badge/Django-6-0C4B33?logo=django&logoColor=white" alt="Django 6" />
+  <img src="https://img.shields.io/badge/API-Django%20REST%20Framework-red" alt="Django REST Framework" />
+  <img src="https://img.shields.io/badge/Database-PostgreSQL-336791?logo=postgresql&logoColor=white" alt="PostgreSQL" />
+  <img src="https://img.shields.io/badge/AI-Groq%20%7C%20OpenRouter-purple" alt="Groq and OpenRouter" />
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="MIT License" /></a>
+</p>
 
 StudentAssistant is a full-stack, role-based academic productivity platform for university students and administrators. It combines course resource management, routine planning, task tracking, AI-powered study tools, communication, notifications, analytics, moderation, and system administration in one web application.
 
 The project uses a Django REST backend and a React + Vite frontend. Normal users get a student workspace, while staff/superusers get a dedicated administration workspace with separate routing, sidebar sections, API controls, audit history, and moderation tools.
 
-## Table Of Contents
+## Contents
 
 - [Screenshots](#screenshots)
 - [Core Features](#core-features)
 - [Role-Based Access](#role-based-access)
 - [Tech Stack](#tech-stack)
+- [Architecture](#architecture)
 - [Project Structure](#project-structure)
 - [Backend Apps](#backend-apps)
 - [Frontend Architecture](#frontend-architecture)
@@ -24,6 +29,7 @@ The project uses a Django REST backend and a React + Vite frontend. Normal users
 - [Environment Variables](#environment-variables)
 - [Installation And Setup](#installation-and-setup)
 - [Testing And Verification](#testing-and-verification)
+- [Deployment](#deployment)
 - [Development Notes](#development-notes)
 
 ## Screenshots
@@ -399,6 +405,30 @@ Admin users can access admin routes and are redirected away from normal-user pag
 - pytesseract
 - BeautifulSoup
 
+## Architecture
+
+```mermaid
+flowchart LR
+    Browser[Browser]
+    Web[React and Vite frontend on Vercel]
+    API[Django REST API and Channels on Render]
+    DB[(Supabase PostgreSQL)]
+    Redis[(Render Redis)]
+    Storage[Supabase Storage]
+    AI[Groq and OpenRouter]
+    Email[Resend]
+
+    Browser --> Web
+    Web -->|HTTPS| API
+    API --> DB
+    API --> Redis
+    API --> Storage
+    API --> AI
+    API --> Email
+```
+
+The React application separates normal-user and administration workspaces. Django provides the REST API and asynchronous features, while the backend enforces permissions independently of frontend route guards. `render.yaml` defines the backend and Redis services; the frontend is built and hosted separately.
+
 ## Project Structure
 
 ```text
@@ -756,6 +786,18 @@ Common route smoke checks:
 /admin/settings
 ```
 
+## Deployment
+
+The repository includes a Render Blueprint at [`render.yaml`](render.yaml) for the Django backend and Redis. Deploy it from the repository root, then configure the Blueprint's unsynchronized environment variables before exposing the service:
+
+1. Provide a Supabase PostgreSQL `DATABASE_URL` and the Supabase URL, key, and media-bucket settings.
+2. Set `CORS_ALLOWED_ORIGINS`, `CSRF_TRUSTED_ORIGINS`, and `FRONTEND_URL` to the deployed frontend origin. Keep `ALLOWED_HOSTS` restricted to the backend hostname.
+3. Configure the Groq/OpenRouter and Resend credentials for the AI and email features that should be enabled.
+4. Deploy `frontend/` as a Vite site on a static host such as Vercel. Build with `npm run build`, publish `dist/`, and set `VITE_API_BASE_URL` to the deployed backend API.
+5. Confirm the backend health endpoint at `/health/`, then verify sign-in, protected user and admin routes, resource uploads, AI features, and communication from the deployed frontend.
+
+Keep service keys and database credentials in the hosting provider's environment settings. Do not put them in frontend `VITE_*` variables, which are public in the browser bundle.
+
 ## Development Notes
 
 - The frontend uses React Router routes instead of manually switching pages in `App.jsx`.
@@ -774,3 +816,7 @@ Common route smoke checks:
 ## License
 
 This project is licensed under the MIT LICENSE. See `LICENSE` for the full license text.
+
+---
+
+Created by [@shoaibsikder](https://shoaibsikderportfolio.vercel.app) to help students plan, organize, and make progress in their studies.
