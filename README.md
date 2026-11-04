@@ -703,7 +703,7 @@ VITE_API_BASE_URL=http://localhost:8000/api
 - Node.js 20+
 - Supabase project and PostgreSQL connection string
 - Tesseract OCR installed locally if OCR features are needed
-- Supabase storage bucket if using Supabase media storage
+- Supabase Storage bucket (required for uploaded files)
 - AI provider keys for AI Lab features
 
 ### Backend Setup
@@ -719,7 +719,7 @@ python manage.py createsuperuser
 python manage.py runserver
 ```
 
-Set `DATABASE_URL` in `backend/.env` to the Supabase PostgreSQL connection string from your Supabase dashboard before running migrations. The backend requires this setting in development and production and does not connect to a local PostgreSQL server.
+Set `DATABASE_URL` in `backend/.env` to the Supabase PostgreSQL connection string from your Supabase dashboard before running migrations. Local SQLite and local PostgreSQL are not supported. Configure `SUPABASE_URL`, `SUPABASE_KEY`, and `SUPABASE_MEDIA_BUCKET` for the same Supabase project; the configured bucket is required for all uploaded files.
 
 Backend default URL:
 

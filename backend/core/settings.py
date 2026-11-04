@@ -54,6 +54,11 @@ def database_from_url(url):
     parsed = urlparse(url)
     if parsed.scheme not in {"postgres", "postgresql"}:
         raise ImproperlyConfigured("DATABASE_URL must use postgres:// or postgresql://")
+    host = (parsed.hostname or "").lower()
+    if not host.endswith(".supabase.co") and ".pooler.supabase.com" not in host:
+        raise ImproperlyConfigured(
+            "DATABASE_URL must point to a Supabase PostgreSQL host."
+        )
 
     query = parse_qs(parsed.query)
     sslmode = (query.get("sslmode") or [None])[0]
@@ -269,9 +274,19 @@ RESEND_FROM_EMAIL = os.environ.get("RESEND_FROM_EMAIL", "onboarding@resend.dev")
 
 SUPABASE_URL = os.environ.get("SUPABASE_URL", "")
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "")
-SUPABASE_MEDIA_BUCKET = os.environ.get("SUPABASE_MEDIA_BUCKET", "StudyMaterials")
+SUPABASE_MEDIA_BUCKET = os.environ.get("SUPABASE_MEDIA_BUCKET", "").strip()
+if not SUPABASE_URL or not SUPABASE_KEY or not SUPABASE_MEDIA_BUCKET:
+    raise ImproperlyConfigured(
+        "SUPABASE_URL, SUPABASE_KEY, and SUPABASE_MEDIA_BUCKET must be configured for media storage."
+    )
+if (
+    not SUPABASE_URL.startswith("https://")
+    or not urlparse(SUPABASE_URL).hostname
+    or not urlparse(SUPABASE_URL).hostname.endswith(".supabase.co")
+):
+    raise ImproperlyConfigured("SUPABASE_URL must be the HTTPS URL of a Supabase project.")
 SUPABASE_BUCKET_NAME = SUPABASE_MEDIA_BUCKET
-MEDIA_URL = f"{SUPABASE_URL.rstrip('/')}/storage/v1/object/public/{SUPABASE_MEDIA_BUCKET}/" if SUPABASE_URL else ""
+MEDIA_URL = f"{SUPABASE_URL.rstrip('/')}/storage/v1/object/public/{SUPABASE_MEDIA_BUCKET}/"
 
 STORAGES = {
     "default": {
