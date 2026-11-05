@@ -84,6 +84,8 @@ export default function CommunicationPage({ user }) {
     error: "",
   });
   const [showScrollDown, setShowScrollDown] = useState(false);
+  const [hasOlderMessages, setHasOlderMessages] = useState(false);
+  const [loadingOlderMessages, setLoadingOlderMessages] = useState(false);
   const [editingMessageId, setEditingMessageId] = useState(null);
   const [editingText, setEditingText] = useState("");
   const [openMessageMenuId, setOpenMessageMenuId] = useState(null);
@@ -99,6 +101,7 @@ export default function CommunicationPage({ user }) {
   const typingUserTimersRef = useRef({});
   const shouldStickToBottomRef = useRef(true);
   const previousConversationIdRef = useRef(null);
+  const activeConversationIdRef = useRef(null);
 
   useAutoClearStatus(status, setStatus);
 
@@ -164,18 +167,26 @@ export default function CommunicationPage({ user }) {
   }, [query]);
 
   useEffect(() => {
+    const conversationId = activeConversation?.id ?? null;
+    activeConversationIdRef.current = conversationId;
     if (!activeConversation?.id) {
       setMessages([]);
+      setHasOlderMessages(false);
       setTypingUsers([]);
       return;
     }
 
+    setMessages([]);
+    setHasOlderMessages(false);
     let mounted = true;
     const loadMessages = async ({ silent = false } = {}) => {
       if (!silent) setMessageLoading(true);
       try {
         const response = await fetchConversationMessages(activeConversation.id);
-        if (mounted) setMessages(response.messages ?? []);
+        if (mounted) {
+          setMessages(response.messages ?? []);
+          setHasOlderMessages(Boolean(response.has_more));
+        }
       } catch {
         if (mounted) setMessages([]);
       } finally {
@@ -396,6 +407,33 @@ export default function CommunicationPage({ user }) {
     const isAtBottom = distanceFromBottom <= 140;
     shouldStickToBottomRef.current = isAtBottom;
     setShowScrollDown(!isAtBottom);
+  };
+
+  const loadOlderMessages = async () => {
+    if (!activeConversation?.id || !hasOlderMessages || loadingOlderMessages || !messages.length) return;
+    const conversationId = activeConversation.id;
+    const container = messagesScrollRef.current;
+    const previousHeight = container?.scrollHeight ?? 0;
+    setLoadingOlderMessages(true);
+    try {
+      const response = await fetchConversationMessages(conversationId, messages[0].id);
+      if (activeConversationIdRef.current !== conversationId) return;
+      setMessages((current) => {
+        const currentIds = new Set(current.map((message) => message.id));
+        const older = (response.messages ?? []).filter((message) => !currentIds.has(message.id));
+        return [...older, ...current];
+      });
+      setHasOlderMessages(Boolean(response.has_more));
+      window.requestAnimationFrame(() => {
+        window.requestAnimationFrame(() => {
+          if (container) container.scrollTop += container.scrollHeight - previousHeight;
+        });
+      });
+    } catch {
+      setStatus("Could not load earlier messages. Please try again.");
+    } finally {
+      setLoadingOlderMessages(false);
+    }
   };
 
   const friendUsers = useMemo(
@@ -748,6 +786,9 @@ export default function CommunicationPage({ user }) {
       handleCreateGroup={handleCreateGroup}
       handleEditMessage={handleEditMessage}
       handleMessagesScroll={handleMessagesScroll}
+      hasOlderMessages={hasOlderMessages}
+      loadingOlderMessages={loadingOlderMessages}
+      loadOlderMessages={loadOlderMessages}
       handleRequestAction={handleRequestAction}
       handleSendMessage={handleSendMessage}
       handleUnsendMessage={handleUnsendMessage}

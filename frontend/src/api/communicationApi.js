@@ -23,7 +23,10 @@ export const createGroupConversation = (payload) =>
     method: "POST",
     body: JSON.stringify(payload),
   });
-export const fetchConversationMessages = (conversationId) => request(APP_ENDPOINTS.communicationMessages(conversationId));
+export const fetchConversationMessages = (conversationId, beforeMessageId = null) => {
+  const url = APP_ENDPOINTS.communicationMessages(conversationId);
+  return request(beforeMessageId ? `${url}?before=${encodeURIComponent(beforeMessageId)}` : url);
+};
 export const sendConversationMessage = (conversationId, body, options = {}) =>
   request(APP_ENDPOINTS.communicationMessages(conversationId), {
     method: "POST",

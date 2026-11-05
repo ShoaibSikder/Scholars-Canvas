@@ -64,6 +64,9 @@ class VaultResource(models.Model):
 
     class Meta:
         ordering = ["category", "-created_at"]
+        indexes = [
+            models.Index(fields=["created_at"], name="resource_created_idx"),
+        ]
 
     def __str__(self):
         return self.title

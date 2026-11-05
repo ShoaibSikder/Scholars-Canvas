@@ -32,6 +32,10 @@ class UserCardSerializer(serializers.ModelSerializer):
         if not user or not user.is_authenticated or user.id == obj.id:
             return "self"
 
+        relationship_statuses = self.context.get("relationship_statuses")
+        if relationship_statuses is not None:
+            return relationship_statuses.get(obj.id, "none")
+
         if Friendship.objects.filter(user=user, friend=obj).exists():
             return "friend"
         if FriendRequest.objects.filter(from_user=user, to_user=obj, status=FriendRequest.PENDING).exists():
@@ -103,27 +107,42 @@ class MessageSerializer(serializers.ModelSerializer):
         user = getattr(request, "user", None)
         if not user or obj.sender_id != getattr(user, "id", None):
             return False
-        participant_ids = set(obj.conversation.participants.exclude(id=obj.sender_id).values_list("id", flat=True))
-        if not participant_ids:
-            return False
-        read_user_ids = set(obj.reads.values_list("user_id", flat=True))
-        return participant_ids.issubset(read_user_ids)
+        return self._read_state(obj)["is_seen"]
 
     def get_seen_at(self, obj):
         request = self.context.get("request")
         user = getattr(request, "user", None)
         if not user or obj.sender_id != getattr(user, "id", None):
             return None
-        participant_ids = set(obj.conversation.participants.exclude(id=obj.sender_id).values_list("id", flat=True))
-        if not participant_ids:
-            return None
-        reads = list(obj.reads.filter(user_id__in=participant_ids).order_by("read_at"))
-        if len({read.user_id for read in reads}) < len(participant_ids):
-            return None
-        return reads[-1].read_at if reads else None
+        return self._read_state(obj)["seen_at"]
 
     def get_read_by_count(self, obj):
-        return obj.reads.exclude(user_id=obj.sender_id).count()
+        return self._read_state(obj)["read_by_count"]
+
+    @staticmethod
+    def _read_state(obj):
+        cached = getattr(obj, "_communication_read_state", None)
+        if cached is not None:
+            return cached
+
+        participants = obj.conversation.participants.all()
+        participant_ids = {
+            participant.id for participant in participants if participant.id != obj.sender_id
+        }
+        reads_by_user = {}
+        for read in obj.reads.all():
+            if read.user_id in participant_ids:
+                reads_by_user.setdefault(read.user_id, read.read_at)
+
+        is_seen = bool(participant_ids) and participant_ids.issubset(reads_by_user)
+        seen_at = max(reads_by_user.values()) if is_seen else None
+        state = {
+            "is_seen": is_seen,
+            "seen_at": seen_at,
+            "read_by_count": len(reads_by_user),
+        }
+        obj._communication_read_state = state
+        return state
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
@@ -149,5 +168,10 @@ class ConversationSerializer(serializers.ModelSerializer):
         fields = ["id", "title", "is_group", "participants", "last_message", "created_at", "updated_at"]
 
     def get_last_message(self, obj):
+        latest_messages = getattr(obj, "latest_messages", None)
+        if latest_messages is not None:
+            message = latest_messages[0] if latest_messages else None
+            return MessageSerializer(message, context=self.context).data if message else None
+
         message = obj.messages.order_by("-created_at").first()
         return MessageSerializer(message, context=self.context).data if message else None

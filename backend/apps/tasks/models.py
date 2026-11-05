@@ -48,6 +48,9 @@ class StudySession(models.Model):
 
     class Meta:
         ordering = ["-started_at", "-created_at"]
+        indexes = [
+            models.Index(fields=["user", "title", "started_at"], name="study_user_title_start_idx"),
+        ]
 
     def save(self, *args, **kwargs):
         if self.ended_at and self.started_at:

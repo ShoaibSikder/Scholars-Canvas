@@ -92,6 +92,9 @@ class AIUsageLog(models.Model):
 
     class Meta:
         ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["created_at"], name="ai_log_created_idx"),
+        ]
 
     def __str__(self):
         return f"{self.user.email} {self.feature} {self.status}"

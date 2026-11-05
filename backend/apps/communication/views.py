@@ -4,7 +4,8 @@ from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 from django.contrib.auth import get_user_model
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Count, F, Prefetch, Q, Window
+from django.db.models.functions import RowNumber
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
@@ -13,7 +14,7 @@ from rest_framework.views import APIView
 
 from apps.notification.models import Notification
 from apps.administration.utils import setting_value
-from apps.db_safety import parse_positive_int
+from apps.db_safety import maybe_positive_int, parse_positive_int
 
 from .models import Conversation, FriendRequest, Friendship, Message, MessageRead
 from .serializers import ConversationSerializer, FriendRequestSerializer, FriendshipSerializer, MessageSerializer, UserCardSerializer
@@ -35,6 +36,70 @@ def student_users():
 
 def friend_ids_for(user):
     return list(Friendship.objects.filter(user=user).values_list("friend_id", flat=True))
+
+
+def relationship_statuses_for(user, candidate_ids):
+    candidate_ids = set(candidate_ids)
+    candidate_ids.discard(user.id)
+    statuses = {user.id: "self"}
+    if not candidate_ids:
+        return statuses
+
+    friends = set(
+        Friendship.objects.filter(user=user, friend_id__in=candidate_ids)
+        .values_list("friend_id", flat=True)
+    )
+    outgoing = set(
+        FriendRequest.objects.filter(
+            from_user=user,
+            to_user_id__in=candidate_ids,
+            status=FriendRequest.PENDING,
+        ).values_list("to_user_id", flat=True)
+    )
+    incoming = set(
+        FriendRequest.objects.filter(
+            from_user_id__in=candidate_ids,
+            to_user=user,
+            status=FriendRequest.PENDING,
+        ).values_list("from_user_id", flat=True)
+    )
+    statuses.update({candidate_id: "incoming" for candidate_id in incoming})
+    statuses.update({candidate_id: "sent" for candidate_id in outgoing})
+    statuses.update({candidate_id: "friend" for candidate_id in friends})
+    return statuses
+
+
+def conversations_with_latest_message(user):
+    latest_messages = (
+        Message.objects.annotate(
+            _latest_rank=Window(
+                expression=RowNumber(),
+                partition_by=[F("conversation_id")],
+                order_by=F("created_at").desc(),
+            )
+        )
+        .filter(_latest_rank=1)
+        .select_related("sender", "conversation")
+        .prefetch_related("reads", "conversation__participants")
+        .order_by()
+    )
+    participants = User.objects.only(
+        "id", "full_name", "email", "university", "major", "current_semester",
+        "avatar", "role", "is_staff", "is_superuser",
+    )
+    return Conversation.objects.filter(participants=user).prefetch_related(
+        Prefetch("participants", queryset=participants),
+        Prefetch("messages", queryset=latest_messages, to_attr="latest_messages"),
+    )
+
+
+def conversation_relationship_statuses(user, conversations):
+    participant_ids = {
+        participant.id
+        for conversation in conversations
+        for participant in conversation.participants.all()
+    }
+    return relationship_statuses_for(user, participant_ids)
 
 
 def excluded_connection_ids_for(user):
@@ -143,11 +208,16 @@ def suggested_users_for(user, limit=12):
     candidate_ids.update(profile_matches)
     candidate_ids.difference_update(excluded_ids)
 
-    candidates = student_users().filter(id__in=candidate_ids)
+    candidates = student_users().filter(id__in=candidate_ids).annotate(
+        mutual_count=Count(
+            "friendships",
+            filter=Q(friendships__friend_id__in=my_friend_ids),
+            distinct=True,
+        )
+    )
     scored = []
     for candidate in candidates:
-        mutual_count = Friendship.objects.filter(user=candidate, friend_id__in=my_friend_ids).count()
-        score = mutual_count * 5
+        score = candidate.mutual_count * 5
         if user.university and candidate.university and candidate.university.lower() == user.university.lower():
             score += 4
         if user.major and candidate.major and candidate.major.lower() == user.major.lower():
@@ -189,23 +259,34 @@ class CommunicationOverviewView(APIView):
             to_user__role=User.Role.STUDENT,
             status=FriendRequest.PENDING,
         ).select_related("from_user", "to_user")
-        conversations = Conversation.objects.filter(participants=user).exclude(
+        conversations = conversations_with_latest_message(user).exclude(
             participants__is_staff=True,
         ).exclude(
             participants__is_superuser=True,
         ).exclude(
             participants__role__in=[User.Role.SUPPORT_ADMIN, User.Role.MODERATOR, User.Role.SUPER_ADMIN],
-        ).prefetch_related("participants", "messages")
+        )
 
         suggestions = suggested_users_for(user)
+        friends = list(friends)
+        incoming = list(incoming)
+        outgoing = list(outgoing)
+        conversations = list(conversations)
+        candidate_ids = {friend.friend_id for friend in friends}
+        candidate_ids.update(request.from_user_id for request in incoming)
+        candidate_ids.update(request.to_user_id for request in outgoing)
+        candidate_ids.update(candidate.id for candidate in suggestions)
+        relationships = relationship_statuses_for(user, candidate_ids)
+        relationships.update(conversation_relationship_statuses(user, conversations))
+        serializer_context = {"request": request, "relationship_statuses": relationships}
 
         return Response(
             {
-                "friends": FriendshipSerializer(friends, many=True, context={"request": request}).data,
-                "incoming_requests": FriendRequestSerializer(incoming, many=True, context={"request": request}).data,
-                "outgoing_requests": FriendRequestSerializer(outgoing, many=True, context={"request": request}).data,
-                "suggestions": UserCardSerializer(suggestions, many=True, context={"request": request}).data,
-                "conversations": ConversationSerializer(conversations, many=True, context={"request": request}).data,
+                "friends": FriendshipSerializer(friends, many=True, context=serializer_context).data,
+                "incoming_requests": FriendRequestSerializer(incoming, many=True, context=serializer_context).data,
+                "outgoing_requests": FriendRequestSerializer(outgoing, many=True, context=serializer_context).data,
+                "suggestions": UserCardSerializer(suggestions, many=True, context=serializer_context).data,
+                "conversations": ConversationSerializer(conversations, many=True, context=serializer_context).data,
             }
         )
 
@@ -233,12 +314,14 @@ class UserSearchView(APIView):
         if semester_match:
             search_filter |= Q(current_semester=int(semester_match.group(1)))
 
-        users = (
+        users = list(
             student_users().exclude(id=request.user.id)
             .filter(search_filter)
-            .distinct()[:20]
+            [:20]
         )
-        return Response({"users": UserCardSerializer(users, many=True, context={"request": request}).data})
+        relationships = relationship_statuses_for(request.user, (item.id for item in users))
+        context = {"request": request, "relationship_statuses": relationships}
+        return Response({"users": UserCardSerializer(users, many=True, context=context).data})
 
 
 class FriendRequestView(APIView):
@@ -334,8 +417,10 @@ class ConversationView(APIView):
             return Response({"message": "Communication is available only for normal user accounts."}, status=status.HTTP_403_FORBIDDEN)
         if request.user.messaging_disabled:
             return messaging_disabled_response()
-        conversations = Conversation.objects.filter(participants=request.user).prefetch_related("participants", "messages")
-        return Response({"conversations": ConversationSerializer(conversations, many=True, context={"request": request}).data})
+        conversations = list(conversations_with_latest_message(request.user))
+        relationships = conversation_relationship_statuses(request.user, conversations)
+        context = {"request": request, "relationship_statuses": relationships}
+        return Response({"conversations": ConversationSerializer(conversations, many=True, context=context).data})
 
     def post(self, request):
         if is_admin_account(request.user):
@@ -390,14 +475,44 @@ class MessageView(APIView):
         conversation = self.get_conversation(request, conversation_id)
         if not conversation:
             return Response({"message": "Conversation not found."}, status=status.HTTP_404_NOT_FOUND)
-        unread_messages = list(conversation.messages.exclude(sender=request.user).exclude(reads__user=request.user))
+        page_size = 100
+        message_queryset = conversation.messages.select_related("sender", "conversation")
+        before_id = maybe_positive_int(request.query_params.get("before"))
+        if request.query_params.get("before") and before_id is None:
+            return Response({"message": "Invalid message cursor."}, status=status.HTTP_400_BAD_REQUEST)
+        if before_id:
+            cursor_message = conversation.messages.filter(pk=before_id).only("id", "created_at").first()
+            if not cursor_message:
+                return Response({"message": "Message cursor not found."}, status=status.HTTP_400_BAD_REQUEST)
+            message_queryset = message_queryset.filter(
+                Q(created_at__lt=cursor_message.created_at)
+                | Q(created_at=cursor_message.created_at, id__lt=cursor_message.id)
+            )
+
+        descending_messages = list(message_queryset.order_by("-created_at", "-id")[: page_size + 1])
+        has_more = len(descending_messages) > page_size
+        messages = list(reversed(descending_messages[:page_size]))
+        page_ids = [message.id for message in messages]
+        unread_ids = list(
+            Message.objects.filter(id__in=page_ids)
+            .exclude(sender_id=request.user.id)
+            .exclude(reads__user_id=request.user.id)
+            .values_list("id", flat=True)
+        )
         MessageRead.objects.bulk_create(
-            [MessageRead(message=message, user=request.user) for message in unread_messages],
+            [MessageRead(message_id=message_id, user=request.user) for message_id in unread_ids],
             ignore_conflicts=True,
         )
-        broadcast_read_event(conversation.id, request.user.id, [message.id for message in unread_messages])
-        messages = conversation.messages.select_related("sender").prefetch_related("reads", "conversation__participants")
-        return Response({"messages": MessageSerializer(messages, many=True, context={"request": request}).data})
+        broadcast_read_event(conversation.id, request.user.id, unread_ids)
+        messages = list(
+            Message.objects.filter(id__in=page_ids)
+            .select_related("sender", "conversation")
+            .prefetch_related("reads", "conversation__participants")
+            .order_by("created_at", "id")
+        )
+        relationships = relationship_statuses_for(request.user, {message.sender_id for message in messages})
+        context = {"request": request, "relationship_statuses": relationships}
+        return Response({"messages": MessageSerializer(messages, many=True, context=context).data, "has_more": has_more})
 
     def post(self, request, conversation_id):
         if is_admin_account(request.user):

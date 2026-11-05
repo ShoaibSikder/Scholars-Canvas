@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.db import transaction
-from django.db.models import Count, Max, Q, Sum, TextField
-from django.db.models.functions import Cast
+from django.db.models import BigIntegerField, Count, IntegerField, Max, OuterRef, Q, Subquery, Sum, TextField, Value
+from django.db.models.functions import Cast, Coalesce, TruncDate
 from django.utils import timezone
 from rest_framework import serializers, status
 from rest_framework.authtoken.models import Token
@@ -145,20 +145,54 @@ class AdminOverviewView(APIView):
     permission_classes = [IsAdminRole]
 
     def get(self, request):
-        today = timezone.now().date()
+        today = timezone.localdate()
         week_start = today - timezone.timedelta(days=6)
+        local_timezone = timezone.get_current_timezone()
+        activity_start = timezone.make_aware(
+            timezone.datetime.combine(week_start, timezone.datetime.min.time()), local_timezone
+        )
+        activity_end = timezone.make_aware(
+            timezone.datetime.combine(today + timezone.timedelta(days=1), timezone.datetime.min.time()),
+            local_timezone,
+        )
         storage_used = VaultResource.objects.aggregate(total=Sum("file_size"))["total"] or 0
-        ai_total = AIUsageLog.objects.count()
-        ai_failed = AIUsageLog.objects.filter(status=AIUsageLog.Status.FAILED).count()
+        ai_counts = AIUsageLog.objects.aggregate(
+            total=Count("id"),
+            failed=Count("id", filter=Q(status=AIUsageLog.Status.FAILED)),
+        )
+        activity_users = dict(
+            User.objects.filter(last_login__gte=activity_start, last_login__lt=activity_end)
+            .annotate(day=TruncDate("last_login", tzinfo=local_timezone))
+            .values("day")
+            .annotate(total=Count("id"))
+            .values_list("day", "total")
+        )
+        activity_ai = dict(
+            AIUsageLog.objects.filter(created_at__gte=activity_start, created_at__lt=activity_end)
+            .annotate(day=TruncDate("created_at", tzinfo=local_timezone))
+            .values("day")
+            .annotate(total=Count("id"))
+            .values_list("day", "total")
+        )
+        activity_uploads = dict(
+            VaultResource.objects.filter(created_at__gte=activity_start, created_at__lt=activity_end)
+            .annotate(day=TruncDate("created_at", tzinfo=local_timezone))
+            .values("day")
+            .annotate(total=Count("id"))
+            .values_list("day", "total")
+        )
         return Response(
             {
                 "metrics": {
                     "total_users": User.objects.count(),
                     "active_users": User.objects.filter(is_active=True, account_status=User.AccountStatus.ACTIVE).count(),
-                    "new_registrations": User.objects.filter(date_joined__date=today).count(),
+                    "new_registrations": User.objects.filter(
+                        date_joined__gte=activity_end - timezone.timedelta(days=1),
+                        date_joined__lt=activity_end,
+                    ).count(),
                     "storage_used_mb": round(storage_used / 1024 / 1024, 2),
-                    "ai_usage_count": ai_total,
-                    "ai_failure_rate": round((ai_failed / ai_total) * 100, 1) if ai_total else 0,
+                    "ai_usage_count": ai_counts["total"],
+                    "ai_failure_rate": round((ai_counts["failed"] / ai_counts["total"]) * 100, 1) if ai_counts["total"] else 0,
                     "open_reports": Report.objects.filter(status=Report.Status.OPEN).count(),
                     "failed_notifications": 0,
                 },
@@ -173,9 +207,9 @@ class AdminOverviewView(APIView):
                 "activity": [
                     {
                         "date": (week_start + timezone.timedelta(days=index)).isoformat(),
-                        "users": User.objects.filter(last_login__date=week_start + timezone.timedelta(days=index)).count(),
-                        "ai": AIUsageLog.objects.filter(created_at__date=week_start + timezone.timedelta(days=index)).count(),
-                        "uploads": VaultResource.objects.filter(created_at__date=week_start + timezone.timedelta(days=index)).count(),
+                        "users": activity_users.get(week_start + timezone.timedelta(days=index), 0),
+                        "ai": activity_ai.get(week_start + timezone.timedelta(days=index), 0),
+                        "uploads": activity_uploads.get(week_start + timezone.timedelta(days=index), 0),
                     }
                     for index in range(7)
                 ],
@@ -188,11 +222,24 @@ class AdminUsersView(APIView):
 
     def get(self, request):
         query = (request.query_params.get("q") or "").strip()
+        course_counts = VaultCourse.objects.filter(user_id=OuterRef("pk")).order_by().values("user_id").annotate(
+            total=Count("id")
+        ).values("total")[:1]
+        task_counts = Task.objects.filter(user_id=OuterRef("pk")).order_by().values("user_id").annotate(
+            total=Count("id")
+        ).values("total")[:1]
+        resource_totals = VaultResource.objects.filter(course__user_id=OuterRef("pk")).order_by().values(
+            "course__user_id"
+        ).annotate(total=Count("id"), storage=Sum("file_size"))
         users = User.objects.annotate(
-            course_count=Count("vault_courses", distinct=True),
-            task_count=Count("tasks", distinct=True),
-            resource_count=Count("vault_courses__resources", distinct=True),
-            storage_used=Sum("vault_courses__resources__file_size"),
+            course_count=Coalesce(Subquery(course_counts, output_field=IntegerField()), Value(0)),
+            task_count=Coalesce(Subquery(task_counts, output_field=IntegerField()), Value(0)),
+            resource_count=Coalesce(
+                Subquery(resource_totals.values("total")[:1], output_field=IntegerField()), Value(0)
+            ),
+            storage_used=Coalesce(
+                Subquery(resource_totals.values("storage")[:1], output_field=BigIntegerField()), Value(0)
+            ),
         ).order_by("-date_joined")
         if query:
             users = users.filter(Q(email__icontains=query) | Q(full_name__icontains=query) | Q(university__icontains=query) | Q(major__icontains=query))

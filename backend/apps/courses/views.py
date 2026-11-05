@@ -1,6 +1,8 @@
 ﻿from django.shortcuts import get_object_or_404
 from datetime import timedelta
 
+from django.db.models import Count, F, Q, Sum
+from django.db.models.functions import TruncDate
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
@@ -35,7 +37,6 @@ class DashboardView(APIView):
         today = now.weekday()
         current_time = now.time()
         slots = list(RoutineSlot.objects.filter(user=user))
-        all_tasks = list(Task.objects.filter(user=user))
         today_slots = sorted((slot for slot in slots if slot.day == today), key=lambda slot: slot.start_time)
 
         current_class = next(
@@ -48,45 +49,68 @@ class DashboardView(APIView):
         )
 
         week_start = (now - timedelta(days=now.weekday())).date()
-        week_end = week_start + timedelta(days=6)
+        week_end = week_start + timedelta(days=7)
+        local_timezone = timezone.get_current_timezone()
+        week_start_at = timezone.make_aware(
+            timezone.datetime.combine(week_start, timezone.datetime.min.time()), local_timezone
+        )
+        week_end_at = timezone.make_aware(
+            timezone.datetime.combine(week_end, timezone.datetime.min.time()), local_timezone
+        )
         study_minutes_by_day = {index: 0 for index in range(7)}
         study_sessions = StudySession.objects.filter(
             user=user,
             title="Website study time",
-            started_at__date__gte=week_start,
-            started_at__date__lte=week_end,
+            started_at__gte=week_start_at,
+            started_at__lt=week_end_at,
         )
-        for session in study_sessions:
-            local_started = timezone.localtime(session.started_at)
-            study_minutes_by_day[local_started.weekday()] += session.duration_minutes
+        for result in study_sessions.annotate(
+            local_day=TruncDate("started_at", tzinfo=local_timezone)
+        ).values("local_day").annotate(minutes=Sum("duration_minutes")):
+            study_minutes_by_day[result["local_day"].weekday()] = result["minutes"] or 0
 
         study_data = []
         for index, label in enumerate(["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]):
             minutes = study_minutes_by_day[index]
             study_data.append({"day": label, "hours": round(minutes / 60, 1)})
 
-        course_minutes = {}
-        for session in study_sessions:
-            course_name = session.course or "Online Activity"
-            course_minutes[course_name] = course_minutes.get(course_name, 0) + session.duration_minutes
         study_distribution = [
-            {"course": course, "hours": round(minutes / 60, 1)}
-            for course, minutes in sorted(course_minutes.items(), key=lambda item: item[1], reverse=True)[:6]
+            {
+                "course": row["course"] or "Online Activity",
+                "hours": round((row["minutes"] or 0) / 60, 1),
+            }
+            for row in study_sessions.values("course")
+            .annotate(minutes=Sum("duration_minutes"))
+            .order_by("-minutes")[:6]
         ]
 
+        task_queryset = Task.objects.filter(user=user)
+        today_start = timezone.make_aware(
+            timezone.datetime.combine(now.date(), timezone.datetime.min.time()), local_timezone
+        )
+        today_end = today_start + timedelta(days=1)
+        task_aggregates = task_queryset.aggregate(
+            todo=Count("id", filter=Q(status=Task.Status.TODO)),
+            in_progress=Count("id", filter=Q(status=Task.Status.IN_PROGRESS)),
+            done=Count("id", filter=Q(status=Task.Status.DONE)),
+            due_today=Count(
+                "id",
+                filter=~Q(status=Task.Status.DONE)
+                & Q(due_at__gte=today_start, due_at__lt=today_end),
+            ),
+        )
         task_status_counts = {
-            "todo": sum(1 for task in all_tasks if task.status == Task.Status.TODO),
-            "inProgress": sum(1 for task in all_tasks if task.status == Task.Status.IN_PROGRESS),
-            "done": sum(1 for task in all_tasks if task.status == Task.Status.DONE),
+            "todo": task_aggregates["todo"],
+            "inProgress": task_aggregates["in_progress"],
+            "done": task_aggregates["done"],
         }
 
         upcoming_deadlines = []
         timeline_end = now + timedelta(days=30)
-        deadline_tasks = [
-            task for task in all_tasks
-            if task.due_at and task.status != Task.Status.DONE and now <= timezone.localtime(task.due_at) <= timeline_end
-        ]
-        for task in sorted(deadline_tasks, key=lambda item: item.due_at)[:8]:
+        deadline_tasks = task_queryset.exclude(status=Task.Status.DONE).filter(
+            due_at__gte=now, due_at__lte=timeline_end
+        ).order_by("due_at").only("id", "title", "course", "priority", "due_at")[:8]
+        for task in deadline_tasks:
             local_due = timezone.localtime(task.due_at)
             days_until = max(0, (local_due.date() - now.date()).days)
             upcoming_deadlines.append(
@@ -101,19 +125,11 @@ class DashboardView(APIView):
                 }
             )
 
-        today_start = timezone.make_aware(timezone.datetime.combine(now.date(), timezone.datetime.min.time()))
-        today_end = today_start + timedelta(days=1)
-        today_due_task_count = sum(
-            1 for task in all_tasks
-            if task.status != Task.Status.DONE
-            and task.due_at
-            and today_start <= task.due_at < today_end
-        )
+        today_due_task_count = task_aggregates["due_today"]
         top_tasks = []
-        tasks = sorted(
-            (task for task in all_tasks if task.status != Task.Status.DONE),
-            key=lambda task: (task.due_at is None, task.due_at or timezone.now(), -task.created_at.timestamp()),
-        )[:4]
+        tasks = task_queryset.exclude(status=Task.Status.DONE).only(
+            "id", "title", "priority", "due_at", "created_at"
+        ).order_by(F("due_at").asc(nulls_last=True), "-created_at")[:4]
         for task in tasks:
             if task.due_at:
                 due = timezone.localtime(task.due_at).strftime("%b %d, %I:%M %p")
@@ -146,14 +162,16 @@ class DashboardView(APIView):
                 }
             )
 
-        vault_courses = VaultCourse.objects.filter(user=user).prefetch_related("resources").order_by("-semester", "code")
+        vault_courses = VaultCourse.objects.filter(user=user).annotate(
+            total_resources=Count("resources"),
+            completed_resources=Count("resources", filter=Q(resources__is_done=True)),
+        ).order_by("-semester", "code")
         course_progress = []
         semester_map = {}
 
         for course in vault_courses:
-            resources_for_course = list(course.resources.all())
-            total = len(resources_for_course)
-            done = sum(1 for resource in resources_for_course if resource.is_done)
+            total = course.total_resources
+            done = course.completed_resources
             percent = round((done / total) * 100) if total else 0
             course_progress.append(
                 {

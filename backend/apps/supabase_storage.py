@@ -1,8 +1,25 @@
-from io import BytesIO
+from urllib.parse import quote
 
+import requests
 from django.conf import settings
 from django.core.files.storage import Storage
 from supabase import create_client
+
+
+class StreamingStorageFile:
+    def __init__(self, response):
+        self.response = response
+        self.raw = response.raw
+        self.raw.decode_content = True
+
+    def read(self, size=-1):
+        return self.raw.read(size)
+
+    def close(self):
+        self.response.close()
+
+    def readable(self):
+        return True
 
 
 class SupabaseMediaStorage(Storage):
@@ -32,8 +49,24 @@ class SupabaseMediaStorage(Storage):
         return name
 
     def _open(self, name, mode="rb"):
-        data = self.client.storage.from_(self.bucket_name).download(self._normalize_name(name))
-        return BytesIO(data)
+        normalized_name = self._normalize_name(name)
+        object_path = quote(normalized_name, safe="/")
+        bucket_path = quote(self.bucket_name, safe="")
+        response = requests.get(
+            f"{self.supabase_url}/storage/v1/object/{bucket_path}/{object_path}",
+            headers={
+                "apikey": self.supabase_key,
+                "Authorization": f"Bearer {self.supabase_key}",
+            },
+            stream=True,
+            timeout=(10, 120),
+        )
+        try:
+            response.raise_for_status()
+        except Exception:
+            response.close()
+            raise
+        return StreamingStorageFile(response)
 
     def delete(self, name):
         name = self._normalize_name(name)

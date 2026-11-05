@@ -49,6 +49,9 @@ export default function CommunicationLayout({
   handleCreateGroup,
   handleEditMessage,
   handleMessagesScroll,
+  hasOlderMessages,
+  loadingOlderMessages,
+  loadOlderMessages,
   handleRequestAction,
   handleSendMessage,
   handleUnsendMessage,
@@ -452,6 +455,16 @@ export default function CommunicationLayout({
                     <Loader2 size={16} className="animate-spin" /> Loading
                     messages...
                   </div>
+                ) : null}
+                {hasOlderMessages ? (
+                  <button
+                    type="button"
+                    className={`${softBtn} mx-auto px-3 py-2 text-xs`}
+                    onClick={loadOlderMessages}
+                    disabled={loadingOlderMessages}
+                  >
+                    {loadingOlderMessages ? "Loading earlier messages…" : "Load earlier messages"}
+                  </button>
                 ) : null}
                 {messages.map((message) => {
                   const mine = message.sender?.id === user?.id;
