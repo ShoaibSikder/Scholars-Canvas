@@ -1,5 +1,7 @@
 import json
+import logging
 import os
+from time import perf_counter
 
 from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
@@ -26,6 +28,9 @@ from .serializers import (
 )
 from apps.administration.models import AdminAuditLog
 from apps.administration.utils import bool_setting
+
+
+logger = logging.getLogger("studentassistant.request")
 
 
 def get_resend_setting(key, default=""):
@@ -145,16 +150,21 @@ class LoginView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
+        started = perf_counter()
         serializer = LoginSerializer(data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
+        authenticated_at = perf_counter()
         user = serializer.validated_data["user"]
         if bool_setting("maintenance_mode", False) and not (user.is_staff or user.is_admin_role):
             return Response({"message": "Scholars Canvas is currently in maintenance mode."}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
         token, _ = Token.objects.get_or_create(user=user)
+        token_at = perf_counter()
         record_login(user, request)
+        audit_at = perf_counter()
         preferences, _ = UserPreferences.objects.get_or_create(user=user)
+        preferences_at = perf_counter()
 
-        return Response(
+        response = Response(
             {
                 "message": "Login successful.",
                 "user": {
@@ -172,6 +182,18 @@ class LoginView(APIView):
                 "token": token.key,
             }
         )
+        timings = {
+            "auth": (authenticated_at - started) * 1000,
+            "token": (token_at - authenticated_at) * 1000,
+            "audit": (audit_at - token_at) * 1000,
+            "preferences": (preferences_at - audit_at) * 1000,
+            "total": (preferences_at - started) * 1000,
+        }
+        response["Server-Timing"] = ", ".join(
+            f"{name};dur={duration:.1f}" for name, duration in timings.items()
+        )
+        logger.info("login timings user=%s %s", user.pk, timings)
+        return response
 
 
 class PasswordResetRequestView(APIView):

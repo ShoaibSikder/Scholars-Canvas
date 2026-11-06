@@ -1,6 +1,8 @@
 from django.db.models import Q
 from django.core.cache import cache
 from django.utils import timezone
+import logging
+from time import perf_counter
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -13,6 +15,7 @@ from .models import Notification
 
 
 PAGE_SIZE = 12
+logger = logging.getLogger("studentassistant.request")
 IMPORTANT_GENERATED_PREFIXES = (
     "task-overdue-",
     "task-due-",
@@ -162,10 +165,13 @@ class NotificationsView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        started = perf_counter()
         sync_cache_key = f"notifications-sync:{request.user.pk}"
+        sync_started = perf_counter()
         if not cache.get(sync_cache_key):
             sync_generated_notifications(request)
             cache.set(sync_cache_key, True, 60)
+        sync_ms = (perf_counter() - sync_started) * 1000
         limit, offset = parse_page_window(request.query_params, default_limit=PAGE_SIZE, max_limit=30)
 
         important_notifications = (
@@ -189,7 +195,7 @@ class NotificationsView(APIView):
         unread_count = important_notifications.filter(is_read=False).count()
         items = important_notifications[offset : offset + limit]
 
-        return Response(
+        response = Response(
             {
                 "notifications": [serialize_notification(item) for item in items],
                 "unread_count": unread_count,
@@ -197,6 +203,15 @@ class NotificationsView(APIView):
                 "next_offset": offset + len(items),
             }
         )
+        total_ms = (perf_counter() - started) * 1000
+        response["Server-Timing"] = f"sync;dur={sync_ms:.1f}, total;dur={total_ms:.1f}"
+        logger.info(
+            "notifications timings user=%s sync=%.1fms total=%.1fms",
+            request.user.pk,
+            sync_ms,
+            total_ms,
+        )
+        return response
 
 
 class NotificationsReadView(APIView):

@@ -1,5 +1,7 @@
 ﻿from django.shortcuts import get_object_or_404
 from datetime import timedelta
+import logging
+from time import perf_counter
 
 from django.db.models import Count, F, Q, Sum
 from django.db.models.functions import TruncDate
@@ -18,6 +20,9 @@ from .models import RoutineSlot
 from .serializers import RoutineSlotSerializer
 
 
+logger = logging.getLogger("studentassistant.request")
+
+
 def format_time(value):
     return timezone.datetime.combine(timezone.datetime.today(), value).strftime("%I:%M %p").lstrip("0")
 
@@ -32,6 +37,7 @@ class DashboardView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        started = perf_counter()
         user = request.user
         now = timezone.localtime()
         today = now.weekday()
@@ -198,7 +204,7 @@ class DashboardView(APIView):
         weekly_average = round(sum(item["hours"] for item in study_data) / 7, 1)
         best_day = max(study_data, key=lambda item: item["hours"], default={"day": "-", "hours": 0})
 
-        return Response(
+        response = Response(
             {
                 "profile": {
                     "full_name": user.full_name,
@@ -238,5 +244,9 @@ class DashboardView(APIView):
                 "semesterProgress": semester_progress[:4],
             }
         )
+        total_ms = (perf_counter() - started) * 1000
+        response["Server-Timing"] = f"dashboard;dur={total_ms:.1f}"
+        logger.info("dashboard timings user=%s total=%.1fms", user.pk, total_ms)
+        return response
 
 
