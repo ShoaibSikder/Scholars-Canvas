@@ -93,7 +93,7 @@ export default function AILabLayout({
 }) {
   return (
     <div
-      className={`grid gap-3 xl:h-[calc(100dvh-5rem)] xl:min-h-0 xl:overflow-hidden ${status ? "xl:grid-rows-[auto_auto_minmax(0,1fr)]" : "xl:grid-rows-[auto_minmax(0,1fr)]"}`}
+      className={`grid min-w-0 gap-3 ${status ? "xl:grid-rows-[auto_auto_minmax(0,1fr)]" : "xl:grid-rows-[auto_minmax(0,1fr)]"} xl:h-[calc(100dvh-5rem)] xl:min-h-0 xl:overflow-hidden`}
     >
       <div>
         <h1 className="text-xl font-black tracking-tight text-slate-950 dark:text-white md:text-2xl">
@@ -104,9 +104,9 @@ export default function AILabLayout({
       <InPageStatus message={status} />
 
       <SectionTransition sectionKey="ai-lab">
-        <div className="grid gap-3 xl:h-full xl:min-h-0 xl:grid-cols-[minmax(0,1.08fr)_minmax(300px,0.92fr)] 2xl:grid-cols-[minmax(0,1.2fr)_minmax(360px,0.8fr)]">
+        <div className="grid min-w-0 gap-3 xl:h-full xl:min-h-0 xl:grid-cols-[minmax(0,1.08fr)_minmax(300px,0.92fr)] 2xl:grid-cols-[minmax(0,1.2fr)_minmax(360px,0.8fr)]">
         <section
-          className={`${panel} grid h-[calc(100dvh-7rem)] min-h-[520px] min-w-0 grid-rows-[auto_auto_minmax(0,1fr)] gap-3 overflow-hidden p-3 xl:h-full xl:min-h-0 xl:self-start`}
+          className={`${panel} grid h-[min(72dvh,42rem)] min-h-[28rem] min-w-0 grid-rows-[auto_auto_minmax(0,1fr)] gap-3 overflow-hidden p-3 sm:h-[min(74dvh,46rem)] sm:min-h-[32rem] xl:h-full xl:min-h-0 xl:self-start`}
         >
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div className="min-w-0">
@@ -378,7 +378,7 @@ export default function AILabLayout({
         </section>
 
         <section
-          className={`${panel} flex h-[calc(100dvh-7rem)] min-h-[520px] min-w-0 flex-col overflow-hidden xl:sticky xl:top-4 xl:h-full xl:min-h-0 xl:self-start`}
+          className={`${panel} flex h-[min(76dvh,46rem)] min-h-[32rem] min-w-0 flex-col overflow-hidden sm:h-[min(78dvh,50rem)] xl:sticky xl:top-4 xl:h-full xl:min-h-0 xl:self-start`}
         >
           <div className="grid grid-cols-4 gap-1.5 border-b border-slate-200 bg-slate-100/70 p-2.5 dark:border-slate-800 dark:bg-slate-950/70">
             <ActionTab

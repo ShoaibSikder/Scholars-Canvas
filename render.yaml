@@ -7,6 +7,7 @@ services:
     rootDir: backend
     autoDeployTrigger: commit
     buildCommand: bash build.sh
+    preDeployCommand: python manage.py migrate --no-input
     startCommand: bash start.sh
     healthCheckPath: /health/
     envVars:
@@ -20,6 +21,14 @@ services:
         sync: false
       - key: DB_CONN_MAX_AGE
         value: "300"
+      - key: AI_ENRICHMENT_ENABLED
+        value: "False"
+      - key: AI_RETRY_ATTEMPTS
+        value: "1"
+      - key: AI_JSON_ATTEMPTS
+        value: "2"
+      - key: AI_PROVIDER_TIMEOUT
+        value: "60"
       - key: REDIS_URL
         fromService:
           type: keyvalue

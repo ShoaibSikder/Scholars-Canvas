@@ -21,7 +21,7 @@ export function ActionTab({
       } disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-slate-50 dark:disabled:hover:bg-slate-950`}
     >
       <Icon size={16} className={loading ? "animate-spin" : ""} />
-      <span className="hidden sm:inline">{label}</span>
+      <span className="hidden min-[420px]:inline">{label}</span>
     </button>
   );
 }

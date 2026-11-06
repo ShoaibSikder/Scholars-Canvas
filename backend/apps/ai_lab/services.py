@@ -13,6 +13,8 @@ from urllib import error as urllib_error
 from urllib import request as urllib_request
 from xml.etree import ElementTree
 
+from django.conf import settings
+
 from apps.administration.utils import setting_value
 
 logger = logging.getLogger(__name__)
@@ -44,7 +46,9 @@ SUPPORTED_TEXT_EXTENSIONS = {
 }
 AI_CONTEXT_LIMIT = 25000
 AI_TOPIC_CONTEXT_LIMIT = 10000
-AI_RETRY_ATTEMPTS = 2
+AI_RETRY_ATTEMPTS = max(1, int(getattr(settings, "AI_RETRY_ATTEMPTS", os.getenv("AI_RETRY_ATTEMPTS", "1"))))
+AI_JSON_ATTEMPTS = max(1, int(getattr(settings, "AI_JSON_ATTEMPTS", os.getenv("AI_JSON_ATTEMPTS", "2"))))
+AI_PROVIDER_TIMEOUT = max(15, int(getattr(settings, "AI_PROVIDER_TIMEOUT", os.getenv("AI_PROVIDER_TIMEOUT", "60"))))
 TOPIC_STOPWORDS = {
     "about",
     "after",
@@ -1133,7 +1137,8 @@ class CloudAIService:
         self.active_provider = str(setting_value("active_ai_provider", "") or "").strip().lower()
         self.active_model = str(setting_value("active_ai_model", "") or "").strip()
 
-    def _post_json(self, url, payload, headers=None, timeout=90):
+    def _post_json(self, url, payload, headers=None, timeout=None):
+        timeout = timeout or AI_PROVIDER_TIMEOUT
         data = json.dumps(payload).encode("utf-8")
         request_headers = {
             "Accept": "application/json",
@@ -1271,7 +1276,22 @@ def _parse_json_object(raw_text):
 
 
 def classify_document(document):
+    cached = getattr(document, "_classification", None)
+    if cached:
+        return cached
     text = document.extracted_text or ""
+    if not getattr(settings, "AI_ENRICHMENT_ENABLED", False):
+        lowered = text.lower()
+        if any(term in lowered for term in ("abstract", "methodology", "results", "references")):
+            classification = "Research Paper"
+        elif any(term in lowered for term in ("slide", "agenda", "presentation")):
+            classification = "Presentation Slides"
+        elif any(term in lowered for term in ("chapter", "exercise", "definition", "formula")):
+            classification = "Academic Notes"
+        else:
+            classification = "Other"
+        document._classification = classification
+        return classification
     prompt = (
         "Classify this document into exactly one of these types:\n"
         "Academic Notes, Textbook, Research Paper, Resume, Business Report, Technical Documentation, Manual, Legal Document, Medical Report, Presentation Slides, Other.\n\n"
@@ -1282,7 +1302,8 @@ def classify_document(document):
     try:
         raw = CloudAIService().generate(prompt, system_prompt="Return clean JSON only.", json_mode=True, temperature=0.1)
         classification = str(_parse_json_object(raw).get("type") or "").strip()
-        return classification or "Other"
+        document._classification = classification or "Other"
+        return document._classification
     except Exception as exc:
         logger.warning("AI document classification failed, using fallback: %s", exc)
         lowered = text.lower()
@@ -1296,7 +1317,13 @@ def classify_document(document):
 
 
 def extract_document_topics(document, top_n=8):
+    cached = getattr(document, "_topics", None)
+    if cached:
+        return cached[:top_n]
     text = document.extracted_text or ""
+    if not getattr(settings, "AI_ENRICHMENT_ENABLED", False):
+        document._topics = detect_topics(text, top_n=top_n)
+        return document._topics
     prompt = (
         "Read this document and identify the most important topics discussed.\n"
         "Return only JSON with 5-10 concise noun-phrase topics.\n"
@@ -1310,10 +1337,12 @@ def extract_document_topics(document, top_n=8):
         topics = _parse_json_object(raw).get("topics") or []
         topics = [str(topic).strip() for topic in topics if str(topic).strip()]
         if topics:
-            return topics[:top_n]
+            document._topics = topics[:top_n]
+            return document._topics
     except Exception as exc:
         logger.warning("AI topic extraction failed, using fallback: %s", exc)
-    return detect_topics(text, top_n=top_n)
+    document._topics = detect_topics(text, top_n=top_n)
+    return document._topics
 
 
 def build_topic_context(text, topics, max_chars=AI_CONTEXT_LIMIT):
@@ -1473,7 +1502,7 @@ def generate_valid_json_array(prompt, possible_keys, validator, temperature=0.2)
     last_error = None
     service = CloudAIService()
     retry_prompt = prompt
-    for attempt in range(3):
+    for attempt in range(AI_JSON_ATTEMPTS):
         try:
             raw = service.generate(
                 retry_prompt,

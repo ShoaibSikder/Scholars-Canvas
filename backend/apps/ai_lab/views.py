@@ -88,12 +88,14 @@ def ai_allowed_response(request, feature):
     daily_limit = request.user.daily_ai_limit
     monthly_limit = request.user.monthly_ai_limit
     if daily_limit:
-        today_count = AIUsageLog.objects.filter(user=request.user, created_at__date=now.date()).count()
+        day_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        today_count = AIUsageLog.objects.filter(user=request.user, created_at__gte=day_start).count()
         if today_count >= daily_limit:
             AIUsageLog.objects.create(user=request.user, feature=feature, status=AIUsageLog.Status.BLOCKED)
             return Response({"message": "Daily AI usage limit reached."}, status=status.HTTP_429_TOO_MANY_REQUESTS)
     if monthly_limit:
-        month_count = AIUsageLog.objects.filter(user=request.user, created_at__year=now.year, created_at__month=now.month).count()
+        month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        month_count = AIUsageLog.objects.filter(user=request.user, created_at__gte=month_start).count()
         if month_count >= monthly_limit:
             AIUsageLog.objects.create(user=request.user, feature=feature, status=AIUsageLog.Status.BLOCKED)
             return Response({"message": "Monthly AI usage limit reached."}, status=status.HTTP_429_TOO_MANY_REQUESTS)

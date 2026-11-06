@@ -129,6 +129,7 @@ MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware', # Always at the top
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
+    'core.middleware.RequestTimingMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -180,6 +181,13 @@ ASGI_APPLICATION = 'core.asgi.application'
 
 REDIS_URL = os.environ.get("REDIS_URL", "")
 if REDIS_URL:
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.redis.RedisCache",
+            "LOCATION": REDIS_URL,
+            "TIMEOUT": 300,
+        }
+    }
     CHANNEL_LAYERS = {
         "default": {
             "BACKEND": "channels_redis.core.RedisChannelLayer",
@@ -187,6 +195,12 @@ if REDIS_URL:
         },
     }
 else:
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+            "LOCATION": "studentassistant-local-cache",
+        }
+    }
     CHANNEL_LAYERS = {
         "default": {
             "BACKEND": "channels.layers.InMemoryChannelLayer",
@@ -269,6 +283,10 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = "DENY"
 
 FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://localhost:5173")
+AI_ENRICHMENT_ENABLED = env_bool("AI_ENRICHMENT_ENABLED", False)
+AI_RETRY_ATTEMPTS = max(1, env_int("AI_RETRY_ATTEMPTS", 1))
+AI_JSON_ATTEMPTS = max(1, env_int("AI_JSON_ATTEMPTS", 2))
+AI_PROVIDER_TIMEOUT = max(15, env_int("AI_PROVIDER_TIMEOUT", 60))
 RESEND_API_KEY = os.environ.get("RESEND_API_KEY", "")
 RESEND_FROM_EMAIL = os.environ.get("RESEND_FROM_EMAIL", "onboarding@resend.dev")
 
@@ -294,5 +312,23 @@ STORAGES = {
     },
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {"console": {"class": "logging.StreamHandler"}},
+    "loggers": {
+        "studentassistant.request": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        "apps.ai_lab": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": False,
+        },
     },
 }
