@@ -7,6 +7,7 @@ from rest_framework.views import APIView
 
 from .models import StudySession, Task
 from .serializers import StudySessionSerializer, TaskSerializer
+from apps.courses.dashboard_cache import clear_dashboard_cache
 
 
 def finish_task_study_session(task):
@@ -69,6 +70,7 @@ class TasksView(APIView):
         if task.status == Task.Status.IN_PROGRESS and not task.study_started_at:
             task.study_started_at = timezone.now()
             task.save(update_fields=["study_started_at", "updated_at"])
+        clear_dashboard_cache(request.user.pk)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
@@ -84,6 +86,7 @@ class StudySessionsView(APIView):
         serializer = StudySessionSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save(user=request.user)
+        clear_dashboard_cache(request.user.pk)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
@@ -100,9 +103,11 @@ class TaskDetailView(APIView):
         next_status = serializer.validated_data.get("status", task.status)
         apply_task_tracking(task, next_status)
         serializer.save()
+        clear_dashboard_cache(request.user.pk)
         return Response(serializer.data)
 
     def delete(self, request, pk):
         task = self.get_object(request.user, pk)
         task.delete()
+        clear_dashboard_cache(request.user.pk)
         return Response(status=status.HTTP_204_NO_CONTENT)

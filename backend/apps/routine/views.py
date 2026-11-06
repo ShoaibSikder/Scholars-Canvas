@@ -6,6 +6,7 @@ from rest_framework.views import APIView
 
 from apps.accounts.models import UserPreferences
 from apps.courses.models import RoutineSlot
+from apps.courses.dashboard_cache import clear_dashboard_cache
 from .serializers import RoutineSlotSerializer
 
 
@@ -25,6 +26,7 @@ class RoutineView(APIView):
         serializer = RoutineSlotSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save(user=request.user)
+        clear_dashboard_cache(request.user.pk)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def patch(self, request):
@@ -49,9 +51,11 @@ class RoutineDetailView(APIView):
         serializer = RoutineSlotSerializer(slot, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
+        clear_dashboard_cache(request.user.pk)
         return Response(serializer.data)
 
     def delete(self, request, pk):
         slot = self.get_object(request.user, pk)
         slot.delete()
+        clear_dashboard_cache(request.user.pk)
         return Response(status=status.HTTP_204_NO_CONTENT)

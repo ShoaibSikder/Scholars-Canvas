@@ -4,6 +4,7 @@ import logging
 from time import perf_counter
 
 from django.db.models import Count, F, Q, Sum
+from django.core.cache import cache
 from django.db.models.functions import TruncDate
 from django.utils import timezone
 from rest_framework import status
@@ -18,6 +19,7 @@ from apps.tasks.models import StudySession, Task
 
 from .models import RoutineSlot
 from .serializers import RoutineSlotSerializer
+from .dashboard_cache import dashboard_cache_key
 
 
 logger = logging.getLogger("studentassistant.request")
@@ -39,6 +41,12 @@ class DashboardView(APIView):
     def get(self, request):
         started = perf_counter()
         user = request.user
+        cached_payload = cache.get(dashboard_cache_key(user.pk))
+        if cached_payload is not None:
+            response = Response(cached_payload)
+            response["Server-Timing"] = "dashboard-cache;dur=0"
+            response["X-Dashboard-Cache"] = "HIT"
+            return response
         now = timezone.localtime()
         today = now.weekday()
         current_time = now.time()
@@ -204,8 +212,7 @@ class DashboardView(APIView):
         weekly_average = round(sum(item["hours"] for item in study_data) / 7, 1)
         best_day = max(study_data, key=lambda item: item["hours"], default={"day": "-", "hours": 0})
 
-        response = Response(
-            {
+        payload = {
                 "profile": {
                     "full_name": user.full_name,
                     "email": user.email,
@@ -243,9 +250,11 @@ class DashboardView(APIView):
                 "courseProgress": course_progress[:6],
                 "semesterProgress": semester_progress[:4],
             }
-        )
+        cache.set(dashboard_cache_key(user.pk), payload, 15)
+        response = Response(payload)
         total_ms = (perf_counter() - started) * 1000
         response["Server-Timing"] = f"dashboard;dur={total_ms:.1f}"
+        response["X-Dashboard-Cache"] = "MISS"
         logger.info("dashboard timings user=%s total=%.1fms", user.pk, total_ms)
         return response
 

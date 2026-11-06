@@ -14,6 +14,7 @@ from rest_framework.views import APIView
 
 from .models import VaultCourse, VaultResource
 from .serializers import VaultCourseSerializer, VaultResourceSerializer
+from apps.courses.dashboard_cache import clear_dashboard_cache
 
 
 def courses_for_user(user):
@@ -47,6 +48,7 @@ class ResourcesView(APIView):
         serializer = VaultCourseSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save(user=request.user)
+        clear_dashboard_cache(request.user.pk)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
@@ -61,11 +63,13 @@ class ResourceCourseDetailView(APIView):
         serializer = VaultCourseSerializer(course, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
+        clear_dashboard_cache(request.user.pk)
         return Response(serializer.data)
 
     def delete(self, request, pk):
         course = self.get_object(request.user, pk)
         course.delete()
+        clear_dashboard_cache(request.user.pk)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -98,12 +102,14 @@ class CourseResourceView(APIView):
                 created_resources.append(resource)
 
             response_serializer = VaultResourceSerializer(created_resources, many=True, context={"request": request})
+            clear_dashboard_cache(request.user.pk)
             return Response(response_serializer.data, status=status.HTTP_201_CREATED)
 
         serializer = VaultResourceSerializer(data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
         is_done = serializer.validated_data.get("is_done", False)
         serializer.save(course=course, completed_at=timezone.now() if is_done else None)
+        clear_dashboard_cache(request.user.pk)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
@@ -122,11 +128,13 @@ class CourseResourceDetailView(APIView):
             serializer.save(completed_at=timezone.now() if serializer.validated_data["is_done"] else None)
         else:
             serializer.save()
+        clear_dashboard_cache(request.user.pk)
         return Response(serializer.data)
 
     def delete(self, request, course_id, pk):
         resource = self.get_object(request.user, course_id, pk)
         resource.delete()
+        clear_dashboard_cache(request.user.pk)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
