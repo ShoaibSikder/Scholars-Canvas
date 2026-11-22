@@ -208,6 +208,8 @@ export default function SettingsPage({ preferences, onSave }) {
               <img
                 src={developerProfile.avatar}
                 alt={developerProfile.name}
+                loading="lazy"
+                decoding="async"
                 className="size-16 shrink-0 rounded-full border-2 border-blue-500/40 object-cover shadow-md shadow-blue-500/20"
               />
               <div className="min-w-0">

@@ -135,7 +135,7 @@ export default function Sidebar({ activePage, navMode = "app", onNavigate, user 
 
       <nav
         ref={mobileNavRef}
-        className={`fixed inset-x-2 bottom-2 z-40 gap-1 rounded-2xl border border-slate-200/80 bg-white/92 p-1.5 shadow-xl shadow-slate-900/12 backdrop-blur-xl dark:border-slate-800 dark:bg-slate-950/90 lg:hidden ${
+        className={`fixed inset-x-2 bottom-[calc(0.5rem+env(safe-area-inset-bottom))] z-40 gap-1 rounded-2xl border border-slate-200/80 bg-white/92 p-1.5 shadow-xl shadow-slate-900/12 backdrop-blur-xl dark:border-slate-800 dark:bg-slate-950/90 lg:hidden ${
           isAdminMode ? "flex overflow-x-auto" : "grid"
         }`}
         onScroll={saveAdminMobileScroll}

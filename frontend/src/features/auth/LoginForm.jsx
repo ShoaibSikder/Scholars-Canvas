@@ -22,6 +22,7 @@ export default function LoginForm({
   });
   const [status, setStatus] = useState("");
   const [loading, setLoading] = useState(false);
+  const [warmupReady, setWarmupReady] = useState(false);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -29,8 +30,9 @@ export default function LoginForm({
     fetch(WARMUP_ENDPOINT, {
       cache: "no-store",
       signal: controller.signal,
-    }).catch(() => {
+    }).then(() => setWarmupReady(true)).catch(() => {
       // The login request will still handle any remaining wake-up delay.
+      setWarmupReady(true);
     });
 
     return () => controller.abort();
@@ -83,7 +85,7 @@ export default function LoginForm({
       </div>
 
       {authNotice ? <div className="mt-5"><InPageStatus message={authNotice} type="success" /></div> : null}
-      {status ? <div className="mt-5"><InPageStatus message={status} type="error" /></div> : null}
+      {status ? <div className="mt-5" role="alert"><InPageStatus message={status} type="error" /></div> : null}
 
       <form onSubmit={handleSubmit} className="mt-5 grid gap-3">
         <Input
@@ -96,6 +98,7 @@ export default function LoginForm({
             setFormData({ ...formData, email: event.target.value })
           }
           placeholder="Enter your email"
+          autoComplete="email"
           required
         />
 
@@ -115,7 +118,8 @@ export default function LoginForm({
               onChange={(event) =>
                 setFormData({ ...formData, password: event.target.value })
               }
-              className="min-h-8 w-full rounded-lg border border-slate-200 bg-white/90 px-10 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-500/10 dark:border-slate-700 dark:bg-slate-950/70 dark:text-slate-100 dark:focus:border-blue-500/70 dark:focus:bg-slate-950"
+              className="min-h-10 w-full rounded-lg border border-slate-200 bg-white/90 px-10 text-base text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-500/10 sm:min-h-8 sm:text-sm dark:border-slate-700 dark:bg-slate-950/70 dark:text-slate-100 dark:focus:border-blue-500/70 dark:focus:bg-slate-950"
+              autoComplete="current-password"
               placeholder="Enter your password"
             />
             <button
@@ -160,7 +164,7 @@ export default function LoginForm({
           disabled={loading}
         >
           <LogIn size={20} />
-          <span>{loading ? "Signing In..." : "Sign In"}</span>
+          <span>{loading ? (warmupReady ? "Signing In..." : "Connecting...") : "Sign In"}</span>
         </motion.button>
       </form>
 

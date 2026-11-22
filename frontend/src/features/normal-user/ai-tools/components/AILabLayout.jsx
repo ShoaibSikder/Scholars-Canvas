@@ -319,6 +319,8 @@ export default function AILabLayout({
                 <img
                   src={previewObjectUrl}
                   alt={activeDocument.title}
+                  loading="lazy"
+                  decoding="async"
                   className="max-h-full max-w-full rounded-xl object-contain shadow-lg"
                   style={{
                     transform: `scale(${previewScale})`,

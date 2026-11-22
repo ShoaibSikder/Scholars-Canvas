@@ -82,6 +82,7 @@ export default function AppLayout() {
     }
 
     let isMounted = true;
+    const controller = new AbortController();
     const timeoutId = window.setTimeout(async () => {
       const pageResults = getPageResults(query, profile, searchMode);
       if (searchMode === "admin") {
@@ -90,7 +91,7 @@ export default function AppLayout() {
       }
 
       try {
-        const response = await searchApp(query);
+        const response = await searchApp(query, { signal: controller.signal });
         if (!isMounted) return;
         const userResults = (response.results ?? []).filter((item) => !isAdminPage(item.page));
         setSearchResults([...pageResults, ...userResults]);
@@ -103,6 +104,7 @@ export default function AppLayout() {
     return () => {
       isMounted = false;
       window.clearTimeout(timeoutId);
+      controller.abort();
     };
   }, [profile, searchMode, searchQuery]);
 

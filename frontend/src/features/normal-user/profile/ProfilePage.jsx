@@ -118,6 +118,8 @@ export default function ProfilePage({ user, onSave }) {
                 <img
                   src={avatarPreview}
                   alt={draft.full_name || "Profile"}
+                  loading="lazy"
+                  decoding="async"
                   className="h-full w-full object-cover"
                 />
               ) : (

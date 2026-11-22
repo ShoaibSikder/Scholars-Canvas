@@ -21,7 +21,7 @@ export default function Input({
         ) : null}
         <input
           id={id}
-          className={`min-h-8 w-full rounded-lg border border-slate-200 bg-white/90 px-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-500/10 dark:border-slate-700 dark:bg-slate-950/70 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-blue-500/70 dark:focus:bg-slate-950 ${leftIcon ? "pl-12" : ""} ${rightSlot ? "pr-12" : ""} ${className}`.trim()}
+          className={`min-h-10 w-full rounded-lg border border-slate-200 bg-white/90 px-3 text-base text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-500/10 sm:min-h-8 sm:text-sm dark:border-slate-700 dark:bg-slate-950/70 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-blue-500/70 dark:focus:bg-slate-950 ${leftIcon ? "pl-12" : ""} ${rightSlot ? "pr-12" : ""} ${className}`.trim()}
           {...props}
         />
         {rightSlot ? (

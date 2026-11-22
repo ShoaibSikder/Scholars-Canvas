@@ -22,7 +22,16 @@ export default function ProtectedRoute({ children, allowedRole, adminOnly = fals
   }
 
   if (!profileLoaded) {
-    return <div className="min-h-screen bg-slate-50 dark:bg-slate-950" aria-busy="true" />;
+    return (
+      <main className="grid min-h-screen place-items-center bg-slate-50 px-4 dark:bg-slate-950" aria-busy="true">
+        <section className="grid w-full max-w-sm gap-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900" role="status" aria-label="Loading your workspace">
+          <div className="mx-auto size-11 animate-pulse rounded-2xl bg-gradient-to-br from-blue-600 to-violet-600" />
+          <div className="mx-auto h-4 w-40 animate-pulse rounded bg-slate-200 dark:bg-slate-800" />
+          <div className="mx-auto h-3 w-56 animate-pulse rounded bg-slate-200 dark:bg-slate-800" />
+          <span className="sr-only">Loading your workspace…</span>
+        </section>
+      </main>
+    );
   }
 
   const requiresAdmin = adminOnly || allowedRole === "admin";
