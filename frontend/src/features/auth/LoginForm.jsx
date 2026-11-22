@@ -5,7 +5,7 @@ import { Mail, Lock, Eye, EyeOff, LogIn } from "lucide-react";
 import Button from "../../components/common/Button";
 import InPageStatus from "../../components/common/InPageStatus";
 import Input from "../../components/common/Input";
-import { WARMUP_ENDPOINT } from "../../api/endpoints";
+import { warmupBackend } from "../../api/warmup";
 import { loginUser } from "./authService";
 
 export default function LoginForm({
@@ -27,10 +27,7 @@ export default function LoginForm({
   useEffect(() => {
     const controller = new AbortController();
 
-    fetch(WARMUP_ENDPOINT, {
-      cache: "no-store",
-      signal: controller.signal,
-    }).then(() => setWarmupReady(true)).catch(() => {
+    warmupBackend({ signal: controller.signal }).then(() => setWarmupReady(true)).catch(() => {
       // The login request will still handle any remaining wake-up delay.
       setWarmupReady(true);
     });

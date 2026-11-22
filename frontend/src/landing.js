@@ -1,4 +1,10 @@
 // The static homepage exposes every sample even when scripting is unavailable.
+import { warmupBackend } from "./api/warmup";
+
+warmupBackend({ keepalive: true }).catch(() => {
+  // The landing page remains usable while Render starts on demand.
+});
+
 const demo = document.querySelector(".workspace-demo");
 const links = demo ? [...demo.querySelectorAll(".tool-menu a")] : [];
 const panels = links.map(link => document.getElementById(link.hash.slice(1)));
