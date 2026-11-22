@@ -12,7 +12,10 @@ def main():
     if os.name == "nt" and sys.prefix == sys.base_prefix:
         local_python = Path(__file__).resolve().parent / "venv" / "Scripts" / "python.exe"
         if local_python.is_file():
-            result = subprocess.run([str(local_python), *sys.argv])
+            try:
+                result = subprocess.run([str(local_python), *sys.argv])
+            except KeyboardInterrupt:
+                raise SystemExit(130) from None
             raise SystemExit(result.returncode)
 
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'core.settings')
