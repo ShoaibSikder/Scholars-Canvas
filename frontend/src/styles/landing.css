@@ -350,6 +350,7 @@ section[id] { scroll-margin-top: 1.25rem }
   .feature-card:last-child { grid-column: 1 / -1; min-height: 17rem }
 }
 @media (max-width: 39rem) {
+  .section-nav { display: none }
   .wrap { width: min(100% - 1.25rem, 76rem) }
   .bar { gap: .45rem }
   .brand { gap: .4rem; font-size: 1rem }
