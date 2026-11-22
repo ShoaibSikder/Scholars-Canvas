@@ -803,6 +803,8 @@ The repository includes a Render Blueprint at [`render.yaml`](render.yaml) for t
 4. Deploy `frontend/` as a Vite site on a static host such as Vercel. Build with `npm run build`, publish `dist/`, and set `VITE_API_BASE_URL` to the deployed backend API.
 5. Confirm the backend health endpoint at `/health/`, then verify sign-in, protected user and admin routes, resource uploads, AI features, and communication from the deployed frontend.
 
+The landing page sends a best-effort request to the backend `/warmup/` endpoint when it opens. This can wake a sleeping Render service before a visitor signs in; the login page also triggers warmup when opened directly. Keep `VITE_API_BASE_URL` pointed at the live backend because the warmup URL is derived from that setting.
+
 Keep service keys and database credentials in the hosting provider's environment settings. Do not put them in frontend `VITE_*` variables, which are public in the browser bundle.
 
 ## Development Notes
