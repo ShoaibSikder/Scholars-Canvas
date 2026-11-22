@@ -1,7 +1,10 @@
 import { request } from "./client";
 import { APP_ENDPOINTS } from "./endpoints";
 
-export const fetchResources = () => request(APP_ENDPOINTS.resources);
+export const fetchResources = (options) => request(APP_ENDPOINTS.resources, options);
+export const fetchVaultFileChoices = (signal) => request(`${APP_ENDPOINTS.resources}?view=file-picker`, { signal });
+export const fetchVaultFolders = () => request(`${APP_ENDPOINTS.resources}?view=folders`);
+export const fetchVaultCourse = (id, signal) => request(`${APP_ENDPOINTS.resources}${id}/`, { signal });
 export const createVaultCourse = (payload) =>
   request(APP_ENDPOINTS.resources, {
     method: "POST",

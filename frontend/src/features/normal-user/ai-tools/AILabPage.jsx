@@ -22,7 +22,7 @@ import {
   createAILabDocument,
   createAILabDocumentFromVault,
   fetchAILab,
-  fetchResources,
+  fetchVaultFileChoices,
   generateAILabMcqQuiz,
   generateAILabQuiz,
   summarizeAILabDocument,
@@ -42,7 +42,6 @@ import {
   supportedFileTypes,
 } from "./aiLabConstants";
 import {
-  flattenVaultResources,
   FormattedChatMessage,
   getExternalViewerUrl,
   getGenerationIndicator,
@@ -76,7 +75,7 @@ export default function AILabPage() {
   const [chatInput, setChatInput] = useState("");
   const [status, setStatus] = useState("");
   const [loading, setLoading] = useState(() => !cached?.loaded);
-  const [vaultLoading, setVaultLoading] = useState(() => !cached?.vaultLoaded);
+  const [vaultLoading, setVaultLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState("");
   const [uploadProgress, setUploadProgress] = useState(0);
   const [flippedCards, setFlippedCards] = useState([]);
@@ -192,33 +191,40 @@ export default function AILabPage() {
       }
     };
 
+    loadLab();
+    return () => { mounted = false; };
+  }, []);
+
+  useEffect(() => {
+    if (!vaultPickerOpen || cached?.vaultLoaded) return;
+    const controller = new AbortController();
+    let mounted = true;
     const loadVault = async () => {
       if (cached?.vaultLoaded) return;
       setVaultLoading(true);
       try {
-        const response = await fetchResources();
+        const response = await fetchVaultFileChoices(controller.signal);
         if (!mounted) return;
 
-        const nextVaultResources = flattenVaultResources(response.courses ?? []);
+        const nextVaultResources = response.files ?? [];
         setVaultResources(nextVaultResources);
         setCached((current) => ({ ...current, vaultLoaded: true, vaultResources: nextVaultResources }));
       } catch {
         if (mounted) {
           setVaultResources([]);
-          setCached((current) => ({ ...current, vaultLoaded: true, vaultResources: [] }));
+          setStatus("Unable to load Vault files. Reopen the picker to retry.");
         }
       } finally {
         if (mounted) setVaultLoading(false);
       }
     };
 
-    loadLab();
     loadVault();
-
     return () => {
       mounted = false;
+      controller.abort();
     };
-  }, []);
+  }, [vaultPickerOpen, cached?.vaultLoaded, setCached]);
 
   useEffect(() => {
     if (!loading) {
@@ -232,15 +238,7 @@ export default function AILabPage() {
     }
   }, [activeDocumentId, activeTab, documents, loading, setCached]);
 
-  useEffect(() => {
-    if (!vaultLoading) {
-      setCached((current) => ({
-        ...current,
-        vaultLoaded: true,
-        vaultResources,
-      }));
-    }
-  }, [setCached, vaultLoading, vaultResources]);
+
 
   useEffect(() => {
     if (!activeDocument) {

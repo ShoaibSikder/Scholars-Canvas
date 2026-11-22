@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, BookOpen, CheckCircle2, Copy, Download, ExternalLink, File as GenericFile, FileImage, FileQuestion, FileSpreadsheet, FileText, Folder, FolderOpen, Link as LinkIcon, Loader2, Mail, MessageCircle, Pencil, Plus, Presentation, Send, Share2, Sparkles, Trash2, UploadCloud, X } from "lucide-react";
 
-import { createAILabDocumentFromVault, createConversation, createVaultCourse, createVaultResource, deleteVaultCourse, deleteVaultResource, fetchCommunication, fetchResources, generateAILabMcqQuiz, sendConversationMessage, summarizeAILabDocument, updateVaultCourse, updateVaultResource } from "../../../api";
+import { createAILabDocumentFromVault, createConversation, createVaultCourse, createVaultResource, deleteVaultCourse, deleteVaultResource, fetchCommunication, fetchVaultFolders, fetchVaultCourse, generateAILabMcqQuiz, sendConversationMessage, summarizeAILabDocument, updateVaultCourse, updateVaultResource } from "../../../api";
 import { useAlert } from "../../../components/common/AlertProvider";
 import PageFallback from "../../../components/common/PageFallback";
 import UploadProgressBar from "../../../components/common/UploadProgressBar";
@@ -81,12 +81,32 @@ export default function VaultPage({ openRequest = null } = {}) {
   const courses = useMemo(() => flattenCourses(semesterGroups), [semesterGroups]);
   const selectedCourse = courses.find((course) => course.id === selectedCourseId) ?? null;
 
+  const pendingCourseId = selectedCourse && !Array.isArray(selectedCourse.resources) ? selectedCourse.id : null;
+  const [courseError, setCourseError] = useState("");
+  const [attempt, setAttempt] = useState(0);
+
+  useEffect(() => {
+    setCourseError("");
+    if (!pendingCourseId) return;
+    const controller = new AbortController();
+    fetchVaultCourse(pendingCourseId, controller.signal).then((detail) => {
+      if (controller.signal.aborted) return;
+      setSemesterGroups((groups) => groups.map((group) => ({
+        ...group,
+        courses: group.courses.map((course) => course.id === detail.id ? detail : course),
+      })));
+    }).catch((error) => {
+      if (!controller.signal.aborted) setCourseError(error.message || "Unable to open this course.");
+    });
+    return () => controller.abort();
+  }, [pendingCourseId, attempt]);
+
   const loadVault = async ({ force = false } = {}) => {
     if (!force && cached?.loaded) return;
     setLoading(true);
     setStatus("");
     try {
-      const payload = await fetchResources();
+      const payload = await fetchVaultFolders();
       const nextGroups = payload?.courses ?? [];
       setSemesterGroups(nextGroups);
       setCached({ loaded: true, semesterGroups: nextGroups });
@@ -868,6 +888,16 @@ export default function VaultPage({ openRequest = null } = {}) {
 
   if (loading) {
     return <PageFallback />;
+  }
+
+  if (pendingCourseId) {
+    return (
+      <section className={card}>
+        <button className={secondaryBtn} onClick={() => setSelectedCourseId(null)}>Back to courses</button>
+        <p role="status" className="my-3">{courseError || `Opening ${selectedCourse.title}?`}</p>
+        {courseError && <button className={primaryBtn} onClick={() => setAttempt((value) => value + 1)}>Retry</button>}
+      </section>
+    );
   }
 
   if (selectedCourse) {

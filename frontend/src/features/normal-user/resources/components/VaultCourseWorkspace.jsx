@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   ArrowLeft,
   CheckCircle2,
@@ -48,6 +49,9 @@ export default function VaultCourseWorkspace({
   setSelectedCourseId,
   status,
 }) {
+  const [limits, setLimits] = useState({});
+  const listKey = `${selectedCourse.id}:${activeSection}`;
+  const limit = limits[listKey] ?? 30;
   return (
     <div className="grid h-[calc(100dvh-4.75rem)] min-h-0 grid-rows-[auto_minmax(0,1fr)] gap-3 overflow-hidden lg:h-[calc(100dvh-4.5rem)]">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -131,6 +135,7 @@ export default function VaultCourseWorkspace({
               const items = selectedCourse.resources.filter(
                 (item) => item.category === section.key,
               );
+              const visibleItems = items.slice(0, limit);
               return (
                 <section
                   key={section.key}
@@ -170,7 +175,7 @@ export default function VaultCourseWorkspace({
                           No links yet.
                         </div>
                       ) : (
-                        items.map((item) => (
+                        visibleItems.map((item) => (
                           <LinkPreviewCard
                             key={item.id}
                             resource={item}
@@ -187,7 +192,7 @@ export default function VaultCourseWorkspace({
                           No resources yet.
                         </div>
                       ) : (
-                        items.map((item) => {
+                        visibleItems.map((item) => {
                           const visual = getResourceVisual(item);
                           const ResourceIcon = visual.Icon;
                           const isHovered = hoveredResource === item.id;
@@ -357,6 +362,11 @@ export default function VaultCourseWorkspace({
                         })
                       )}
                     </div>
+                  )}
+                  {limit < items.length && (
+                    <button type="button" className={secondaryBtn} onClick={() => setLimits((current) => ({ ...current, [listKey]: limit + 30 }))}>
+                      Show more ({items.length - limit} remaining)
+                    </button>
                   )}
                 </section>
               );

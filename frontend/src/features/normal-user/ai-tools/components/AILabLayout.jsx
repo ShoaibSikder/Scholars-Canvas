@@ -225,7 +225,6 @@ export default function AILabLayout({
                         : "Search Vault files by name, course, or semester"
                     }
                     className={`${field} pr-10`}
-                    disabled={vaultLoading}
                     autoComplete="off"
                   />
                   <FolderOpen
@@ -236,7 +235,7 @@ export default function AILabLayout({
                   {vaultPickerOpen && !vaultLoading ? (
                     <div className="absolute left-0 right-0 z-30 mt-2 max-h-60 overflow-y-auto overscroll-contain rounded-2xl border border-slate-200 bg-white p-2 shadow-2xl shadow-slate-900/15 dark:border-slate-700 dark:bg-slate-950 sm:max-h-72">
                       {filteredVaultResources.length > 0 ? (
-                        filteredVaultResources.map((resource) => (
+                        filteredVaultResources.slice(0, 30).map((resource) => (
                           <button
                             type="button"
                             key={resource.id}
@@ -278,6 +277,9 @@ export default function AILabLayout({
                         <div className="rounded-xl border border-dashed border-slate-200 p-4 text-center text-sm font-bold text-slate-500 dark:border-slate-800 dark:text-slate-400">
                           No Vault files match your search.
                         </div>
+                      )}
+                      {filteredVaultResources.length > 30 && (
+                        <p className="p-2 text-sm">Showing 30 of {filteredVaultResources.length} files. Type to narrow your search.</p>
                       )}
                     </div>
                   ) : null}

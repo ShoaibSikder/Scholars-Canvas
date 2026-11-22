@@ -41,7 +41,7 @@ export function LinkPreviewCard({ resource, onEdit, onDelete, compact = false })
     </span>
   ) : (
     <span className="grid size-8 shrink-0 place-items-center overflow-hidden rounded-lg bg-blue-50 shadow-sm dark:bg-blue-500/10">
-      {urlInfo.favicon ? <img src={urlInfo.favicon} alt="" className="size-5" /> : <LinkIcon className="text-blue-500" size={19} />}
+      {urlInfo.favicon ? <img loading="lazy" decoding="async" src={urlInfo.favicon} alt="" className="size-5" /> : <LinkIcon className="text-blue-500" size={19} />}
     </span>
   );
 

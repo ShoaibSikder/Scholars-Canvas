@@ -30,11 +30,29 @@ class ResourcesView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        if request.query_params.get("view") == "file-picker":
+            files = VaultResource.objects.filter(course__user=request.user, is_removed_by_admin=False).exclude(
+                moderation_status="removed"
+            ).exclude(file="").select_related("course").only(
+                "id", "title", "resource_type", "category", "course__id", "course__code", "course__title", "course__semester"
+            ).order_by("-course__semester", "course__code", "category", "-created_at")
+            return Response({"files": [
+                {
+                    "id": item.pk, "title": item.title, "resource_type": item.resource_type,
+                    "resource_type_label": item.get_resource_type_display(),
+                    "category_label": item.get_category_display(), "semester": item.course.semester,
+                    "courseLabel": f"{item.course.code} - {item.course.title}",
+                }
+                for item in files
+            ]})
         courses = courses_for_user(request.user)
-        serializer = VaultCourseSerializer(courses, many=True, context={"request": request})
+        if request.query_params.get("view") == "folders":
+            rows = courses.values("id", "semester", "code", "title", "resource_count", "created_at", "updated_at")
+        else:
+            rows = VaultCourseSerializer(courses, many=True, context={"request": request}).data
         semesters = []
 
-        for course in serializer.data:
+        for course in rows:
             semester = course["semester"]
             group = next((item for item in semesters if item["semester"] == semester), None)
             if not group:
@@ -57,6 +75,10 @@ class ResourceCourseDetailView(APIView):
 
     def get_object(self, user, pk):
         return get_object_or_404(VaultCourse, user=user, pk=pk)
+
+    def get(self, request, pk):
+        course = get_object_or_404(courses_for_user(request.user), pk=pk)
+        return Response(VaultCourseSerializer(course, context={"request": request}).data)
 
     def patch(self, request, pk):
         course = self.get_object(request.user, pk)
