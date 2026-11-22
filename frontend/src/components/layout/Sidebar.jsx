@@ -8,7 +8,6 @@ import {
   Database,
   FolderOpen,
   Gauge,
-  GraduationCap,
   Home,
   Lock,
   MessageCircle,
@@ -93,7 +92,7 @@ export default function Sidebar({ activePage, navMode = "app", onNavigate, user 
           aria-label="Refresh Scholars Canvas"
           title="Refresh"
         >
-          <GraduationCap className="size-5" />
+          <img src="/favicon.svg" width="36" height="36" alt="" />
         </button>
 
         <nav className="mt-6 flex flex-1 flex-col items-center gap-2.5">
@@ -136,7 +135,7 @@ export default function Sidebar({ activePage, navMode = "app", onNavigate, user 
       <nav
         ref={mobileNavRef}
         className={`fixed inset-x-2 bottom-[calc(0.5rem+env(safe-area-inset-bottom))] z-40 gap-1 rounded-2xl border border-slate-200/80 bg-white/92 p-1.5 shadow-xl shadow-slate-900/12 backdrop-blur-xl dark:border-slate-800 dark:bg-slate-950/90 lg:hidden ${
-          isAdminMode ? "flex overflow-x-auto" : "grid"
+          isAdminMode ? "flex overflow-x-auto" : "flex overflow-x-auto sm:grid"
         }`}
         onScroll={saveAdminMobileScroll}
         style={isAdminMode ? undefined : { gridTemplateColumns: `repeat(${visibleNavItems.length}, minmax(0, 1fr))` }}
@@ -155,13 +154,14 @@ export default function Sidebar({ activePage, navMode = "app", onNavigate, user 
                 onNavigate(item.path);
               }}
               className={`grid min-h-12 place-items-center rounded-xl px-1 py-1 text-[10px] font-black ${
-                isAdminMode ? "min-w-16 shrink-0" : ""
+                isAdminMode ? "min-w-16 shrink-0" : "min-w-16 flex-1 sm:min-w-0"
               } ${
                 isActive
                   ? "bg-blue-600 text-white shadow-md shadow-blue-500/25"
                   : "text-slate-500 dark:text-slate-400"
               }`}
               aria-label={item.label}
+              aria-current={isActive ? "page" : undefined}
             >
               <Icon className="size-4" />
               <span className="mt-0.5 max-w-full truncate leading-none">{item.label}</span>

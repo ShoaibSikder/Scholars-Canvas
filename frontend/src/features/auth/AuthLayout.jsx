@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { GraduationCap, BookOpen, Brain, Target, Sparkles, Clock, TrendingUp } from "lucide-react";
+import { BookOpen, Brain, Target, Sparkles, Clock, TrendingUp } from "lucide-react";
 
 export default function AuthLayout({ children }) {
   return (
@@ -13,7 +13,7 @@ export default function AuthLayout({ children }) {
             <div className="relative z-10 flex w-full flex-col items-center gap-2 pt-5">
               <div className="text-center">
               <div className="mx-auto grid size-16 place-items-center rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white shadow-xl shadow-blue-500/25">
-                <GraduationCap className="size-9" />
+                <a href="/" aria-label="Scholars Canvas home"><img src="/favicon.svg" width="64" height="64" alt="" /></a>
               </div>
               <h1 className="mt-4 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-5xl font-black tracking-tight text-transparent">Scholars Canvas</h1>
               <p className="mt-2 text-lg font-bold text-slate-600 dark:text-slate-300">Your Academic Command Center</p>
@@ -81,7 +81,7 @@ export default function AuthLayout({ children }) {
         <div className="flex min-h-full flex-col items-center justify-center py-3 lg:h-full lg:min-h-0 lg:py-2.5">
           <div className="mb-4 text-center lg:hidden">
             <div className="mx-auto grid size-10 place-items-center rounded-xl bg-gradient-to-br from-blue-600 to-violet-600 text-white shadow-md shadow-blue-500/25">
-              <GraduationCap className="size-6" />
+              <a href="/" aria-label="Scholars Canvas home"><img src="/favicon.svg" width="40" height="40" alt="" /></a>
             </div>
             <h1 className="mt-2 text-2xl font-black tracking-tight">Scholars Canvas</h1>
             <p className="mt-1 text-xs font-bold text-slate-500 dark:text-slate-400">Your Academic Command Center</p>

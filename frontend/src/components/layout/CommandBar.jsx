@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Bell, GraduationCap, LogOut, Search, Settings, User, UserCircle, X } from "lucide-react";
+import { Bell, LogOut, Search, Settings, User, UserCircle, X } from "lucide-react";
 
 export default function CommandBar({
   user,
@@ -61,7 +61,7 @@ export default function CommandBar({
         className="grid size-9 place-items-center rounded-xl bg-gradient-to-br from-blue-600 to-violet-600 text-white shadow-md shadow-blue-500/25 lg:hidden"
         aria-label="Focus search"
       >
-        <GraduationCap className="size-5" />
+        <img src="/favicon.svg" width="36" height="36" alt="" />
       </button>
 
       <div className="hidden min-w-40 lg:block">

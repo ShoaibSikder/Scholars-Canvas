@@ -1,0 +1,38 @@
+// The static homepage exposes every sample even when scripting is unavailable.
+const demo = document.querySelector(".workspace-demo");
+const links = [...demo.querySelectorAll(".tool-menu a")];
+const panels = links.map(link => document.getElementById(link.hash.slice(1)));
+
+function showPreview(index) {
+  panels.forEach((panel, position) => {
+    panel.hidden = position !== index;
+    if (position === index) {
+      links[position].setAttribute("aria-current", "true");
+    } else {
+      links[position].removeAttribute("aria-current");
+    }
+  });
+}
+
+function followFragment() {
+  const index = links.findIndex(link => link.hash === location.hash);
+  if (index >= 0) {
+    showPreview(index);
+    panels[index].scrollIntoView({ block: "nearest" });
+  } else {
+    showPreview(0);
+  }
+}
+
+demo.classList.add("is-interactive");
+followFragment();
+window.addEventListener("hashchange", followFragment);
+
+links.forEach((link, index) => {
+  link.addEventListener("click", event => {
+    if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+    event.preventDefault();
+    if (location.hash !== link.hash) history.pushState(null, "", link.hash);
+    showPreview(index);
+  });
+});
