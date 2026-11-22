@@ -342,15 +342,19 @@ a.sign:hover, .cta:hover { color: white; filter: brightness(.92) }
 .feature-action { display: flex; align-items: center; gap: .45rem; margin-top: auto; padding-top: 1.35rem; color: var(--card-accent); font-size: .88rem; font-weight: 750 }
 section[id] { scroll-margin-top: 1.25rem }
 @media (max-width: 54rem) {
-  .bar { grid-template-columns: 1fr auto; padding-block: .45rem }
-  .section-nav { grid-column: 1 / -1; grid-row: 2; justify-content: space-between; width: 100%; border-top: 1px solid var(--edge); }
-  .section-nav a { flex: 1; padding-inline: .25rem; font-size: .83rem }
-  .bar-actions { grid-column: 2; grid-row: 1 }
+  .bar { grid-template-columns: auto minmax(0, 1fr) auto; gap: .55rem; padding-block: .45rem }
+  .bar .brand { gap: .4rem; font-size: 1rem }
+  .bar .brand img { width: 31px; height: 31px }
+  .section-nav { grid-column: 2; grid-row: 1; justify-content: center; width: auto; }
+  .section-nav a { flex: 0 0 auto; padding-inline: .25rem; font-size: .8rem }
+  .bar-actions { grid-column: 3; grid-row: 1; gap: .35rem }
+  .bar-actions .sign { padding-inline: .6rem; font-size: .85rem }
+  .bar-actions .theme-toggle { width: 2.5rem; height: 2.5rem }
   .feature-grid { grid-template-columns: 1fr 1fr }
   .feature-card:last-child { grid-column: 1 / -1; min-height: 17rem }
 }
 @media (max-width: 39rem) {
-  .section-nav { display: none }
+  .bar .section-nav { display: none }
   .wrap { width: min(100% - 1.25rem, 76rem) }
   .bar { gap: .45rem }
   .brand { gap: .4rem; font-size: 1rem }
