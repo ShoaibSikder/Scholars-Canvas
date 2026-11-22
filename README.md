@@ -1,7 +1,7 @@
 <p align="center"> <img src="frontend/public/favicon.svg" alt="logo" width="112" /> </p>
 <h1 align="center">Scholars Canvas</h1>
 
-<p align="center"><strong>Plan your studies. Organize your resources. Keep learning.</strong><br />A student workspace for academic planning, study tools, and collaboration.</p>
+<p align="center"><strong>Your Academic Command Center</strong><br />A student workspace for academic planning, study tools, and collaboration.</p>
 
 <p align="center">
   <img src="https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white" alt="React 19" />
@@ -36,6 +36,12 @@ The project uses a Django REST backend and a React + Vite frontend. Normal users
 ## Screenshots
 
 All screenshots are stored in `Documentations/SystemImages`.
+
+### Public Homepage
+
+<a href="Documentations/SystemImages/Homepage.png" target="_blank">
+  <img src="Documentations/SystemImages/Homepage.png" width="900" alt="Scholars Canvas homepage with academic workspace preview, study features, and navigation" style="border-radius:10px;" />
+</a>
 
 ### Authentication
 

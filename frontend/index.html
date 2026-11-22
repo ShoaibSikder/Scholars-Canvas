@@ -94,118 +94,194 @@
 
 <body>
   <a class="skip" href="#main">Skip to content</a>
-  <header class="mast" id="page-top"><div class="wrap bar">
-    <a class="brand" href="/"><img src="/favicon.svg" width="36" height="36" alt="">Scholars Canvas</a>
-    <nav aria-label="Main navigation"><a class="tools-link" href="#tools">Study tools</a><a class="sign" href="/login">Sign in <span aria-hidden="true">↗</span></a></nav>
-  </div></header>
+  <header class="mast" id="page-top">
+    <div class="wrap bar">
+      <a class="brand" href="/" aria-label="Scholars Canvas home"><img src="/favicon.svg" width="36" height="36" alt="">Scholars Canvas</a>
+      <nav class="section-nav" aria-label="Homepage sections">
+        <a href="#tools">Workspace</a>
+        <a href="#features">Features</a>
+        <a href="#how-it-works">How it works</a>
+      </nav>
+      <div class="bar-actions">
+        <button class="theme-toggle" type="button" aria-label="Switch to dark theme" aria-pressed="false">
+          <svg class="theme-icon theme-icon--light" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"></path></svg>
+          <svg class="theme-icon theme-icon--dark" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.9 13A9 9 0 0 1 11 3.1 9 9 0 1 0 20.9 13Z"></path></svg>
+        </button>
+        <a class="sign" href="/login">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+            <path d="m10 17 5-5-5-5"></path><path d="M15 12H3"></path><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+          </svg>
+          <span>Sign in</span>
+        </a>
+      </div>
+    </div>
+  </header>
   <main id="main">
-    <section class="hero wrap" aria-labelledby="hero-title">
-      <div>
-        <h1 id="hero-title">Your studies,<br><span>in focus.</span></h1>
-        <p>Bring your class schedule, course notes, and AI study tools together. Spend less time getting organized and more time learning.</p>
+    <section class="hero" aria-labelledby="hero-title">
+      <img class="desk-photo" src="/study-desk-1200.webp" srcset="/study-desk-640.webp 640w, /study-desk-1200.webp 1200w" sizes="100vw" width="1200" height="900" fetchpriority="high" alt="A student sketching a tree diagram in a notebook beside a laptop">
+      <div class="hero-shade" aria-hidden="true"></div>
+      <div class="hero-inner wrap">
+        <p class="hero-kicker"><span></span> A better rhythm for your semester</p>
+        <h1 id="hero-title">Your Academic<br><span>Command Center</span></h1>
+        <p>Plan your week, keep course resources close, and make time to learn. Scholars Canvas brings your academic life into one organized workspace.</p>
         <div class="actions">
           <a class="cta" href="/register">Create your workspace <span aria-hidden="true">&rarr;</span></a>
-          <a class="demo-link" href="#tools">Try the study tools <span aria-hidden="true">&darr;</span></a>
+          <a class="demo-link" href="#tools">Explore the workspace</a>
         </div>
       </div>
-      <div class="study-scene">
-        <img class="desk-photo" src="/study-desk-1200.webp" srcset="/study-desk-640.webp 640w, /study-desk-1200.webp 1200w"
-             sizes="(max-width: 49rem) calc(100vw - 2rem), (max-width: 80rem) 52vw, 40rem"
-             width="1200" height="900" fetchpriority="high" alt="A student sketching a tree diagram in a notebook beside a laptop">
-        <div class="focus-slip">
-          <div class="slip-heading"><img src="/favicon.svg" alt="" width="24" height="24"><strong>Today's focus</strong></div>
-          <label class="focus-task"><input type="checkbox"><span>Review lecture notes</span></label>
-        </div>
+      <div class="focus-slip">
+        <div class="slip-heading"><img src="/favicon.svg" alt="" width="24" height="24"><strong>Today's focus</strong></div>
+        <label class="focus-task"><input type="checkbox"><span>Review lecture notes</span></label>
       </div>
     </section>
+
     <section class="tool-section" id="tools" aria-labelledby="tools-heading">
       <div class="wrap">
-        <h2 id="tools-heading">Inside the workspace</h2>
-        <p class="demo-intro">Try a sample study session.</p>
+        <div class="section-intro">
+          <p class="eyebrow">One connected study space</p>
+          <h2 id="tools-heading">From your weekly plan to your next review</h2>
+          <p>Keep routines, coursework, and study sessions together. Choose a sample below to see how each part of the workspace fits into your day.</p>
+        </div>
         <div class="workspace-demo">
-          <nav class="tool-menu" aria-label="Study previews">
-            <a href="#weekly-planner">Weekly planner</a>
-            <a href="#course-vault">Course vault</a>
-            <a href="#ai-lab">AI Lab</a>
-          </nav>
+          <div class="workspace-rail">
+            <p class="rail-label">Study space</p>
+            <nav class="tool-menu" aria-label="Study previews">
+              <a href="#weekly-planner"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M16 3v4M8 3v4M3 10h18"></path></svg>Weekly planner</a>
+              <a href="#course-vault"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>Course vault</a>
+              <a href="#ai-lab"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18M8 7a4 4 0 0 0 0 8m8-8a4 4 0 0 1 0 8M8 7a4 4 0 0 1 8 0m-8 8a4 4 0 0 0 8 0"></path></svg>AI Lab</a>
+            </nav>
+            <p class="rail-note">A little more focus, one study session at a time.</p>
+          </div>
           <div class="demo-panels">
             <article id="weekly-planner" tabindex="-1">
-              <h3>Your Monday schedule</h3>
-              <p>Keep class times and assignment deadlines together.</p>
+              <div class="panel-heading"><div><p class="panel-eyebrow">MONDAY &middot; SAMPLE PLAN</p><h3>Your day, in view</h3></div><span class="panel-mark">01</span></div>
+              <p>Balance class time with study and the work you need to finish.</p>
               <ol class="schedule">
-                <li><time>09:00</time><div><strong>Data structures</strong><small>Lecture &middot; Computer science</small></div></li>
-                <li><time>11:30</time><div><strong>Review binary trees</strong><small>Study session &middot; Library</small></div></li>
-                <li><time>14:00</time><div><strong>Submit lab report</strong><small>Assignment &middot; Physics</small></div></li>
+                <li><time>09:00</time><div><strong>Data structures</strong><small>Lecture &middot; Computer science</small></div><span class="schedule-tag">Class</span></li>
+                <li><time>11:30</time><div><strong>Review binary trees</strong><small>Study session &middot; Library</small></div><span class="schedule-tag">Study</span></li>
+                <li><time>14:00</time><div><strong>Submit lab report</strong><small>Assignment &middot; Physics</small></div><span class="schedule-tag">Due</span></li>
               </ol>
+              <a class="panel-link" href="/register">Plan your week <span aria-hidden="true">&rarr;</span></a>
             </article>
             <article id="course-vault" tabindex="-1">
-              <h3>Data structures notebook</h3>
-              <p>Open a sample note from your course vault.</p>
-              <details class="sample-note"><summary>Lecture notes &middot; Trees</summary>
-                <div><strong>Binary trees</strong><p>Each node has at most two children. A node with no children is called a leaf.</p></div>
+              <div class="panel-heading"><div><p class="panel-eyebrow">YOUR COURSE MATERIALS</p><h3>Keep useful notes close</h3></div><span class="panel-mark">02</span></div>
+              <p>Organize class resources by course, then revisit a note when it is time to study.</p>
+              <details class="sample-note" open><summary>Data structures <span>Lecture notes &middot; Trees</span></summary>
+                <div class="note-content"><strong>Binary trees</strong><p>Each node has at most two children. A node with no children is called a leaf.</p><span class="note-meta">A quick note from your course vault</span></div>
               </details>
+              <a class="panel-link" href="/register">Organize your courses <span aria-hidden="true">&rarr;</span></a>
             </article>
             <article id="ai-lab" tabindex="-1">
-              <h3>Practice with a flashcard</h3>
-              <p>Recall the answer, then check it against your notes.</p>
-              <div class="flashcard"><strong>How many children can a binary tree node have?</strong>
-                <details><summary>Reveal answer</summary><p>At most two &mdash; a left child and a right child.</p></details>
+              <div class="panel-heading"><div><p class="panel-eyebrow">ACTIVE RECALL</p><h3>Turn notes into practice</h3></div><span class="panel-mark">03</span></div>
+              <p>Use a flashcard to check what you remember before looking at the answer.</p>
+              <div class="flashcard"><span class="flashcard-label">QUICK CHECK</span><strong>How many children can a binary tree node have?</strong>
+                <details><summary>Reveal answer <span aria-hidden="true">+</span></summary><p>At most two &mdash; a left child and a right child.</p></details>
               </div>
+              <a class="panel-link" href="/register">Explore AI Lab <span aria-hidden="true">&rarr;</span></a>
             </article>
           </div>
         </div>
       </div>
     </section>
+
+    <section class="feature-section" id="features" aria-labelledby="features-heading">
+      <div class="wrap">
+        <div class="feature-heading">
+          <div><p class="eyebrow">Built for the study day</p><h2 id="features-heading">Less switching. More studying.</h2></div>
+          <p>Start with the part of student life you want to get in order.</p>
+        </div>
+        <div class="feature-grid">
+          <a class="feature-card feature-card--blue" href="#weekly-planner" data-preview="weekly-planner">
+            <span class="feature-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M16 3v4M8 3v4M3 10h18"></path></svg></span>
+            <span class="feature-index">01 / PLAN</span>
+            <h3>Make room for the week</h3>
+            <p>See classes, study blocks, and assignment deadlines together so you can decide what needs your time.</p>
+            <span class="feature-action">Open weekly planner <span aria-hidden="true">&rarr;</span></span>
+          </a>
+          <a class="feature-card feature-card--violet" href="#course-vault" data-preview="course-vault">
+            <span class="feature-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg></span>
+            <span class="feature-index">02 / ORGANIZE</span>
+            <h3>Keep courses in reach</h3>
+            <p>Group files, links, and class notes by course, then come back to the material you need.</p>
+            <span class="feature-action">Visit course vault <span aria-hidden="true">&rarr;</span></span>
+          </a>
+          <a class="feature-card feature-card--gold" href="#ai-lab" data-preview="ai-lab">
+            <span class="feature-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18M8 7a4 4 0 0 0 0 8m8-8a4 4 0 0 1 0 8M8 7a4 4 0 0 1 8 0m-8 8a4 4 0 0 0 8 0"></path></svg></span>
+            <span class="feature-index">03 / PRACTICE</span>
+            <h3>Learn by testing yourself</h3>
+            <p>Use AI Lab to work with your study material and practise key ideas with summaries, quizzes, and flashcards.</p>
+            <span class="feature-action">Try a sample flashcard <span aria-hidden="true">&rarr;</span></span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="workflow-section" id="how-it-works" aria-labelledby="workflow-heading">
+      <div class="wrap workflow-card">
+        <div class="workflow-copy">
+          <p class="eyebrow">Start where you are</p>
+          <h2 id="workflow-heading">A study flow that stays together.</h2>
+          <p>Build your routine a step at a time, with the tools you need close by.</p>
+          <a class="cta" href="/register">Create your workspace <span aria-hidden="true">&rarr;</span></a>
+        </div>
+        <ol class="workflow-steps">
+          <li><span>01</span><div><h3>Set up your week</h3><p>Add class times and make space for focused study.</p></div></li>
+          <li><span>02</span><div><h3>Gather course materials</h3><p>Keep notes, files, and useful links with each course.</p></div></li>
+          <li><span>03</span><div><h3>Review and practise</h3><p>Revisit your materials and use AI Lab to quiz yourself.</p></div></li>
+        </ol>
+      </div>
+    </section>
   </main>
-  <footer class="site-footer">
+    <footer class="site-footer">
     <div class="wrap">
-      <div class="footer-directory">
+      <div class="footer-grid">
         <div class="footer-brand">
           <a class="brand" href="/" aria-label="Scholars Canvas home">
             <img src="/favicon.svg" width="42" height="42" alt="">
             Scholars Canvas
           </a>
-          <p>Your class schedule, course materials, and study tools in one workspace.</p>
+          <p>Plan your studies. Organize your resources. Keep learning.</p>
         </div>
-        <nav class="footer-links" aria-labelledby="study-links">
-          <h2 id="study-links">Study tools</h2>
+        <nav class="footer-col" aria-label="Study tools">
+          <h2>Study tools</h2>
           <ul>
-            <li><a href="#weekly-planner">Weekly planner</a></li>
+            <li><a href="#tools">Workspace preview</a></li><li><a href="#weekly-planner">Weekly planner</a></li>
             <li><a href="#course-vault">Course vault</a></li>
-            <li><a href="#ai-lab">AI Lab</a></li>
+            <li><a href="#ai-lab">AI Lab</a></li><li><a href="#features">All features</a></li><li><a href="#how-it-works">How it works</a></li>
           </ul>
         </nav>
-        <nav class="footer-links" aria-labelledby="account-links">
-          <h2 id="account-links">Account</h2>
+        <nav class="footer-col" aria-label="Account">
+          <h2>Your account</h2>
           <ul>
             <li><a href="/login">Sign in</a></li>
             <li><a href="/register">Create an account</a></li>
             <li><a href="/forgot-password">Reset password</a></li>
           </ul>
         </nav>
-      </div>
-      <section class="developer-card" id="developer" aria-labelledby="developer-heading">
-        <div class="identity">
-          <img src="/developer-portrait.jpg" alt="" width="64" height="64" loading="lazy" decoding="async">
-          <div>
-            <h2 id="developer-heading">Developer</h2>
-            <h3>Md. Shoaib Sikder</h3>
-            <p>Full-Stack Web Developer</p>
+        <section class="footer-developer" aria-labelledby="footer-developer-heading">
+          <h2 id="footer-developer-heading">Developer</h2>
+          <div class="footer-developer__profile">
+            <img src="/developer-portrait.jpg" alt="Md. Shoaib Sikder" width="64" height="64" loading="lazy" decoding="async">
+            <div>
+              <p class="footer-developer__name">Md. Shoaib Sikder</p>
+              <p class="footer-developer__role">Full-Stack Web Developer</p>
+            </div>
           </div>
-        </div>
-        <p class="developer-bio">Passionate full-stack web developer specializing in Django and React.js. Building modern, scalable web apps.</p>
-        <nav class="profiles" aria-label="Developer links">
-          <a href="https://github.com/ShoaibSikder" aria-label="GitHub" title="GitHub" target="_blank" rel="noreferrer"><svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"></path><path d="M9 18c-4.51 2-5-2-7-2"></path></svg></a>
-          <a href="https://www.linkedin.com/in/md-shoaib-sikder-232abb3b3/" aria-label="LinkedIn" title="LinkedIn" target="_blank" rel="noreferrer"><svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect width="4" height="12" x="2" y="9"></rect><circle cx="4" cy="4" r="2"></circle></svg></a>
-          <a href="https://www.instagram.com/shoaibsikder0" aria-label="Instagram" title="Instagram" target="_blank" rel="noreferrer"><svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"></line></svg></a>
-          <a href="https://www.facebook.com/shoaib.sikder.35" aria-label="Facebook" title="Facebook" target="_blank" rel="noreferrer"><svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg></a>
-          <a href="https://shoaibsikderportfolio.vercel.app" aria-label="Portfolio" title="Portfolio" target="_blank" rel="noreferrer"><svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M21.54 15H17a2 2 0 0 0-2 2v4.54"></path><path d="M7 3.34V5a3 3 0 0 0 3 3a2 2 0 0 1 2 2c0 1.1.9 2 2 2a2 2 0 0 0 2-2c0-1.1.9-2 2-2h3.17"></path><path d="M11 21.95V18a2 2 0 0 0-2-2a2 2 0 0 1-2-2v-1a2 2 0 0 0-2-2H2.05"></path><circle cx="12" cy="12" r="10"></circle></svg></a>
-          <a href="mailto:shoaibsikder0@gmail.com" aria-label="Email" title="Email"><svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7"></path><rect x="2" y="4" width="20" height="16" rx="2"></rect></svg></a>
-        </nav>
-      </section>
-      <div class="footer-base">
-        <small>© 2026 Scholars Canvas</small>
-        <a href="#page-top">Back to top <span aria-hidden="true">↑</span></a>
+          <p class="footer-developer__bio">Passionate full-stack web developer specializing in Django and React.js. Building modern, scalable web apps.</p>
+        <nav class="footer-socials" aria-label="Developer social and contact links">
+                  <a href="https://github.com/ShoaibSikder" aria-label="GitHub" title="GitHub" target="_blank" rel="noreferrer"><svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"></path><path d="M9 18c-4.51 2-5-2-7-2"></path></svg></a>
+                  <a href="https://www.linkedin.com/in/md-shoaib-sikder-232abb3b3/" aria-label="LinkedIn" title="LinkedIn" target="_blank" rel="noreferrer"><svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect width="4" height="12" x="2" y="9"></rect><circle cx="4" cy="4" r="2"></circle></svg></a>
+                  <a href="https://www.instagram.com/shoaibsikder0" aria-label="Instagram" title="Instagram" target="_blank" rel="noreferrer"><svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"></line></svg></a>
+                  <a href="https://www.facebook.com/shoaib.sikder.35" aria-label="Facebook" title="Facebook" target="_blank" rel="noreferrer"><svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg></a>
+                  <a href="https://shoaibsikderportfolio.vercel.app" aria-label="Portfolio" title="Portfolio" target="_blank" rel="noreferrer"><svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M21.54 15H17a2 2 0 0 0-2 2v4.54"></path><path d="M7 3.34V5a3 3 0 0 0 3 3a2 2 0 0 1 2 2c0 1.1.9 2 2 2a2 2 0 0 0 2-2c0-1.1.9-2 2-2h3.17"></path><path d="M11 21.95V18a2 2 0 0 0-2-2a2 2 0 0 1-2-2v-1a2 2 0 0 0-2-2H2.05"></path><circle cx="12" cy="12" r="10"></circle></svg></a>
+                  <a href="mailto:shoaibsikder0@gmail.com" aria-label="Email" title="Email"><svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7"></path><rect x="2" y="4" width="20" height="16" rx="2"></rect></svg></a>
+                </nav>
+        </section>
+      </div>
+      <div class="footer-legal">
+        <p>&copy; 2026 Scholars Canvas. All rights reserved.</p>
+        <p>Made with <span class="footer-heart" aria-hidden="true">&hearts;</span> by Md. Shoaib Sikder.</p>
+        <a href="#page-top">Back to top <span aria-hidden="true">&uarr;</span></a>
       </div>
     </div>
   </footer>
